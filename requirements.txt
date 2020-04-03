@@ -1,0 +1,2 @@
+requests_oauthlib
+selenium
