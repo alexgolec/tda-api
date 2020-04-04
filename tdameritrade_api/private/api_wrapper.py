@@ -1,16 +1,10 @@
 import datetime
 import json
 
-class BaseWrapper:
-    def __init__(self, api_key, session, account_id=None):
+class BaseClient:
+    def __init__(self, api_key, session):
         self.api_key = api_key
         self.session = session
-        self.account_id = account_id
-
-    def __account_id(self):
-        if self.account_id is None:
-            raise ValueError('client initialized without account ID')
-        return self.account_id
 
 
     def __format_datetime(self, dt):
