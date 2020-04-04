@@ -24,17 +24,23 @@ class TDAmeritradeAPIWrapper:
 
     def __get_request(self, path, params):
         dest = 'https://api.tdameritrade.com' + path
-        return json.loads(self.session.get(dest, params=params).text)
+        resp = self.session.get(dest, params=params)
+        return resp
 
 
     def __post_request(self, path, data):
         dest = 'https://api.tdameritrade.com' + path
-        return json.loads(self.session.post(dest, data=data).text)
+        return self.session.post(dest, json=data)
+
+
+    def __put_request(self, path, data):
+        dest = 'https://api.tdameritrade.com' + path
+        return self.session.put(dest, json=data)
 
 
     def __delete_request(self, path):
         dest = 'https://api.tdameritrade.com' + path
-        return json.loads(self.session.delete(dest).text)
+        return self.session.delete(dest)
 
     
     ############################################################################
@@ -122,3 +128,34 @@ class TDAmeritradeAPIWrapper:
         path = '/v1/accounts/{}/orders/{}'.format(account_id, order_id)
         return self.__post_request(path, order_spec)
 
+
+    ############################################################################
+    # Saved Orders
+
+
+    def create_saved_order(self, account_id, order_spec):
+        'Save an order for a specific account.'
+        path = '/v1/accounts/{}/savedorders'.format(account_id)
+        return self.__post_request(path, order_spec)
+
+
+    def delete_saved_order(self, account_id, order_id):
+        'Delete a specific saved order for a specific account.'
+        path = '/v1/accounts/{}/savedorders/{}'.format(account_id, order_id)
+        return self.__delete_request(path)
+
+
+    def get_saved_order(self, account_id, order_id):
+        'Specific saved order by its ID, for a specific account.'
+        path = '/v1/accounts/{}/savedorders/{}'.format(account_id, order_id)
+        return self.__get_request(path, {})
+
+
+    def get_saved_orders_by_path(self, account_id):
+        path = '/v1/accounts/{}/savedorders'.format(account_id)
+        return self.__get_request(path, {})
+
+
+    def replace_saved_order(self, account_id, order_id, order_spec):
+        path = '/v1/accounts/{}/savedorders/{}'.format(account_id, order_id)
+        return self.__put_request(path, order_spec)
