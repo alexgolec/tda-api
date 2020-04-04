@@ -52,7 +52,7 @@ def get_client(secrets_path, api_key, redirect_uri):
     update_token(token)
 
     # Return a new session configured to refresh credentials
-    return api_wrapper.TDAmeritradeAPIWrapper(
+    return api_wrapper.BaseTDAAPIWrapper(
             api_key,
             OAuth2Session(api_key, token=token,
                 auto_refresh_url='https://api.tdameritrade.com/v1/oauth2/token',

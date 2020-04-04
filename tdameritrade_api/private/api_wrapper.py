@@ -1,7 +1,7 @@
 import datetime
 import json
 
-class TDAmeritradeAPIWrapper:
+class BaseTDAAPIWrapper:
     def __init__(self, api_key, session, account_id=None):
         self.api_key = api_key
         self.session = session
@@ -19,9 +19,14 @@ class TDAmeritradeAPIWrapper:
         tz_offset = dt.strftime('%z')
         tz_offset = tz_offset if tz_offset else '+0000'
 
-        return dt.strftime('%Y-%m-%5T%H:%M:%S') + tz_offset
+        return dt.strftime('%Y-%m-%dT%H:%M:%S') + tz_offset
 
 
+    def __datetime_as_millis(self, dt):
+        'Converts datetime objects to compatible millisecond values'
+        return int(dt.timestamp() * 1000)
+
+    
     def __get_request(self, path, params):
         dest = 'https://api.tdameritrade.com' + path
         resp = self.session.get(dest, params=params)
@@ -186,3 +191,198 @@ class TDAmeritradeAPIWrapper:
 
         path = '/v1/accounts'
         return self.__get_request(path, params)
+
+
+    ############################################################################
+    # Instruments
+
+
+    def search_instruments(self, symbol, projection):
+        'Search or retrieve instrument data, including fundamental data.'
+        params = {
+                'apikey': self.api_key,
+                'symbol': symbol,
+                'projection': projection,
+        }
+
+        path = '/v1/instruments'
+        return self.__get_request(path, params)
+
+
+    def get_instrument(self, cusip):
+        'Get an instrument by CUSIP'
+        if not isinstance(cusip, str):
+            raise ValueError('CUSIPs must be passed as strings to preserve ' +
+                             'leading zeroes')
+
+        params = {
+                'apikey': self.api_key,
+        }
+
+        path = '/v1/instruments/{}'.format(cusip)
+        return self.__get_request(path, params)
+
+
+    ############################################################################
+    # Market Hours
+
+
+    def get_hours_for_multiple_markets(self, markets, date):
+        'Retrieve market hours for specified markets'
+        params = {
+                'apikey': self.api_key,
+                'markets': ','.join(markets),
+                'date': self.__format_datetime(date),
+        }
+        print(params)
+
+        path = '/v1/marketdata/hours'
+        return self.__get_request(path, params)
+
+
+    def get_hours_for_a_single_market(self, market, date):
+        'Retrieve market hours for specified single market'
+        params = {
+                'apikey': self.api_key,
+                'date': self.__format_datetime(date),
+        }
+        print(params)
+
+        path = '/v1/marketdata/{}/hours'.format(market)
+        return self.__get_request(path, params)
+
+    
+    ############################################################################
+    # Movers
+
+
+    def get_movers(self, index, direction, change):
+        'Search or retrieve instrument data, including fundamental data.'
+        params = {
+                'apikey': self.api_key,
+                'direction': direction,
+                'change': change,
+        }
+
+        path = '/v1/marketdata/{}/movers'.format(index)
+        return self.__get_request(path, params)
+
+
+    ############################################################################
+    # Option Chains
+
+
+    def get_option_chain(
+            self,
+            symbol,
+            contract_type='ALL',
+            strike_count=None,
+            include_quotes=False,
+            strategy=None,
+            interval=None,
+            strike=None,
+            strike_range='ALL',
+            strike_from_date=None,
+            strike_to_date=None,
+            volatility=None,
+            underlying_price=None,
+            interest_rate=None,
+            days_to_expiration=None,
+            exp_month='ALL',
+            option_type='ALL'):
+        'Get option chain for an optionable Symbol'
+        params = {
+                'apikey': self.api_key,
+                'symbol': symbol,
+                'includeQuotes': include_quotes,
+                'contractType': contract_type,
+                'range': strike_range,
+                'expMonth': exp_month,
+                'optionType': option_type,
+        }
+
+        if strike_count is not None:
+            params['strikeCount'] = strike_count
+        if strategy is not None:
+            params['strategy'] = strategy
+        if interval is not None:
+            params['interval'] = interval
+        if strike is not None:
+            params['strike'] = strike
+        if strike_from_date is not None:
+            params['fromDate'] = self.__format_datetime(strike_from_date)
+        if strike_to_date is not None:
+            params['toDate'] = self.__format_datetime(strike_to_date)
+        if volatility is not None:
+            params['volatility'] = volatility
+        if underlying_price is not None:
+            params['underlyingPrice'] = underlying_price
+        if interest_rate is not None:
+            params['interestRate'] = interest_rate
+        if days_to_expiration is None:
+            params['daysToExpiration'] = days_to_expiration
+
+        path = '/v1/marketdata/chains'
+        return self.__get_request(path, params)
+
+
+    ############################################################################
+    # Price History
+
+
+    def get_price_history(
+            self,
+            symbol,
+            period_type='day',
+            num_periods=None,
+            frequency_type=None,
+            frequency=1,
+            start_date=None,
+            end_date=None,
+            need_extended_hours_data=False):
+        'Get price history for a symbol'
+        params = {
+                'apikey': self.api_key,
+                'symbol': symbol,
+                'periodType': period_type,
+                'frequency': frequency,
+                'needExtendedHoursData': need_extended_hours_data,
+        }
+
+        if num_periods is not None:
+            params['period'] = num_periods
+        if frequency_type is not None:
+            params['frequencyType'] = frequency_type
+        if start_date is not None:
+            params['startDate'] = self.__datetime_as_millis(start_date)
+        if end_date is not None:
+            params['endDate'] = self.__datetime_as_millis(end_date)
+
+        path = '/v1/marketdata/{}/pricehistory'.format(symbol)
+        return self.__get_request(path, params)
+
+
+    ############################################################################
+    # Quotes
+
+
+    def get_quote(self, symbol):
+        'Get quote for a symbol'
+        params = {
+                'apikey': self.api_key,
+        }
+
+        path = '/v1/marketdata/{}/quotes'.format(symbol)
+        return self.__get_request(path, params)
+
+
+    def get_quotes(self, symbols):
+        'Get quote for a symbol'
+        params = {
+                'apikey': self.api_key,
+                'symbol': ','.join(symbols)
+        }
+
+        path = '/v1/marketdata/quotes'
+        return self.__get_request(path, params)
+
