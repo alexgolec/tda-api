@@ -152,10 +152,37 @@ class TDAmeritradeAPIWrapper:
 
 
     def get_saved_orders_by_path(self, account_id):
+        'Saved orders for a specific account.'
         path = '/v1/accounts/{}/savedorders'.format(account_id)
         return self.__get_request(path, {})
 
 
     def replace_saved_order(self, account_id, order_id, order_spec):
+        '''Replace an existing saved order for an account. The existing saved 
+        order will be replaced by the new order.'''
         path = '/v1/accounts/{}/savedorders/{}'.format(account_id, order_id)
         return self.__put_request(path, order_spec)
+
+
+    ############################################################################
+    # Accounts
+
+
+    def get_account(self, account_id, fields=None):
+        'Account balances, positions, and orders for a specific account.'
+        params = {}
+        if fields:
+            params['fields'] = ','.join(fields)
+
+        path = '/v1/accounts/{}'.format(account_id)
+        return self.__get_request(path, params)
+
+
+    def get_accounts(self, fields=None):
+        'Account balances, positions, and orders for a specific account.'
+        params = {}
+        if fields:
+            params['fields'] = ','.join(fields)
+
+        path = '/v1/accounts'
+        return self.__get_request(path, params)
