@@ -1,7 +1,7 @@
 import datetime
 import json
 
-class BaseTDAAPIWrapper:
+class BaseWrapper:
     def __init__(self, api_key, session, account_id=None):
         self.api_key = api_key
         self.session = session
@@ -20,6 +20,14 @@ class BaseTDAAPIWrapper:
         tz_offset = tz_offset if tz_offset else '+0000'
 
         return dt.strftime('%Y-%m-%dT%H:%M:%S') + tz_offset
+
+
+    def __format_date(self, dt):
+        '''Formats datetime objects appropriately, depending on whether they are 
+        naive or timezone-aware'''
+        d = datetime.date(year=dt.year, month=dt.month, day=dt.day)
+
+        return d.isoformat()
 
 
     def __datetime_as_millis(self, dt):
@@ -41,6 +49,11 @@ class BaseTDAAPIWrapper:
     def __put_request(self, path, data):
         dest = 'https://api.tdameritrade.com' + path
         return self.session.put(dest, json=data)
+
+
+    def __patch_request(self, path, data):
+        dest = 'https://api.tdameritrade.com' + path
+        return self.session.patch(dest, json=data)
 
 
     def __delete_request(self, path):
@@ -386,3 +399,139 @@ class BaseTDAAPIWrapper:
         path = '/v1/marketdata/quotes'
         return self.__get_request(path, params)
 
+
+    ############################################################################
+    # Transaction History
+
+
+    def get_transaction(self, account_id, transaction_id):
+        'Transaction for a specific account.'
+        params = {
+                'apikey': self.api_key,
+        }
+
+        path = '/v1/accounts/{}/transactions/{}'.format(
+                account_id, transaction_id)
+        return self.__get_request(path, params)
+
+
+    def get_transactions(
+            self,
+            account_id,
+            transaction_type=None,
+            symbol=None,
+            start_date=None,
+            end_date=None):
+        'Transaction for a specific account.'
+        params = {
+                'apikey': self.api_key,
+        }
+
+        if transaction_type is not None:
+            params['type'] = transaction_type
+        if symbol is not None:
+            params['symbol'] = symbol
+        if start_date is not None:
+            params['startDate'] = self.__format_date(start_date)
+        if end_date is not None:
+            params['endDate'] = self.__format_date(end_date)
+
+        path = '/v1/accounts/{}/transactions'.format(account_id)
+        return self.__get_request(path, params)
+
+
+    ############################################################################
+    # User Info and Preferences
+
+
+    def get_preferences(self, account_id):
+        'Preferences for a specific account.'
+        params = {
+                'apikey': self.api_key,
+        }
+
+        path = '/v1/accounts/{}/preferences'.format(account_id)
+        return self.__get_request(path, params)
+
+
+    def get_streamer_subscription_keys(self, account_ids):
+        'SubscriptionKey for provided accounts or default accounts.'
+        params = {
+                'apikey': self.api_key,
+                'accountIds': ','.join(str(i) for i in account_ids)
+        }
+
+        path = '/v1/userprincipals/streamersubscriptionkeys'
+        return self.__get_request(path, params)
+
+
+    def get_user_principals(self, fields=None):
+        'User Principal details.'
+        params = {
+                'apikey': self.api_key,
+        }
+
+        if fields is not None:
+            params['fields'] = ','.join(fields)
+
+        path = '/v1/userprincipals'
+        return self.__get_request(path, params)
+
+
+    def update_preferences(self, preferences):
+        '''Update preferences for a specific account.
+
+        Please note that the directOptionsRouting and directEquityRouting values
+        cannot be modified via this operation.'''
+        path = '/v1/accounts/498824686/preferences'
+        return self.__put_request(path, preferences)
+
+
+    ############################################################################
+    # Watchlist
+
+
+    def create_watchlist(self, account_id ,watchlist_spec):
+        ''''Create watchlist for specific account.This method does not verify
+        that the symbol or asset type are valid.'''
+        path = '/v1/accounts/{}/watchlists'.format(account_id)
+        return self.__post_request(path, watchlist_spec)
+
+
+    def delete_watchlist(self, account_id, watchlist_id):
+        'Delete watchlist for a specific account.'
+        path = '/v1/accounts/{}/watchlists/{}'.format(account_id, watchlist_id)
+        return self.__delete_request(path)
+
+
+    def get_watchlist(self, account_id, watchlist_id):
+        'Specific watchlist for a specific account.'
+        path = '/v1/accounts/{}/watchlists/{}'.format(account_id, watchlist_id)
+        return self.__get_request(path)
+
+
+    def get_watchlists_for_multiple_accounts(self):
+        'All watchlists for all of the user\'s linked accounts.'
+        path = '/v1/accounts/watchlists'
+        return self.__get_request(path, params={})
+
+
+    def get_watchlists_for_single_account(self, account_id):
+        'All watchlists of an account.'
+        path = '/v1/accounts/{}/watchlists'.format(account_id)
+        return self.__get_request(path, params={})
+
+
+    def replace_watchlist(self, account_id, watchlist_id, watchlist_spec):
+        '''Replace watchlist for a specific account. This method does not verify 
+        that the symbol or asset type are valid. '''
+        path = '/v1/accounts/{}/watchlists/{}'.format(account_id, watchlist_id)
+        return self.__put_request(path, watchlist_spec)
+
+
+    def update_watchlist(self, account_id, watchlist_id, watchlist_spec):
+        '''Partially update watchlist for a specific account: change watchlist 
+        name, add to the beginning/end of a watchlist, update or delete items in 
+        a watchlist. This method does not verify that the symbol or asset type 
+        are valid.'''
+        path = '/v1/accounts/{}/watchlists/{}'.format(account_id, watchlist_id)
