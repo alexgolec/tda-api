@@ -1,2 +1,3 @@
+nose
 requests_oauthlib
 selenium

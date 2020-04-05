@@ -13,7 +13,23 @@ interface over each endpoint. Notable functionality includes:
 * Trades and trade management
 * Account info and preferences
 
-To demonstrate, here's how you can authenticate and fetch daily historical price data for the past twenty years:
+How do I use ``tda-api``?
+-------------------------
+
+Before you do anything, create an account and an application on the
+[TD Ameritrade developer website](https://developer.tdameritrade.com/). You'll 
+receive an API key, also known as a Client Id, which you can pass to this 
+wrapper. You'll also want to take note of your callback URI, as the login flow 
+requires it.
+
+Next, install ``tda-api``:
+
+```
+pip install tda-api
+```
+
+You're good to go! To demonstrate, here's how you can authenticate and fetch
+daily historical price data for the past twenty years:
 
 ```python
 from tda import client
