@@ -101,7 +101,7 @@ class TestClient(unittest.TestCase):
             })
 
     @patch('datetime.datetime', mockdatetime)
-    def test_get_orders_by_path_from_entered_datetime(self):
+    def test_get_orders_by_path_to_entered_datetime(self):
         self.client.get_orders_by_path(
             ACCOUNT_ID, to_entered_datetime=EARLIER_DATETIME)
         self.mock_session.get.assert_called_once_with(
@@ -194,7 +194,7 @@ class TestClient(unittest.TestCase):
             })
 
     @patch('datetime.datetime', mockdatetime)
-    def test_get_orders_by_query_from_entered_datetime(self):
+    def test_get_orders_by_query_to_entered_datetime(self):
         self.client.get_orders_by_query(to_entered_datetime=EARLIER_DATETIME)
         self.mock_session.get.assert_called_once_with(
             self.make_url('/v1/orders'), params={
@@ -670,7 +670,7 @@ class TestClient(unittest.TestCase):
                 'apikey': API_KEY,
                 'frequency': 5})
 
-    def test_get_price_history_frequency(self):
+    def test_get_price_history_frequency_unchecked(self):
         self.client.set_enforce_enums(False)
         self.client.get_price_history(SYMBOL, frequency=5)
         self.mock_session.get.assert_called_once_with(
