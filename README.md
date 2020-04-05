@@ -1,9 +1,12 @@
-# tda-api
+# ``tda-api``: A TD Ameritrade API Wrapper
 
 What is ``tda-api``?
 --------------------
 
-``tda-api`` is an unofficial wrapper around the [TD Ameritrade APIs](https://developer.tdameritrade.com/apis). It strives to be as thin and unopinionated as possible, offering an elegant programmatic interface over each endpoint. Notable functionality includes:
+``tda-api`` is an unofficial wrapper around the
+[TD Ameritrade APIs](https://developer.tdameritrade.com/apis). It strives to be
+as thin and unopinionated as possible, offering an elegant programmatic
+interface over each endpoint. Notable functionality includes:
 * Login and authentication
 * Quotes, fundamentals, and historical pricing data
 * Options chains
@@ -49,12 +52,15 @@ Why should I use ``tda-api``?
 2. **Minimal API Wrapping**: Unlike some other API wrappers, which build in lots 
    of logic and validation, ``tda-api`` takes raw values and returns raw 
    responses, allowing you to interpret the complex API responses as you see 
-   fit. Anything you can do with raw HTTP requests you can do with ``tda-api``.
+   fit. Anything you can do with raw HTTP requests you can do with ``tda-api``, 
+   only more easily.
 
 What else?
 ----------
 
-Bug reports, suggestions, and patches are always welcome! Submit issues [here](https://github.com/alexgolec/tda-api/issues) and pull requests [here](https://github.com/alexgolec/tda-api/pulls).
+Bug reports, suggestions, and patches are always welcome! Submit issues
+[here](https://github.com/alexgolec/tda-api/issues) and pull requests
+[here](https://github.com/alexgolec/tda-api/pulls).
 
 ``tda-api`` is released under the
 [MIT license](https://github.com/alexgolec/tda-api/blob/master/LICENSE).
