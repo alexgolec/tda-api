@@ -2,7 +2,7 @@ import datetime
 import unittest
 from unittest.mock import ANY, MagicMock, Mock, patch
 
-from tdameritrade_api import client
+from tdameritrade_api.client import Client
 
 # Constants
 
@@ -11,7 +11,7 @@ ACCOUNT_ID = 100000
 ORDER_ID = 200000
 SAVED_ORDER_ID = 300000
 CUSIP = '000919239'
-MARKET = 'NYSE'
+MARKET = 'EQUITY'
 INDEX = '$SPX.X'
 SYMBOL = 'AAPL'
 TRANSACTION_ID = 400000
@@ -39,7 +39,7 @@ class TestClient(unittest.TestCase):
 
     def setUp(self):
         self.mock_session = MagicMock()
-        self.client = client.Client(API_KEY, self.mock_session)
+        self.client = Client(API_KEY, self.mock_session)
 
     def make_url(self, path):
         path = path.format(
@@ -114,10 +114,22 @@ class TestClient(unittest.TestCase):
     def test_get_orders_by_path_status_and_statuses(self):
         self.assertRaises(ValueError, lambda: self.client.get_orders_by_path(
             ACCOUNT_ID, to_entered_datetime=EARLIER_DATETIME,
-            status='EXPIRED', statuses=['FILLED', 'EXPIRED']))
+            status='EXPIRED', statuses=[Client.Order.Status.FILLED]))
 
     @patch('datetime.datetime', mockdatetime)
     def test_get_orders_by_path_status(self):
+        self.client.get_orders_by_path(
+            ACCOUNT_ID, status=Client.Order.Status.FILLED)
+        self.mock_session.get.assert_called_once_with(
+            self.make_url('/v1/accounts/{accountId}/orders'), params={
+                'fromEnteredTime': MIN_ISO,
+                'toEnteredTime': NOW_ISO,
+                'status': 'FILLED'
+            })
+
+    @patch('datetime.datetime', mockdatetime)
+    def test_get_orders_by_path_status_unchecked(self):
+        self.client.set_enforce_enums(False)
         self.client.get_orders_by_path(ACCOUNT_ID, status='FILLED')
         self.mock_session.get.assert_called_once_with(
             self.make_url('/v1/accounts/{accountId}/orders'), params={
@@ -128,6 +140,20 @@ class TestClient(unittest.TestCase):
 
     @patch('datetime.datetime', mockdatetime)
     def test_get_orders_by_path_statuses(self):
+        self.client.get_orders_by_path(
+            ACCOUNT_ID, statuses=[
+                Client.Order.Status.FILLED,
+                Client.Order.Status.EXPIRED])
+        self.mock_session.get.assert_called_once_with(
+            self.make_url('/v1/accounts/{accountId}/orders'), params={
+                'fromEnteredTime': MIN_ISO,
+                'toEnteredTime': NOW_ISO,
+                'status': 'FILLED,EXPIRED'
+            })
+
+    @patch('datetime.datetime', mockdatetime)
+    def test_get_orders_by_path_statuses_unchecked(self):
+        self.client.set_enforce_enums(False)
         self.client.get_orders_by_path(
             ACCOUNT_ID, statuses=['FILLED', 'EXPIRED'])
         self.mock_session.get.assert_called_once_with(
@@ -180,10 +206,23 @@ class TestClient(unittest.TestCase):
     def test_get_orders_by_query_status_and_statuses(self):
         self.assertRaises(ValueError, lambda: self.client.get_orders_by_query(
             to_entered_datetime=EARLIER_DATETIME,
-            status='EXPIRED', statuses=['FILLED', 'EXPIRED']))
+            status='EXPIRED', statuses=[
+                Client.Order.Status.FILLED,
+                Client.Order.Status.EXPIRED]))
 
     @patch('datetime.datetime', mockdatetime)
     def test_get_orders_by_query_status(self):
+        self.client.get_orders_by_query(status=Client.Order.Status.FILLED)
+        self.mock_session.get.assert_called_once_with(
+            self.make_url('/v1/orders'), params={
+                'fromEnteredTime': MIN_ISO,
+                'toEnteredTime': NOW_ISO,
+                'status': 'FILLED'
+            })
+
+    @patch('datetime.datetime', mockdatetime)
+    def test_get_orders_by_query_status_unchecked(self):
+        self.client.set_enforce_enums(False)
         self.client.get_orders_by_query(status='FILLED')
         self.mock_session.get.assert_called_once_with(
             self.make_url('/v1/orders'), params={
@@ -194,6 +233,19 @@ class TestClient(unittest.TestCase):
 
     @patch('datetime.datetime', mockdatetime)
     def test_get_orders_by_query_statuses(self):
+        self.client.get_orders_by_query(statuses=[
+            Client.Order.Status.FILLED,
+            Client.Order.Status.EXPIRED])
+        self.mock_session.get.assert_called_once_with(
+            self.make_url('/v1/orders'), params={
+                'fromEnteredTime': MIN_ISO,
+                'toEnteredTime': NOW_ISO,
+                'status': 'FILLED,EXPIRED'
+            })
+
+    @patch('datetime.datetime', mockdatetime)
+    def test_get_orders_by_query_statuses_unchecked(self):
+        self.client.set_enforce_enums(False)
         self.client.get_orders_by_query(statuses=['FILLED', 'EXPIRED'])
         self.mock_session.get.assert_called_once_with(
             self.make_url('/v1/orders'), params={
@@ -269,6 +321,15 @@ class TestClient(unittest.TestCase):
             self.make_url('/v1/accounts/{accountId}'), params={})
 
     def test_get_account_fields(self):
+        self.client.get_account(ACCOUNT_ID, fields=[
+            Client.Account.Fields.POSITIONS,
+            Client.Account.Fields.ORDERS])
+        self.mock_session.get.assert_called_once_with(
+            self.make_url('/v1/accounts/{accountId}'),
+            params={'fields': 'positions,orders'})
+
+    def test_get_account_fields_unchecked(self):
+        self.client.set_enforce_enums(False)
         self.client.get_account(ACCOUNT_ID, fields=['positions', 'orders'])
         self.mock_session.get.assert_called_once_with(
             self.make_url('/v1/accounts/{accountId}'),
@@ -282,6 +343,15 @@ class TestClient(unittest.TestCase):
             self.make_url('/v1/accounts'), params={})
 
     def test_get_accounts_fields(self):
+        self.client.get_accounts(fields=[
+            Client.Account.Fields.POSITIONS,
+            Client.Account.Fields.ORDERS])
+        self.mock_session.get.assert_called_once_with(
+            self.make_url('/v1/accounts'),
+            params={'fields': 'positions,orders'})
+
+    def test_get_accounts_fields_unchecked(self):
+        self.client.set_enforce_enums(False)
         self.client.get_accounts(fields=['positions', 'orders'])
         self.mock_session.get.assert_called_once_with(
             self.make_url('/v1/accounts'),
@@ -290,12 +360,22 @@ class TestClient(unittest.TestCase):
     # search_instruments
 
     def test_search_instruments(self):
-        self.client.search_instruments('AAPL', 'fundamentals')
+        self.client.search_instruments(
+            'AAPL', Client.Instrument.Projection.FUNDAMENTAL)
         self.mock_session.get.assert_called_once_with(
             self.make_url('/v1/instruments'), params={
                 'apikey': API_KEY,
                 'symbol': 'AAPL',
-                'projection': 'fundamentals'})
+                'projection': 'fundamental'})
+
+    def test_search_instruments_unchecked(self):
+        self.client.set_enforce_enums(False)
+        self.client.search_instruments('AAPL', 'fundamental')
+        self.mock_session.get.assert_called_once_with(
+            self.make_url('/v1/instruments'), params={
+                'apikey': API_KEY,
+                'symbol': 'AAPL',
+                'projection': 'fundamental'})
 
     # get_instrument
 
@@ -308,18 +388,38 @@ class TestClient(unittest.TestCase):
     # get_hours_for_multiple_markets
 
     def test_get_hours_for_multiple_markets(self):
-        self.client.get_hours_for_multiple_markets(
-            ['NYSE', 'FTSE'], NOW_DATETIME)
+        self.client.get_hours_for_multiple_markets([
+            Client.Markets.EQUITY,
+            Client.Markets.BOND], NOW_DATETIME)
         self.mock_session.get.assert_called_once_with(
             self.make_url('/v1/marketdata/hours'), params={
                 'apikey': API_KEY,
-                'markets': 'NYSE,FTSE',
+                'markets': 'EQUITY,BOND',
+                'date': NOW_ISO})
+
+    def test_get_hours_for_multiple_markets_unchecked(self):
+        self.client.set_enforce_enums(False)
+        self.client.get_hours_for_multiple_markets(
+                ['EQUITY', 'BOND'], NOW_DATETIME)
+        self.mock_session.get.assert_called_once_with(
+            self.make_url('/v1/marketdata/hours'), params={
+                'apikey': API_KEY,
+                'markets': 'EQUITY,BOND',
                 'date': NOW_ISO})
 
     # get_hours_for_single_market
 
     def test_get_hours_for_single_market(self):
-        self.client.get_hours_for_single_market('NYSE', NOW_DATETIME)
+        self.client.get_hours_for_single_market(
+            Client.Markets.EQUITY, NOW_DATETIME)
+        self.mock_session.get.assert_called_once_with(
+            self.make_url('/v1/marketdata/{market}/hours'), params={
+                'apikey': API_KEY,
+                'date': NOW_ISO})
+
+    def test_get_hours_for_single_market_unchecked(self):
+        self.client.set_enforce_enums(False)
+        self.client.get_hours_for_single_market('EQUITY', NOW_DATETIME)
         self.mock_session.get.assert_called_once_with(
             self.make_url('/v1/marketdata/{market}/hours'), params={
                 'apikey': API_KEY,
@@ -328,6 +428,16 @@ class TestClient(unittest.TestCase):
     # get_movers
 
     def test_get_movers(self):
+        self.client.get_movers(
+            INDEX, Client.Movers.Direction.UP, Client.Movers.Change.PERCENT)
+        self.mock_session.get.assert_called_once_with(
+            self.make_url('/v1/marketdata/{index}/movers'), params={
+                'apikey': API_KEY,
+                'direction': 'up',
+                'change': 'percent'})
+
+    def test_get_movers_unchecked(self):
+        self.client.set_enforce_enums(False)
         self.client.get_movers(INDEX, 'up', 'percent')
         self.mock_session.get.assert_called_once_with(
             self.make_url('/v1/marketdata/{index}/movers'), params={
@@ -369,6 +479,16 @@ class TestClient(unittest.TestCase):
                 'includeQuotes': True})
 
     def test_get_option_chain_strategy(self):
+        self.client.get_option_chain(
+            'AAPL', strategy=Client.Options.Strategy.STRANGLE)
+        self.mock_session.get.assert_called_once_with(
+            self.make_url('/v1/marketdata/chains'), params={
+                'apikey': API_KEY,
+                'symbol': 'AAPL',
+                'strategy': 'STRANGLE'})
+
+    def test_get_option_chain_strategy_unchecked(self):
+        self.client.set_enforce_enums(False)
         self.client.get_option_chain('AAPL', strategy='STRANGLE')
         self.mock_session.get.assert_called_once_with(
             self.make_url('/v1/marketdata/chains'), params={
@@ -393,6 +513,16 @@ class TestClient(unittest.TestCase):
                 'strike': 123})
 
     def test_get_option_chain_strike_range(self):
+        self.client.get_option_chain(
+            'AAPL', strike_range=Client.Options.StrikeRange.IN_THE_MONEY)
+        self.mock_session.get.assert_called_once_with(
+            self.make_url('/v1/marketdata/chains'), params={
+                'apikey': API_KEY,
+                'symbol': 'AAPL',
+                'range': 'ITM'})
+
+    def test_get_option_chain_strike_range_unchecked(self):
+        self.client.set_enforce_enums(False)
         self.client.get_option_chain('AAPL', strike_range='ITM')
         self.mock_session.get.assert_called_once_with(
             self.make_url('/v1/marketdata/chains'), params={
@@ -457,6 +587,16 @@ class TestClient(unittest.TestCase):
                 'expMonth': 'JAN'})
 
     def test_get_option_chain_option_type(self):
+        self.client.get_option_chain(
+            'AAPL', option_type=Client.Options.Type.STANDARD)
+        self.mock_session.get.assert_called_once_with(
+            self.make_url('/v1/marketdata/chains'), params={
+                'apikey': API_KEY,
+                'symbol': 'AAPL',
+                'optionType': 'S'})
+
+    def test_get_option_chain_option_type_unchecked(self):
+        self.client.set_enforce_enums(False)
         self.client.get_option_chain('AAPL', option_type='S')
         self.mock_session.get.assert_called_once_with(
             self.make_url('/v1/marketdata/chains'), params={
@@ -473,6 +613,15 @@ class TestClient(unittest.TestCase):
                 'apikey': API_KEY})
 
     def test_get_price_history_period_type(self):
+        self.client.get_price_history(
+            SYMBOL, period_type=Client.PriceHistory.PeriodType.MONTH)
+        self.mock_session.get.assert_called_once_with(
+            self.make_url('/v1/marketdata/{symbol}/pricehistory'), params={
+                'apikey': API_KEY,
+                'periodType': 'month'})
+
+    def test_get_price_history_period_type_unchecked(self):
+        self.client.set_enforce_enums(False)
         self.client.get_price_history(SYMBOL, period_type='month')
         self.mock_session.get.assert_called_once_with(
             self.make_url('/v1/marketdata/{symbol}/pricehistory'), params={
@@ -480,13 +629,32 @@ class TestClient(unittest.TestCase):
                 'periodType': 'month'})
 
     def test_get_price_history_num_periods(self):
-        self.client.get_price_history(SYMBOL, num_periods=10)
+        self.client.get_price_history(
+            SYMBOL, period=Client.PriceHistory.Period.TEN_DAYS)
+        self.mock_session.get.assert_called_once_with(
+            self.make_url('/v1/marketdata/{symbol}/pricehistory'), params={
+                'apikey': API_KEY,
+                'period': 10})
+
+    def test_get_price_history_num_periods_unchecked(self):
+        self.client.set_enforce_enums(False)
+        self.client.get_price_history(SYMBOL, period=10)
         self.mock_session.get.assert_called_once_with(
             self.make_url('/v1/marketdata/{symbol}/pricehistory'), params={
                 'apikey': API_KEY,
                 'period': 10})
 
     def test_get_price_history_frequency_type(self):
+        self.client.get_price_history(
+            SYMBOL,
+            frequency_type=Client.PriceHistory.FrequencyType.DAILY)
+        self.mock_session.get.assert_called_once_with(
+            self.make_url('/v1/marketdata/{symbol}/pricehistory'), params={
+                'apikey': API_KEY,
+                'frequencyType': 'daily'})
+
+    def test_get_price_history_frequency_type_unchecked(self):
+        self.client.set_enforce_enums(False)
         self.client.get_price_history(SYMBOL, frequency_type='daily')
         self.mock_session.get.assert_called_once_with(
             self.make_url('/v1/marketdata/{symbol}/pricehistory'), params={
@@ -494,6 +662,16 @@ class TestClient(unittest.TestCase):
                 'frequencyType': 'daily'})
 
     def test_get_price_history_frequency(self):
+        self.client.get_price_history(
+            SYMBOL,
+            frequency=Client.PriceHistory.Frequency.EVERY_FIVE_MINUTES)
+        self.mock_session.get.assert_called_once_with(
+            self.make_url('/v1/marketdata/{symbol}/pricehistory'), params={
+                'apikey': API_KEY,
+                'frequency': 5})
+
+    def test_get_price_history_frequency(self):
+        self.client.set_enforce_enums(False)
         self.client.get_price_history(SYMBOL, frequency=5)
         self.mock_session.get.assert_called_once_with(
             self.make_url('/v1/marketdata/{symbol}/pricehistory'), params={
@@ -556,6 +734,16 @@ class TestClient(unittest.TestCase):
                 'apikey': API_KEY})
 
     def test_get_transactions_type(self):
+        self.client.get_transactions(
+            ACCOUNT_ID,
+            transaction_type=Client.Transactions.TransactionType.DIVIDEND)
+        self.mock_session.get.assert_called_once_with(
+            self.make_url('/v1/accounts/{accountId}/transactions'), params={
+                'apikey': API_KEY,
+                'type': 'DIVIDEND'})
+
+    def test_get_transactions_type_unchecked(self):
+        self.client.set_enforce_enums(False)
         self.client.get_transactions(ACCOUNT_ID, transaction_type='DIVIDEND')
         self.mock_session.get.assert_called_once_with(
             self.make_url('/v1/accounts/{accountId}/transactions'), params={
@@ -611,7 +799,18 @@ class TestClient(unittest.TestCase):
 
     def test_get_user_principals_fields(self):
         self.client.get_user_principals(
-                fields=['streamerSubscriptionKeys', 'preferences'])
+            fields=[
+                Client.UserPrincipals.Fields.STREAMER_SUBSCRIPTION_KEYS,
+                Client.UserPrincipals.Fields.PREFERENCES])
+        self.mock_session.get.assert_called_once_with(
+            self.make_url('/v1/userprincipals'), params={
+                'apikey': API_KEY,
+                'fields': 'streamerSubscriptionKeys,preferences'})
+
+    def test_get_user_principals_fields_unchecked(self):
+        self.client.set_enforce_enums(False)
+        self.client.get_user_principals(
+            fields=['streamerSubscriptionKeys', 'preferences'])
         self.mock_session.get.assert_called_once_with(
             self.make_url('/v1/userprincipals'), params={
                 'apikey': API_KEY,
@@ -682,5 +881,3 @@ class TestClient(unittest.TestCase):
         self.mock_session.patch.assert_called_once_with(
             self.make_url('/v1/accounts/{accountId}/watchlists/{watchlistId}'),
             json=watchlist)
-
-

@@ -1,3 +1,4 @@
+from enum import Enum, unique
 from requests_oauthlib import OAuth2Session
 
 import datetime
@@ -79,9 +80,13 @@ class Client:
     checking status codes. For methdods which support responses, they can be
     found in the response object's `json()` method.'''
 
-    def __init__(self, api_key, session):
+    def __init__(self, api_key, session, *, enforce_enums=True):
         self.api_key = api_key
         self.session = session
+        self.enforce_enums = enforce_enums
+
+    def set_enforce_enums(self, enforce_enums):
+        self.enforce_enums = enforce_enums
 
     def __format_datetime(self, dt):
         '''Formats datetime objects appropriately, depending on whether they are
@@ -123,6 +128,38 @@ class Client:
         dest = 'https://api.tdameritrade.com' + path
         return self.session.delete(dest)
 
+    def __type_error(self, value, required_enum_type):
+        raise ValueError(
+            ('expected type "{}", got type "{}" (initialize with ' +
+             'enforce_enums=True to disable this checking)').format(
+                required_enum_type.__name__,
+                type(value).__name__))
+
+    def __convert_enum(self, value, required_enum_type):
+        if value is None:
+            return None
+
+        if isinstance(value, required_enum_type):
+            return value.value
+        elif self.enforce_enums:
+            self.__type_error(value, required_enum_type)
+        else:
+            return value
+
+    def __convert_enum_iterable(self, iterable, required_enum_type):
+        if iterable is None:
+            return None
+
+        values = []
+        for value in iterable:
+            if isinstance(value, required_enum_type):
+                values.append(value.value)
+            elif self.enforce_enums:
+                self.__type_error(value, required_enum_type)
+            else:
+                values.append(value)
+        return values
+
     ##########################################################################
     # Orders
 
@@ -136,6 +173,24 @@ class Client:
         path = '/v1/accounts/{}/orders/{}'.format(account_id, order_id)
         return self.__get_request(path, {})
 
+    class Order:
+        class Status(Enum):
+            AWAITING_PARENT_ORDER = 'AWAITING_PARENT_ORDER'
+            AWAITING_CONDITION = 'AWAITING_CONDITION'
+            AWAITING_MANUAL_REVIEW = 'AWAITING_MANUAL_REVIEW'
+            ACCEPTED = 'ACCEPTED'
+            AWAITING_UR_OUR = 'AWAITING_UR_OUR'
+            PENDING_ACTIVATION = 'PENDING_ACTIVATION'
+            QUEUED = 'QUEUED'
+            WORKING = 'WORKING'
+            REJECTED = 'REJECTED'
+            PENDING_CANCEL = 'PENDING_CANCEL'
+            CANCELLED = 'CANCELLED'
+            PENDING_REPLACE = 'PENDING_REPLACE'
+            REPLACED = 'REPLACED'
+            FILLED = 'FILLED'
+            EXPIRED = 'EXPIRED'
+
     def __make_order_query(self,
                            *,
                            max_results=None,
@@ -143,6 +198,9 @@ class Client:
                            to_entered_datetime=None,
                            status=None,
                            statuses=None):
+        status = self.__convert_enum(status, self.Order.Status)
+        statuses = self.__convert_enum_iterable(statuses, self.Order.Status)
+
         if from_entered_datetime is None:
             from_entered_datetime = datetime.datetime.min
         if to_entered_datetime is None:
@@ -242,8 +300,15 @@ class Client:
     ##########################################################################
     # Accounts
 
+    class Account:
+        class Fields(Enum):
+            POSITIONS = 'positions'
+            ORDERS = 'orders'
+
     def get_account(self, account_id, *, fields=None):
         'Account balances, positions, and orders for a specific account.'
+        fields = self.__convert_enum_iterable(fields, self.Account.Fields)
+
         params = {}
         if fields:
             params['fields'] = ','.join(fields)
@@ -253,6 +318,8 @@ class Client:
 
     def get_accounts(self, *, fields=None):
         'Account balances, positions, and orders for a specific account.'
+        fields = self.__convert_enum_iterable(fields, self.Account.Fields)
+
         params = {}
         if fields:
             params['fields'] = ','.join(fields)
@@ -263,8 +330,18 @@ class Client:
     ##########################################################################
     # Instruments
 
+    class Instrument:
+        class Projection(Enum):
+            SYMBOL_SEARCH = 'symbol-search'
+            SYMBOL_REGEX = 'symbol-regex'
+            DESC_SEARCH = 'desc-search'
+            DESC_REGEX = 'desc-regex'
+            FUNDAMENTAL = 'fundamental'
+
     def search_instruments(self, symbol, projection):
         'Search or retrieve instrument data, including fundamental data.'
+        projection = self.__convert_enum(projection, self.Instrument.Projection)
+
         params = {
             'apikey': self.api_key,
             'symbol': symbol,
@@ -290,8 +367,17 @@ class Client:
     ##########################################################################
     # Market Hours
 
+    class Markets(Enum):
+        EQUITY = 'EQUITY'
+        OPTION = 'OPTION'
+        FUTURE = 'FUTURE'
+        BOND = 'BOND'
+        FOREX = 'FOREX'
+
     def get_hours_for_multiple_markets(self, markets, date):
         'Retrieve market hours for specified markets'
+        markets = self.__convert_enum_iterable(markets, self.Markets)
+
         params = {
             'apikey': self.api_key,
             'markets': ','.join(markets),
@@ -304,6 +390,8 @@ class Client:
 
     def get_hours_for_single_market(self, market, date):
         'Retrieve market hours for specified single market'
+        market = self.__convert_enum(market, self.Markets)
+
         params = {
             'apikey': self.api_key,
             'date': self.__format_datetime(date),
@@ -316,8 +404,20 @@ class Client:
     ##########################################################################
     # Movers
 
+    class Movers:
+        class Direction(Enum):
+            UP = 'up'
+            DOWN = 'down'
+
+        class Change(Enum):
+            VALUE = 'value'
+            PERCENT = 'percent'
+
     def get_movers(self, index, direction, change):
         'Search or retrieve instrument data, including fundamental data.'
+        direction = self.__convert_enum(direction, self.Movers.Direction)
+        change = self.__convert_enum(change, self.Movers.Change)
+
         params = {
             'apikey': self.api_key,
             'direction': direction,
@@ -329,6 +429,35 @@ class Client:
 
     ##########################################################################
     # Option Chains
+
+    class Options:
+        class Strategy(Enum):
+            SINGLE = 'SINGLE'
+            ANALYTICAL = 'ANALYTICAL'
+            COVERED = 'COVERED'
+            VERTICAL = 'VERTICAL'
+            CALENDAR = 'CALENDAR'
+            STRANGLE = 'STRANGLE'
+            STRADDLE = 'STRADDLE'
+            BUTTERFLY = 'BUTTERFLY'
+            CONDOR = 'CONDOR'
+            DIAGONAL = 'DIAGONAL'
+            COLLAR = 'COLLAR'
+            ROLL = 'ROLL'
+
+        class StrikeRange(Enum):
+            IN_THE_MONEY = 'ITM'
+            NEAR_THE_MONEY = 'NTM'
+            OUT_OF_THE_MONEY = 'OTM'
+            STRIKES_ABOVE_MARKET = 'SAK'
+            STRIKES_BELOW_MARKET = 'SBK'
+            STRIKES_NEAR_MARKET = 'SNK'
+            ALL = 'ALL'
+
+        class Type(Enum):
+            STANDARD = 'S'
+            NON_STANDARD = 'NS'
+            ALL = 'ALL'
 
     def get_option_chain(
             self,
@@ -350,6 +479,11 @@ class Client:
             exp_month=None,
             option_type=None):
         'Get option chain for an optionable Symbol'
+        strategy = self.__convert_enum(strategy, self.Options.Strategy)
+        strike_range = self.__convert_enum(
+            strike_range, self.Options.StrikeRange)
+        option_type = self.__convert_enum(option_type, self.Options.Type)
+
         params = {
             'apikey': self.api_key,
             'symbol': symbol,
@@ -392,26 +526,87 @@ class Client:
     ##########################################################################
     # Price History
 
+    class PriceHistory:
+        class PeriodType(Enum):
+            DAY = 'day'
+            MONTH = 'month'
+            YEAR = 'year'
+            YEAR_TO_DATE = 'ytd'
+
+        class Period(Enum):
+            # Daily
+            ONE_DAY = 1
+            TWO_DAYS = 2
+            THREE_DAYS = 3
+            FOUR_DAYS = 4
+            FIVE_DAYS = 5
+            TEN_DAYS = 10
+
+            # Monthly
+            ONE_MONTH = 1
+            TWO_MONTHS = 2
+            THREE_MONTHS = 3
+            SIX_MONTHS = 6
+
+            # Year
+            ONE_YEAR = 1
+            TWO_YEARS = 2
+            THREE_YEARS = 3
+            FIVE_YEARS = 5
+            TEN_YEARS = 10
+            FIFTEEN_YEARS = 15
+            TWENTY_YEARS = 20
+
+            # Year to date
+            YEAR_TO_DATE = 1
+
+        class FrequencyType(Enum):
+            MINUTE = 'minute'
+            DAILY = 'daily'
+            WEEKLY = 'weekly'
+            MONTHLY = 'monthly'
+
+        class Frequency(Enum):
+            # Minute
+            EVERY_MINUTE = 1
+            EVERY_FIVE_MINUTES = 5
+            EVERY_TEN_MINUTES = 10
+            EVERY_FIFTEEN_MINUTES = 15
+            EVERY_THIRTY_MINUTES = 30
+
+            # Other frequencies
+            DAILY = 1
+            WEEKLY = 1
+            MONTHLY = 1
+
     def get_price_history(
             self,
             symbol,
             *,
             period_type=None,
-            num_periods=None,
+            period=None,
             frequency_type=None,
             frequency=None,
             start_date=None,
             end_date=None,
             need_extended_hours_data=None):
         'Get price history for a symbol'
+        period_type = self.__convert_enum(
+            period_type, self.PriceHistory.PeriodType)
+        period = self.__convert_enum(period, self.PriceHistory.Period)
+        frequency_type = self.__convert_enum(
+            frequency_type, self.PriceHistory.FrequencyType)
+        frequency = self.__convert_enum(
+            frequency, self.PriceHistory.Frequency)
+
         params = {
             'apikey': self.api_key,
         }
 
         if period_type is not None:
             params['periodType'] = period_type
-        if num_periods is not None:
-            params['period'] = num_periods
+        if period is not None:
+            params['period'] = period
         if frequency_type is not None:
             params['frequencyType'] = frequency_type
         if frequency is not None:
@@ -461,6 +656,19 @@ class Client:
             account_id, transaction_id)
         return self.__get_request(path, params)
 
+    class Transactions:
+        class TransactionType(Enum):
+            ALL = 'ALL'
+            TRADE = 'TRADE'
+            BUY_ONLY = 'BUY_ONLY'
+            SELL_ONLY = 'SELL_ONLY'
+            CASH_IN_OR_CASH_OUT = 'CASH_IN_OR_CASH_OUT'
+            CHECKING = 'CHECKING'
+            DIVIDEND = 'DIVIDEND'
+            INTEREST = 'INTEREST'
+            OTHER = 'OTHER'
+            ADVISORY_FEES = 'ADVISORY_FEES'
+
     def get_transactions(
             self,
             account_id,
@@ -470,6 +678,9 @@ class Client:
             start_date=None,
             end_date=None):
         'Transaction for a specific account.'
+        transaction_type = self.__convert_enum(
+            transaction_type, self.Transactions.TransactionType)
+
         params = {
             'apikey': self.api_key,
         }
@@ -508,8 +719,18 @@ class Client:
         path = '/v1/userprincipals/streamersubscriptionkeys'
         return self.__get_request(path, params)
 
+    class UserPrincipals:
+        class Fields(Enum):
+            STREAMER_SUBSCRIPTION_KEYS = 'streamerSubscriptionKeys'
+            STREAMER_CONNECTION_INFO = 'streamerConnectionInfo'
+            PREFERENCES = 'preferences'
+            SURROGATE_IDS = 'surrogateIds'
+
     def get_user_principals(self, fields=None):
         'User Principal details.'
+        fields = self.__convert_enum_iterable(
+            fields, self.UserPrincipals.Fields)
+
         params = {
             'apikey': self.api_key,
         }
