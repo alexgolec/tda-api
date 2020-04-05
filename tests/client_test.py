@@ -2,7 +2,7 @@ import datetime
 import unittest
 from unittest.mock import ANY, MagicMock, Mock, patch
 
-from tdameritrade_api.client import Client
+from tda.client import Client
 
 # Constants
 

@@ -152,3 +152,5 @@ data/dividend
 data/current_portfolio.txt
 
 secrets
+
+scratch.py

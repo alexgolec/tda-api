@@ -729,7 +729,7 @@ class Client:
     def get_user_principals(self, fields=None):
         'User Principal details.'
         fields = self.__convert_enum_iterable(
-            fields, self.UserPrincipals.Fields)
+                fields, self.UserPrincipals.Fields)
 
         params = {
             'apikey': self.api_key,
