@@ -5,7 +5,7 @@ with open('README.md', 'r') as fh:
 
 setuptools.setup(
     name='tda-api',
-    version='0.0.1',
+    version='0.0.2',
     author='Alex Golec',
     author_email='bottomless.septic.tank@gmail.com',
     description='An unofficial wrapper around the TD Ameritrade HTTP API.',
@@ -19,5 +19,6 @@ setuptools.setup(
         'Operating System :: OS Independent',
     ],
     python_requires='>=3.6',
+    install_requires=['requests_oauthlib', 'python-dateutil', 'selenium']
 )
 
