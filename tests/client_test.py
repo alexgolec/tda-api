@@ -361,20 +361,20 @@ class TestClient(unittest.TestCase):
 
     def test_search_instruments(self):
         self.client.search_instruments(
-            'AAPL', Client.Instrument.Projection.FUNDAMENTAL)
+            ['AAPL', 'MSFT'], Client.Instrument.Projection.FUNDAMENTAL)
         self.mock_session.get.assert_called_once_with(
             self.make_url('/v1/instruments'), params={
                 'apikey': API_KEY,
-                'symbol': 'AAPL',
+                'symbol': 'AAPL,MSFT',
                 'projection': 'fundamental'})
 
     def test_search_instruments_unchecked(self):
         self.client.set_enforce_enums(False)
-        self.client.search_instruments('AAPL', 'fundamental')
+        self.client.search_instruments(['AAPL', 'MSFT'], 'fundamental')
         self.mock_session.get.assert_called_once_with(
             self.make_url('/v1/instruments'), params={
                 'apikey': API_KEY,
-                'symbol': 'AAPL',
+                'symbol': 'AAPL,MSFT',
                 'projection': 'fundamental'})
 
     # get_instrument

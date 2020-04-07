@@ -342,14 +342,14 @@ class Client:
             DESC_REGEX = 'desc-regex'
             FUNDAMENTAL = 'fundamental'
 
-    def search_instruments(self, symbol, projection):
+    def search_instruments(self, symbols, projection):
         'Search or retrieve instrument data, including fundamental data.'
         projection = self.__convert_enum(
             projection, self.Instrument.Projection)
 
         params = {
             'apikey': self.api_key,
-            'symbol': symbol,
+            'symbol': ','.join(symbols),
             'projection': projection,
         }
 
