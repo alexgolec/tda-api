@@ -1,3 +1,4 @@
 nose
 requests_oauthlib
+python-dateutil
 selenium

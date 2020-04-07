@@ -2,7 +2,7 @@ test:
 	python -m nose tests
 
 fix:
-	autopep8 --in-place -r -a tdameritrade_api
+	autopep8 --in-place -r -a tda
 	autopep8 --in-place -r -a tests
 
 dist:

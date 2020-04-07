@@ -400,7 +400,7 @@ class TestClient(unittest.TestCase):
     def test_get_hours_for_multiple_markets_unchecked(self):
         self.client.set_enforce_enums(False)
         self.client.get_hours_for_multiple_markets(
-                ['EQUITY', 'BOND'], NOW_DATETIME)
+            ['EQUITY', 'BOND'], NOW_DATETIME)
         self.mock_session.get.assert_called_once_with(
             self.make_url('/v1/marketdata/hours'), params={
                 'apikey': API_KEY,

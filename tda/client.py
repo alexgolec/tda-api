@@ -1,3 +1,7 @@
+'''Defines the basic client and methods for creating one. This client is
+completely unopinionated, and provides an easy-to-use wrapper around the T
+Ameritrade HTTP API.'''
+
 from enum import Enum, unique
 from requests_oauthlib import OAuth2Session
 
@@ -340,7 +344,8 @@ class Client:
 
     def search_instruments(self, symbol, projection):
         'Search or retrieve instrument data, including fundamental data.'
-        projection = self.__convert_enum(projection, self.Instrument.Projection)
+        projection = self.__convert_enum(
+            projection, self.Instrument.Projection)
 
         params = {
             'apikey': self.api_key,
@@ -729,7 +734,7 @@ class Client:
     def get_user_principals(self, fields=None):
         'User Principal details.'
         fields = self.__convert_enum_iterable(
-                fields, self.UserPrincipals.Fields)
+            fields, self.UserPrincipals.Fields)
 
         params = {
             'apikey': self.api_key,
