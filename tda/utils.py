@@ -4,7 +4,7 @@ module.'''
 import datetime
 import dateutil.parser
 
-from orders import EquityOrderBuilder
+from .orders import EquityOrderBuilder
 
 
 class Utils:

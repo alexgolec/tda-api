@@ -2,4 +2,5 @@ nose
 requests_oauthlib
 python-dateutil
 selenium
+sphinx_rtd_theme
 twine
