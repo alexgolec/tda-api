@@ -60,5 +60,5 @@ class Utils:
 
         return max(filter(filter_orders, resp.json()),
                    default=None,
-                   key=lambda order:
-                   dateutil.parser.parse(order['enteredTime']))
+                   key=lambda order: dateutil.parser.parse(
+                       order['enteredTime']))

@@ -1,5 +1,5 @@
 test:
-	python -m nose tests
+	python -m nose $(NOSE_ARGS)
 
 fix:
 	autopep8 --in-place -r -a tda

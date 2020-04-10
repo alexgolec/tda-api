@@ -1,7 +1,7 @@
-import datetime
 import unittest
 
 from tda.orders import EquityOrderBuilder
+from . import test_utils
 
 
 class EquityOrderBuilderTest(unittest.TestCase):
@@ -108,74 +108,20 @@ class EquityOrderBuilderTest(unittest.TestCase):
     def test_instruction_required(self):
         self.field_required('instruction')
 
-    def real_order(self):
-        return {
-            'session': 'NORMAL',
-            'duration': 'DAY',
-            'orderType': 'LIMIT',
-            'complexOrderStrategyType': 'NONE',
-            'quantity': 1.0,
-            'filledQuantity': 1.0,
-            'remainingQuantity': 0.0,
-            'requestedDestination': 'AUTO',
-            'destinationLinkName': 'ETMM',
-            'price': 58.41,
-            'orderLegCollection': [
-                {
-                    'orderLegType': 'EQUITY',
-                    'legId': 1,
-                    'instrument': {
-                        'assetType': 'EQUITY',
-                        'cusip': '126650100',
-                        'symbol': 'CVS'
-                    },
-                    'instruction': 'BUY',
-                    'positionEffect': 'OPENING',
-                    'quantity': 1.0
-                }
-            ],
-            'orderStrategyType': 'SINGLE',
-            'orderId': 100001,
-            'cancelable': False,
-            'editable': False,
-            'status': 'FILLED',
-            'enteredTime': '2020-03-30T15:36:12+0000',
-            'closeTime': '2020-03-30T15:36:12+0000',
-            'tag': 'API_TDAM:App',
-            'accountId': 100000,
-            'orderActivityCollection': [
-                {
-                    'activityType': 'EXECUTION',
-                    'executionType': 'FILL',
-                    'quantity': 1.0,
-                    'orderRemainingQuantity': 0.0,
-                    'executionLegs': [
-                        {
-                            'legId': 1,
-                            'quantity': 1.0,
-                            'mismarkedQuantity': 0.0,
-                            'price': 58.1853,
-                            'time': '2020-03-30T15:36:12+0000'
-                        }
-                    ]
-                }
-            ]
-        }
-
     def test_match_base(self):
-        real_order = self.real_order()
+        real_order = test_utils.real_order()
         self.assertTrue(EquityOrderBuilder('CVS', 1).matches(real_order))
 
     def test_match_order_type(self):
-        real_order = self.real_order()
+        real_order = test_utils.real_order()
         order = EquityOrderBuilder('CVS', 1) \
-            .set_order_type(EquityOrderBuilder.OrderType.LIMIT)
+            .set_order_type(EquityOrderBuilder.OrderType.MARKET)
         self.assertTrue(order.matches(real_order))
-        order.set_order_type(EquityOrderBuilder.OrderType.MARKET)
+        order.set_order_type(EquityOrderBuilder.OrderType.LIMIT)
         self.assertFalse(order.matches(real_order))
 
     def test_match_session(self):
-        real_order = self.real_order()
+        real_order = test_utils.real_order()
         order = EquityOrderBuilder('CVS', 1) \
             .set_session(EquityOrderBuilder.Session.NORMAL)
         self.assertTrue(order.matches(real_order))
@@ -183,7 +129,7 @@ class EquityOrderBuilderTest(unittest.TestCase):
         self.assertFalse(order.matches(real_order))
 
     def test_match_duration(self):
-        real_order = self.real_order()
+        real_order = test_utils.real_order()
         order = EquityOrderBuilder('CVS', 1) \
             .set_duration(EquityOrderBuilder.Duration.DAY)
         self.assertTrue(order.matches(real_order))
@@ -191,7 +137,7 @@ class EquityOrderBuilderTest(unittest.TestCase):
         self.assertFalse(order.matches(real_order))
 
     def test_match_instruction(self):
-        real_order = self.real_order()
+        real_order = test_utils.real_order()
         order = EquityOrderBuilder('CVS', 1) \
             .set_instruction(EquityOrderBuilder.Instruction.BUY)
         self.assertTrue(order.matches(real_order))
@@ -199,7 +145,7 @@ class EquityOrderBuilderTest(unittest.TestCase):
         self.assertFalse(order.matches(real_order))
 
     def test_match_symbol(self):
-        real_order = self.real_order()
+        real_order = test_utils.real_order()
         order = EquityOrderBuilder('CVS', 1)
         self.assertTrue(order.matches(real_order))
 
@@ -207,7 +153,7 @@ class EquityOrderBuilderTest(unittest.TestCase):
         self.assertFalse(order.matches(real_order))
 
     def test_match_quantity(self):
-        real_order = self.real_order()
+        real_order = test_utils.real_order()
         order = EquityOrderBuilder('CVS', 1)
         self.assertTrue(order.matches(real_order))
 
@@ -215,7 +161,7 @@ class EquityOrderBuilderTest(unittest.TestCase):
         self.assertFalse(order.matches(real_order))
 
     def test_match_asset_type(self):
-        real_order = self.real_order()
+        real_order = test_utils.real_order()
         order = EquityOrderBuilder('CVS', 1)
         self.assertTrue(order.matches(real_order))
 
