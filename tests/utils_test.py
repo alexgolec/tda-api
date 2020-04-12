@@ -4,6 +4,7 @@ import datetime
 import json
 import unittest
 
+from tda.orders import EquityOrderBuilder
 from tda.utils import Utils
 from . import test_utils
 
@@ -132,11 +133,13 @@ class UtilsTest(unittest.TestCase):
         self.mock_client.get_orders_by_path = MagicMock(
             return_value=MockResponse([order1, order2], True))
 
-        out_order = self.utils.get_most_recent_order(instruction='BUY')
+        out_order = self.utils.get_most_recent_order(
+                instruction=EquityOrderBuilder.Instruction.BUY)
         self.assertEqual(order2, out_order)
 
         order2['orderLegCollection'][0]['instruction'] = 'SELL'
-        out_order = self.utils.get_most_recent_order(instruction='BUY')
+        out_order = self.utils.get_most_recent_order(
+                instruction=EquityOrderBuilder.Instruction.BUY)
         self.assertEqual(order1, out_order)
 
     def test_different_order_type(self):
@@ -148,9 +151,11 @@ class UtilsTest(unittest.TestCase):
         self.mock_client.get_orders_by_path = MagicMock(
             return_value=MockResponse([order1, order2], True))
 
-        out_order = self.utils.get_most_recent_order(order_type='MARKET')
+        out_order = self.utils.get_most_recent_order(
+                order_type=EquityOrderBuilder.OrderType.MARKET)
         self.assertEqual(order2, out_order)
 
         order2['orderType'] = 'LIMIT'
-        out_order = self.utils.get_most_recent_order(order_type='MARKET')
+        out_order = self.utils.get_most_recent_order(
+                order_type=EquityOrderBuilder.OrderType.MARKET)
         self.assertEqual(order1, out_order)

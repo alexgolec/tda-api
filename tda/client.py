@@ -9,11 +9,13 @@ import datetime
 import pickle
 import time
 
+from .utils import EnumEnforcer
+
 
 ##########################################################################
 # Client
 
-class Client:
+class Client(EnumEnforcer):
     # This docstring will appears as documentation for __init__
     '''A basic, completely unopinionated client. This client provides the most
     direct access to the API possible. All methods return the raw response which
@@ -24,12 +26,10 @@ class Client:
     def __init__(self, api_key, session, *, enforce_enums=True):
         '''Create a new client with the given API key and session. Set 
         `enforce_enums=False` to disable strict input type checking.'''
+        super().__init__(enforce_enums)
+
         self.api_key = api_key
         self.session = session
-        self.enforce_enums = enforce_enums
-
-    def set_enforce_enums(self, enforce_enums):
-        self.enforce_enums = enforce_enums
 
     def __format_datetime(self, dt):
         '''Formats datetime objects appropriately, depending on whether they are
@@ -70,38 +70,6 @@ class Client:
     def __delete_request(self, path):
         dest = 'https://api.tdameritrade.com' + path
         return self.session.delete(dest)
-
-    def __type_error(self, value, required_enum_type):
-        raise ValueError(
-            ('expected type "{}", got type "{}" (initialize with ' +
-             'enforce_enums=True to disable this checking)').format(
-                required_enum_type.__name__,
-                type(value).__name__))
-
-    def __convert_enum(self, value, required_enum_type):
-        if value is None:
-            return None
-
-        if isinstance(value, required_enum_type):
-            return value.value
-        elif self.enforce_enums:
-            self.__type_error(value, required_enum_type)
-        else:
-            return value
-
-    def __convert_enum_iterable(self, iterable, required_enum_type):
-        if iterable is None:
-            return None
-
-        values = []
-        for value in iterable:
-            if isinstance(value, required_enum_type):
-                values.append(value.value)
-            elif self.enforce_enums:
-                self.__type_error(value, required_enum_type)
-            else:
-                values.append(value)
-        return values
 
     ##########################################################################
     # Orders
@@ -149,8 +117,8 @@ class Client:
                            to_entered_datetime=None,
                            status=None,
                            statuses=None):
-        status = self.__convert_enum(status, self.Order.Status)
-        statuses = self.__convert_enum_iterable(statuses, self.Order.Status)
+        status = self.convert_enum(status, self.Order.Status)
+        statuses = self.convert_enum_iterable(statuses, self.Order.Status)
 
         if from_entered_datetime is None:
             from_entered_datetime = datetime.datetime.min
@@ -322,7 +290,7 @@ class Client:
         :param fields: Balances displayed by default, additional fields can be 
                        added here by adding values from :class:`Account.Fields`.
         '''
-        fields = self.__convert_enum_iterable(fields, self.Account.Fields)
+        fields = self.convert_enum_iterable(fields, self.Account.Fields)
 
         params = {}
         if fields:
@@ -340,7 +308,7 @@ class Client:
         :param fields: Balances displayed by default, additional fields can be 
                        added here by adding values from :class:`Account.Fields`.
         '''
-        fields = self.__convert_enum_iterable(fields, self.Account.Fields)
+        fields = self.convert_enum_iterable(fields, self.Account.Fields)
 
         params = {}
         if fields:
@@ -373,7 +341,7 @@ class Client:
         :param projection: Query type. See :class:`Instrument.Projection` for 
                             options.
         '''
-        projection = self.__convert_enum(
+        projection = self.convert_enum(
             projection, self.Instrument.Projection)
 
         params = {
@@ -422,7 +390,7 @@ class Client:
         :param markets: Market to return hours for. Iterable of 
                         :class:`Markets`.
         '''
-        markets = self.__convert_enum_iterable(markets, self.Markets)
+        markets = self.convert_enum_iterable(markets, self.Markets)
 
         params = {
             'apikey': self.api_key,
@@ -443,7 +411,7 @@ class Client:
         :param markets: Market to return hours for. Instance of
                         :class:`Markets`.
         '''
-        market = self.__convert_enum(market, self.Markets)
+        market = self.convert_enum(market, self.Markets)
 
         params = {
             'apikey': self.api_key,
@@ -478,8 +446,8 @@ class Client:
         :param direction: See :class:`Movers.Direction`
         :param change: See :class:`Movers.Change`
         '''
-        direction = self.__convert_enum(direction, self.Movers.Direction)
-        change = self.__convert_enum(change, self.Movers.Change)
+        direction = self.convert_enum(direction, self.Movers.Direction)
+        change = self.convert_enum(change, self.Movers.Change)
 
         params = {
             'apikey': self.api_key,
@@ -594,12 +562,12 @@ class Client:
         :param exp_month: Return only options expiring in the specified month. See 
                           :class:`Options.ExpirationMonth` for choices.
         '''
-        contract_type = self.__convert_enum(
+        contract_type = self.convert_enum(
                 contract_type, self.Options.ContractType)
-        strategy = self.__convert_enum(strategy, self.Options.Strategy)
-        strike_range = self.__convert_enum(
+        strategy = self.convert_enum(strategy, self.Options.Strategy)
+        strike_range = self.convert_enum(
             strike_range, self.Options.StrikeRange)
-        option_type = self.__convert_enum(option_type, self.Options.Type)
+        option_type = self.convert_enum(option_type, self.Options.Type)
 
 
         params = {
@@ -726,12 +694,12 @@ class Client:
                                          Otherwise return regular market hours
                                          only.
         '''
-        period_type = self.__convert_enum(
+        period_type = self.convert_enum(
             period_type, self.PriceHistory.PeriodType)
-        period = self.__convert_enum(period, self.PriceHistory.Period)
-        frequency_type = self.__convert_enum(
+        period = self.convert_enum(period, self.PriceHistory.Period)
+        frequency_type = self.convert_enum(
             frequency_type, self.PriceHistory.FrequencyType)
-        frequency = self.__convert_enum(
+        frequency = self.convert_enum(
             frequency, self.PriceHistory.Frequency)
 
         params = {
@@ -835,7 +803,7 @@ class Client:
         :param end_date: Only transactions before this date will be returned
                          Note the maximum date range is one year.
         '''
-        transaction_type = self.__convert_enum(
+        transaction_type = self.convert_enum(
             transaction_type, self.Transactions.TransactionType)
 
         params = {
@@ -894,7 +862,7 @@ class Client:
         `Official documentation
         <https://developer.tdameritrade.com/user-principal/apis/get/
         userprincipals-0>`__.'''
-        fields = self.__convert_enum_iterable(
+        fields = self.convert_enum_iterable(
             fields, self.UserPrincipals.Fields)
 
         params = {
