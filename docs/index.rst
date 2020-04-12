@@ -5,6 +5,7 @@
   :maxdepth: 2
   :caption: Contents:
 
+  getting-started
   auth
   client
   orders
