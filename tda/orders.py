@@ -17,19 +17,14 @@ class Session(Enum):
     SEAMESS = 'SEAMLESS'
 
 class EquityOrderBuilder:
-    'Helper class to construct equity orders.'
+    '''Helper class to construct equity orders.'''
 
-    def __init__(self, symbol, quantity, 
-            *,
-            duration=Duration.DAY,
-            session=Session.NORMAL):
+    def __init__(self, symbol, quantity):
         '''Create an order for the given symbol and quantity. Note all 
         unspecified parameters must be set prior to building the order spec.
 
         :param symbol: Symbol for the order
         :param quantity: Quantity of the order
-        :param duration: Order duration. Default is ``DAY``.
-        :param session: Order session. Default is ``NORMAL``.
         '''
         self.symbol = symbol
         self.quantity = quantity
@@ -37,8 +32,8 @@ class EquityOrderBuilder:
         self.instruction = None
         self.order_type = None
         self.price = None
-        self.duration = duration
-        self.session = session
+        self.duration = None
+        self.session = None
 
     def __assert_set(self, name):
         value = getattr(self, name)
@@ -118,8 +113,15 @@ class EquityOrderBuilder:
         return spec
 
     def matches(self, order):
-        '''Returns whether this order matches the given order, based on the set
-        fields of this order. Unset fields are ignored.'''
+        '''Takes a real object, as might be returned from the TD Ameritrade API, 
+        and indicates whether this order object matches it. Returns true if the
+        given order if the given order *could have* been placed by calling
+        :meth:`Client.place_order()<tda.client.Client.place_order>` with this 
+        order.
+
+        This method may be called on incomplete orders builders (builders whose
+        :meth:`build` method would fail if called. In such a case, unset values 
+        are ignored and have no effect on filtering.'''
         def matches_path(value, obj, path):
             if value is None:
                 return True

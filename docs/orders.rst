@@ -53,3 +53,5 @@ Equity Orders
 .. autoclass:: tda.orders.EquityOrderBuilder
   :members:
   :undoc-members:
+
+  .. automethod:: __init__
