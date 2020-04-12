@@ -21,7 +21,7 @@ for Apple stock:
   c = easy_client(
           api_key='APIKEY',
           redirect_uri='https://localhost',
-          token_path='/tmp/token.json')
+          token_path='/tmp/token.pickle')
 
   resp = c.get_price_history('AAPL',
           period_type=Client.PriceHistory.PeriodType.YEAR,
@@ -34,12 +34,12 @@ for Apple stock:
 Note we we create a new client using the ``auth`` package as described in
 :ref:`auth`. Creating a client directly is possible, but not recommended.
 
-*******************
++++++++++++++++++++
 Calling Conventions
-*******************
++++++++++++++++++++
 
 Function parameters are categorized as either required or optional. 
-Required parameters, such as ``'AAPL'`` in this example, are passed as 
+Required parameters, such as ``'AAPL'`` in the example above, are passed as 
 positional arguments. Optional parameters, like ``period_type`` and the rest, 
 are passed as keyword arguments. 
 
@@ -52,12 +52,8 @@ caused by accidentally passing an unrecognized value.
 By default, passing values other than the required enums will raise a
 ``ValueError``. If you believe the API accepts a value that isn't supported 
 here, you can use ``set_enforce_enums`` to disable this behavior at your own 
-risk. If you *do* find a supported value, please open an issue describing it or 
-submit a PR adding the new functionality.
-
-********************
-The ``Client`` Class
-********************
+risk. If you *do* find a supported value that isn't listed here, please open an
+issue describing it or submit a PR adding the new functionality.
 
 +++++++++++++++++++++
 Creating a New Client

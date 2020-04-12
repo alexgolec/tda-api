@@ -1,6 +1,7 @@
 import unittest
 
-from tda.orders import EquityOrderBuilder
+from tda.orders import Duration, EquityOrderBuilder, InvalidOrderException
+from tda.orders import Session
 from . import test_utils
 
 
@@ -11,15 +12,15 @@ class EquityOrderBuilderTest(unittest.TestCase):
         return EquityOrderBuilder('AAPL', 10) \
             .set_instruction(EquityOrderBuilder.Instruction.BUY) \
             .set_order_type(EquityOrderBuilder.OrderType.MARKET) \
-            .set_duration(EquityOrderBuilder.Duration.DAY) \
-            .set_session(EquityOrderBuilder.Session.NORMAL)
+            .set_duration(Duration.DAY) \
+            .set_session(Session.NORMAL)
 
     def test_successful_construction_market(self):
         order = EquityOrderBuilder('AAPL', 10) \
             .set_instruction(EquityOrderBuilder.Instruction.BUY) \
             .set_order_type(EquityOrderBuilder.OrderType.MARKET) \
-            .set_duration(EquityOrderBuilder.Duration.DAY) \
-            .set_session(EquityOrderBuilder.Session.NORMAL) \
+            .set_duration(Duration.DAY) \
+            .set_session(Session.NORMAL) \
             .build()
 
         self.assertTrue(('orderType', 'MARKET') in order.items())
@@ -40,8 +41,8 @@ class EquityOrderBuilderTest(unittest.TestCase):
             .set_instruction(EquityOrderBuilder.Instruction.BUY) \
             .set_order_type(EquityOrderBuilder.OrderType.LIMIT) \
             .set_price(100.5) \
-            .set_duration(EquityOrderBuilder.Duration.DAY) \
-            .set_session(EquityOrderBuilder.Session.NORMAL) \
+            .set_duration(Duration.DAY) \
+            .set_session(Session.NORMAL) \
             .build()
 
         self.assertTrue(('orderType', 'LIMIT') in order.items())
@@ -62,12 +63,11 @@ class EquityOrderBuilderTest(unittest.TestCase):
         order = EquityOrderBuilder('AAPL', 10) \
             .set_instruction(EquityOrderBuilder.Instruction.BUY) \
             .set_order_type(EquityOrderBuilder.OrderType.LIMIT) \
-            .set_duration(EquityOrderBuilder.Duration.DAY) \
-            .set_session(EquityOrderBuilder.Session.NORMAL)
+            .set_duration(Duration.DAY) \
+            .set_session(Session.NORMAL)
 
         with self.assertRaises(
-                EquityOrderBuilder.InvalidOrderException,
-                msg='price must be set'):
+                InvalidOrderException, msg='price must be set'):
             order.build()
 
         order.set_price(100)
@@ -77,12 +77,11 @@ class EquityOrderBuilderTest(unittest.TestCase):
         order = EquityOrderBuilder('AAPL', 10) \
             .set_instruction(EquityOrderBuilder.Instruction.BUY) \
             .set_order_type(EquityOrderBuilder.OrderType.LIMIT) \
-            .set_duration(EquityOrderBuilder.Duration.DAY) \
-            .set_session(EquityOrderBuilder.Session.NORMAL)
+            .set_duration(Duration.DAY) \
+            .set_session(Session.NORMAL)
 
         with self.assertRaises(
-                EquityOrderBuilder.InvalidOrderException,
-                msg='price must be set'):
+                InvalidOrderException, msg='price must be set'):
             order.build()
 
         order.set_price(100)
@@ -92,8 +91,7 @@ class EquityOrderBuilderTest(unittest.TestCase):
         order = self.valid_order()
         setattr(order, name, None)
         with self.assertRaises(
-                EquityOrderBuilder.InvalidOrderException,
-                msg='{} must be set'.format(name)):
+                InvalidOrderException, msg='{} must be set'.format(name)):
             order.build()
 
     def test_order_type_required(self):
@@ -122,18 +120,17 @@ class EquityOrderBuilderTest(unittest.TestCase):
 
     def test_match_session(self):
         real_order = test_utils.real_order()
-        order = EquityOrderBuilder('CVS', 1) \
-            .set_session(EquityOrderBuilder.Session.NORMAL)
+        order = EquityOrderBuilder('CVS', 1).set_session(Session.NORMAL)
         self.assertTrue(order.matches(real_order))
-        order.set_session(EquityOrderBuilder.Session.AM)
+        order.set_session(Session.AM)
         self.assertFalse(order.matches(real_order))
 
     def test_match_duration(self):
         real_order = test_utils.real_order()
         order = EquityOrderBuilder('CVS', 1) \
-            .set_duration(EquityOrderBuilder.Duration.DAY)
+            .set_duration(Duration.DAY)
         self.assertTrue(order.matches(real_order))
-        order.set_duration(EquityOrderBuilder.Duration.FILL_OR_KILL)
+        order.set_duration(Duration.FILL_OR_KILL)
         self.assertFalse(order.matches(real_order))
 
     def test_match_instruction(self):
