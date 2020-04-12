@@ -1,6 +1,8 @@
 .. highlight:: python
 .. py:module:: tda.client
 
+.. _client:
+
 ==============
 Client Wrapper
 ==============
