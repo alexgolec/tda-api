@@ -1,10 +1,13 @@
-# Contributing to ``tda-api``
+===========================
+Contributing to ``tda-api``
+===========================
 
 Fixing a bug? Adding a feature? Just cleaning up for the sake of cleaning up? 
 Great! No improvement is too small for me, and I'm always happy to take pull 
 requests. Read this guide to learn how to set up your environment so you can 
 contribute.
 
+------------------------------
 Setting up the Dev Environment
 ------------------------------
 
@@ -15,41 +18,56 @@ some additional packages around testing, documentation generation, etc.
 Before you install anything, I highly recommend setting up a `virtualenv` so you 
 don't pollute your system installation directories:
 
-```
-pip install virtualenv
-virtualenv -v virtualenv
-source virtualenv/build/activate
-```
+.. code-block::
+
+  pip install virtualenv
+  virtualenv -v virtualenv
+  source virtualenv/build/activate
 
 Next, install project requirements:
 
-```
-pip install -r requirements.txt
-```
+.. code-block::
+
+  pip install -r requirements.txt
 
 Finally, verify everything works by running tests:
 
-```
-make test
-```
+.. code-block::
+
+  make test
 
 At this point you can make your changes.
 
+----------------------
 Development Guidelines
 ----------------------
 
-##### Test your changes
++++++++++++++++++
+Test your changes
++++++++++++++++++
+
 This project aims for high test coverage. All changes must be properly tested, 
 and we will accept no PRs that lack appropriate unit testing. We also expect 
 existing tests to pass. You can run your tests using: 
 
-```
-make test
-```
+.. code-block::
 
-##### Document your code
+  make test
+
+++++++++++++++++++
+Document your code
+++++++++++++++++++
+
 Documentation is how users learn to use your code, and no feature is complete 
 without a full description of how to use it. If your PR changes external-facing 
 interfaces, or if it alters semantics, the changes must be thoroughly described 
 in the docstrings of the affected components. If your change adds a substantial 
 new module, a new section in the documentation may be justified. 
+
+Documentation is built using `Sphinx <https://www.sphinx-doc.org/en/master/>`__. 
+You can build the documentation using the `Makefile.sphinx` makefile. For 
+example you can build the HTML documentation like so:
+
+.. code-block::
+
+  make -f Makefile.sphinx
