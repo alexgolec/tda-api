@@ -7,12 +7,15 @@ import unittest
 from tda.utils import Utils
 from . import test_utils
 
+
 class MockResponse:
     def __init__(self, json, ok):
         self._json = json
         self.ok = ok
+
     def json(self):
         return self._json
+
 
 class UtilsTest(unittest.TestCase):
 
@@ -38,7 +41,7 @@ class UtilsTest(unittest.TestCase):
         order['orderActivityCollection'][0]['executionLegs'][0]['time'] = time
         order['orderActivityCollection'][0]['quantity'] = quantity
         order['orderActivityCollection'][0]['executionLegs'][0]['quantity'] \
-                = quantity
+            = quantity
 
         self.order_id += 1
 
@@ -46,24 +49,24 @@ class UtilsTest(unittest.TestCase):
 
     def test_most_recent_order(self):
         order1 = self.order(
-                '2020-01-01T12:00:00+0000', 'AAPL', 1, 'BUY', 'MARKET')
+            '2020-01-01T12:00:00+0000', 'AAPL', 1, 'BUY', 'MARKET')
         order2 = self.order(
-                '2020-01-02T12:00:00+0000', 'AAPL', 1, 'BUY', 'MARKET')
+            '2020-01-02T12:00:00+0000', 'AAPL', 1, 'BUY', 'MARKET')
 
         self.mock_client.get_orders_by_path = MagicMock(
-                return_value=MockResponse([order1, order2], True))
+            return_value=MockResponse([order1, order2], True))
 
         order = self.utils.get_most_recent_order()
         self.assertEqual(order2, order)
 
     def test_too_many_order_legs(self):
         order1 = self.order(
-                '2020-01-01T12:00:00+0000', 'AAPL', 1, 'BUY', 'MARKET')
+            '2020-01-01T12:00:00+0000', 'AAPL', 1, 'BUY', 'MARKET')
         order2 = self.order(
-                '2020-01-02T12:00:00+0000', 'AAPL', 1, 'BUY', 'MARKET')
+            '2020-01-02T12:00:00+0000', 'AAPL', 1, 'BUY', 'MARKET')
 
         self.mock_client.get_orders_by_path = MagicMock(
-                return_value=MockResponse([order1, order2], True))
+            return_value=MockResponse([order1, order2], True))
 
         out_order = self.utils.get_most_recent_order()
         self.assertEqual(order2, out_order)
@@ -74,12 +77,12 @@ class UtilsTest(unittest.TestCase):
 
     def test_non_equity_asset_type(self):
         order1 = self.order(
-                '2020-01-01T12:00:00+0000', 'AAPL', 1, 'BUY', 'MARKET')
+            '2020-01-01T12:00:00+0000', 'AAPL', 1, 'BUY', 'MARKET')
         order2 = self.order(
-                '2020-01-02T12:00:00+0000', 'AAPL', 1, 'BUY', 'MARKET')
+            '2020-01-02T12:00:00+0000', 'AAPL', 1, 'BUY', 'MARKET')
 
         self.mock_client.get_orders_by_path = MagicMock(
-                return_value=MockResponse([order1, order2], True))
+            return_value=MockResponse([order1, order2], True))
 
         out_order = self.utils.get_most_recent_order()
         self.assertEqual(order2, out_order)
@@ -90,12 +93,12 @@ class UtilsTest(unittest.TestCase):
 
     def test_different_symbol(self):
         order1 = self.order(
-                '2020-01-01T12:00:00+0000', 'AAPL', 1, 'BUY', 'MARKET')
+            '2020-01-01T12:00:00+0000', 'AAPL', 1, 'BUY', 'MARKET')
         order2 = self.order(
-                '2020-01-02T12:00:00+0000', 'AAPL', 1, 'BUY', 'MARKET')
+            '2020-01-02T12:00:00+0000', 'AAPL', 1, 'BUY', 'MARKET')
 
         self.mock_client.get_orders_by_path = MagicMock(
-                return_value=MockResponse([order1, order2], True))
+            return_value=MockResponse([order1, order2], True))
 
         out_order = self.utils.get_most_recent_order(symbol='AAPL')
         self.assertEqual(order2, out_order)
@@ -106,12 +109,12 @@ class UtilsTest(unittest.TestCase):
 
     def test_different_quantity(self):
         order1 = self.order(
-                '2020-01-01T12:00:00+0000', 'AAPL', 1, 'BUY', 'MARKET')
+            '2020-01-01T12:00:00+0000', 'AAPL', 1, 'BUY', 'MARKET')
         order2 = self.order(
-                '2020-01-02T12:00:00+0000', 'AAPL', 1, 'BUY', 'MARKET')
+            '2020-01-02T12:00:00+0000', 'AAPL', 1, 'BUY', 'MARKET')
 
         self.mock_client.get_orders_by_path = MagicMock(
-                return_value=MockResponse([order1, order2], True))
+            return_value=MockResponse([order1, order2], True))
 
         out_order = self.utils.get_most_recent_order(symbol='AAPL', quantity=1)
         self.assertEqual(order2, out_order)
@@ -122,12 +125,12 @@ class UtilsTest(unittest.TestCase):
 
     def test_different_instruction(self):
         order1 = self.order(
-                '2020-01-01T12:00:00+0000', 'AAPL', 1, 'BUY', 'MARKET')
+            '2020-01-01T12:00:00+0000', 'AAPL', 1, 'BUY', 'MARKET')
         order2 = self.order(
-                '2020-01-02T12:00:00+0000', 'AAPL', 1, 'BUY', 'MARKET')
+            '2020-01-02T12:00:00+0000', 'AAPL', 1, 'BUY', 'MARKET')
 
         self.mock_client.get_orders_by_path = MagicMock(
-                return_value=MockResponse([order1, order2], True))
+            return_value=MockResponse([order1, order2], True))
 
         out_order = self.utils.get_most_recent_order(instruction='BUY')
         self.assertEqual(order2, out_order)
@@ -138,12 +141,12 @@ class UtilsTest(unittest.TestCase):
 
     def test_different_order_type(self):
         order1 = self.order(
-                '2020-01-01T12:00:00+0000', 'AAPL', 1, 'BUY', 'MARKET')
+            '2020-01-01T12:00:00+0000', 'AAPL', 1, 'BUY', 'MARKET')
         order2 = self.order(
-                '2020-01-02T12:00:00+0000', 'AAPL', 1, 'BUY', 'MARKET')
+            '2020-01-02T12:00:00+0000', 'AAPL', 1, 'BUY', 'MARKET')
 
         self.mock_client.get_orders_by_path = MagicMock(
-                return_value=MockResponse([order1, order2], True))
+            return_value=MockResponse([order1, order2], True))
 
         out_order = self.utils.get_most_recent_order(order_type='MARKET')
         self.assertEqual(order2, out_order)
@@ -151,5 +154,3 @@ class UtilsTest(unittest.TestCase):
         order2['orderType'] = 'LIMIT'
         out_order = self.utils.get_most_recent_order(order_type='MARKET')
         self.assertEqual(order1, out_order)
-
-

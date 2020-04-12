@@ -455,12 +455,22 @@ class TestClient(unittest.TestCase):
                 'symbol': 'AAPL'})
 
     def test_get_option_chain_contract_type(self):
-        self.client.get_option_chain('AAPL', contract_type='ALL')
+        self.client.get_option_chain(
+                'AAPL', contract_type=Client.Options.ContractType.PUT)
         self.mock_session.get.assert_called_once_with(
             self.make_url('/v1/marketdata/chains'), params={
                 'apikey': API_KEY,
                 'symbol': 'AAPL',
-                'contractType': 'ALL'})
+                'contractType': 'PUT'})
+
+    def test_get_option_chain_contract_type_unchecked(self):
+        self.client.set_enforce_enums(False)
+        self.client.get_option_chain('AAPL', contract_type='PUT')
+        self.mock_session.get.assert_called_once_with(
+            self.make_url('/v1/marketdata/chains'), params={
+                'apikey': API_KEY,
+                'symbol': 'AAPL',
+                'contractType': 'PUT'})
 
     def test_get_option_chain_strike_count(self):
         self.client.get_option_chain('AAPL', strike_count=100)
@@ -678,15 +688,15 @@ class TestClient(unittest.TestCase):
                 'apikey': API_KEY,
                 'frequency': 5})
 
-    def test_get_price_history_start_date(self):
-        self.client.get_price_history(SYMBOL, start_date=EARLIER_DATETIME)
+    def test_get_price_history_start_datetime(self):
+        self.client.get_price_history(SYMBOL, start_datetime=EARLIER_DATETIME)
         self.mock_session.get.assert_called_once_with(
             self.make_url('/v1/marketdata/{symbol}/pricehistory'), params={
                 'apikey': API_KEY,
                 'startDate': EARLIER_MILLIS})
 
-    def test_get_price_history_end_date(self):
-        self.client.get_price_history(SYMBOL, end_date=EARLIER_DATETIME)
+    def test_get_price_history_end_datetime(self):
+        self.client.get_price_history(SYMBOL, end_datetime=EARLIER_DATETIME)
         self.mock_session.get.assert_called_once_with(
             self.make_url('/v1/marketdata/{symbol}/pricehistory'), params={
                 'apikey': API_KEY,
@@ -757,15 +767,16 @@ class TestClient(unittest.TestCase):
                 'apikey': API_KEY,
                 'symbol': 'AAPL'})
 
-    def test_get_transactions_start_date(self):
-        self.client.get_transactions(ACCOUNT_ID, start_date=EARLIER_DATETIME)
+    def test_get_transactions_start_datetime(self):
+        self.client.get_transactions(
+                ACCOUNT_ID, start_datetime=EARLIER_DATETIME)
         self.mock_session.get.assert_called_once_with(
             self.make_url('/v1/accounts/{accountId}/transactions'), params={
                 'apikey': API_KEY,
                 'startDate': EARLIER_DATE_STR})
 
-    def test_get_transactions_end_date(self):
-        self.client.get_transactions(ACCOUNT_ID, end_date=EARLIER_DATETIME)
+    def test_get_transactions_end_datetime(self):
+        self.client.get_transactions(ACCOUNT_ID, end_datetime=EARLIER_DATETIME)
         self.mock_session.get.assert_called_once_with(
             self.make_url('/v1/accounts/{accountId}/transactions'), params={
                 'apikey': API_KEY,

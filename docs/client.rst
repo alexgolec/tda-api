@@ -1,0 +1,258 @@
+.. highlight:: python
+.. py:module:: tda.client
+
+==============
+Client Wrapper
+==============
+
+A naive, unopinionated wrapper around the
+`TD Ameritrade HTTP API <https://developer.tdameritrade.com/apis>`_. This
+client provides access to all endpoints of the API in as easy and direct a way 
+as possible. For example, here is how you can fetch the past 20 years of data 
+for Apple stock: 
+
+.. code-block::
+
+  from tda.auth import easy_client
+  from tda.client import Client
+
+  c = easy_client(
+          api_key='APIKEY',
+          redirect_uri='https://localhost',
+          token_path='/tmp/token.json')
+
+  resp = c.get_price_history('AAPL',
+          period_type=Client.PriceHistory.PeriodType.YEAR,
+          period=Client.PriceHistory.Period.TWENTY_YEARS,
+          frequency_type=Client.PriceHistory.FrequencyType.DAILY,
+          frequency=Client.PriceHistory.Frequency.DAILY)
+  assert resp.ok
+  history = resp.json()
+
+Note we we create a new client using the ``auth`` package as described in
+:ref:`auth`. Creating a client directly is possible, but not recommended.
+
+*******************
+Calling Conventions
+*******************
+
+Function parameters are categorized as either required or optional. 
+Required parameters, such as ``'AAPL'`` in this example, are passed as 
+positional arguments. Optional parameters, like ``period_type`` and the rest, 
+are passed as keyword arguments. 
+
+Parameters which have special values recognized by the API are 
+represented by `Python enums <https://docs.python.org/3/library/enum.html>`_. 
+This is because the API rejects requests which pass unrecognized values, and 
+this enum wrapping is provided as a convenient mechanism to avoid consternation 
+caused by accidentally passing an unrecognized value.
+
+By default, passing values other than the required enums will raise a
+``ValueError``. If you believe the API accepts a value that isn't supported 
+here, you can use ``set_enforce_enums`` to disable this behavior at your own 
+risk. If you *do* find a supported value, please open an issue describing it or 
+submit a PR adding the new functionality.
+
+********************
+The ``Client`` Class
+********************
+
++++++++++++++++++++++
+Creating a New Client
++++++++++++++++++++++
+
+99.9% of users should not create their own clients, and should instead follow 
+the instructions outlined in :ref:`auth`. For those brave enough to build their
+own, the constructor looks like this:
+
+.. automethod:: tda.client.Client.__init__
+
+++++++
+Orders
+++++++
+
+------------------
+Placing New Orders
+------------------
+
+Placing new orders can be a complicated task. The :meth:`Client.place_order` method is
+used to create all orders, from equities to options. The precise order type is
+defined by a complex order spec. TDA provides some `example order specs`_ to
+illustrate the process and provides a schema in the `place order documentation 
+<https://developer.tdameritrade.com/account-access/apis/post/accounts/
+%7BaccountId%7D/orders-0>`__, but beyond that we're on our own.
+
+``tda-api`` includes some helpers, described in :ref:`orders`, which provide an 
+incomplete utility for creating various order types. While it only scratches the 
+surface of what's possible, we encourage you to use that module instead of
+creating your own order specs.
+
+.. _`example order specs`: https://developer.tdameritrade.com/content/place-order-samples
+
+.. automethod:: tda.client.Client.place_order
+
+.. _accessing_existing_orders:
+
+-------------------------
+Accessing Existing Orders
+-------------------------
+
+.. automethod:: tda.client.Client.get_orders_by_path
+.. automethod:: tda.client.Client.get_orders_by_query
+.. automethod:: tda.client.Client.get_order
+.. autoclass:: tda.client.Client.Order
+  :members:
+  :undoc-members:
+
+-----------------------
+Editing Existing Orders
+-----------------------
+
+Endpoints for canceling and replacing existing orders.
+Annoyingly, while these endpoints require an order ID, it seems that when
+placing new orders the API does not return any metadata about the new order. As 
+a result, if you want to cancel or replace an order after you've created it, you 
+must search for it using the methods described in :ref:`accessing_existing_orders`.
+
+.. automethod:: tda.client.Client.cancel_order
+.. automethod:: tda.client.Client.replace_order
+
+++++++++++++
+Account Info
+++++++++++++
+
+These methods provide access to useful information about accounts. An incomplete 
+list of the most interesting bits:
+
+* Account balances, including available trading balance
+* Positions
+* Order history
+
+See the official documentation for each method for a complete response schema.
+
+.. automethod:: tda.client.Client.get_account
+.. automethod:: tda.client.Client.get_accounts
+.. autoclass:: tda.client.Client.Account
+  :members:
+  :undoc-members:
+
++++++++++++++++
+Instrument Info
++++++++++++++++
+
+Note: symbol fundamentals (P/E ratios, number of shares outstanding, dividend 
+yield, etc.) is available using the :attr:`Instrument.Projection.FUNDAMENTAL`
+projection.
+
+.. automethod:: tda.client.Client.search_instruments
+.. automethod:: tda.client.Client.get_instrument
+.. autoclass:: tda.client.Client.Instrument
+  :members:
+  :undoc-members:
+
++++++++++++++
+Option Chains
++++++++++++++
+
+Unfortunately, option chains are well beyond the ability of your humble author. 
+You are encouraged to read the official API documentation to learn more.
+
+If you *are* knowledgeable enough to write something more substantive here, 
+please follow the instructions in :ref:`contributing` to send in a patch.
+
+.. automethod:: tda.client.Client.get_option_chain
+.. autoclass:: tda.client.Client.Options
+  :members:
+  :undoc-members:
+
++++++++++++++
+Price History
++++++++++++++
+
+Fetching price history is somewhat complicated due to the fact that only certain 
+combinations of parameters are valid. To avoid accidentally making it impossible
+to send valid requests, this method performs no validation on its parameters. If
+you are receiving empty requests or other weird return values, see the official
+documentation for more details.
+
+.. automethod:: tda.client.Client.get_price_history
+.. autoclass:: tda.client.Client.PriceHistory
+  :members:
+  :undoc-members:
+  :member-order: bysource
+
+++++++++++++++
+Current Quotes
+++++++++++++++
+
+.. automethod:: tda.client.Client.get_quote
+.. automethod:: tda.client.Client.get_quotes
+
++++++++++++++++
+Other Endpoints
++++++++++++++++
+
+Note If your account limited to delayed quotes, these quotes will also be 
+delayed.
+
+-------------------
+Transaction History
+-------------------
+
+.. automethod:: tda.client.Client.get_transaction
+.. automethod:: tda.client.Client.get_transactions
+.. autoclass:: tda.client.Client.Transactions
+  :members:
+  :undoc-members:
+
+------------
+Saved Orders
+------------
+
+.. automethod:: tda.client.Client.create_saved_order
+.. automethod:: tda.client.Client.delete_saved_order
+.. automethod:: tda.client.Client.get_saved_order
+.. automethod:: tda.client.Client.get_saved_orders_by_path
+.. automethod:: tda.client.Client.replace_saved_order
+
+------------
+Market Hours
+------------
+
+.. automethod:: tda.client.Client.get_hours_for_multiple_markets
+.. automethod:: tda.client.Client.get_hours_for_single_market
+.. autoclass:: tda.client.Client.Markets
+  :members:
+  :undoc-members:
+
+------
+Movers
+------
+
+.. automethod:: tda.client.Client.get_movers
+.. autoclass:: tda.client.Client.Movers
+  :members:
+  :undoc-members:
+
+-------------------------
+User Info and Preferences
+-------------------------
+
+.. automethod:: tda.client.Client.get_preferences
+.. automethod:: tda.client.Client.get_user_principals
+.. automethod:: tda.client.Client.update_preferences
+.. autoclass:: tda.client.Client.UserPrincipals
+  :members:
+  :undoc-members:
+
+----------
+Watchlists
+----------
+
+.. automethod:: tda.client.Client.create_watchlist
+.. automethod:: tda.client.Client.delete_watchlist
+.. automethod:: tda.client.Client.get_watchlist
+.. automethod:: tda.client.Client.get_watchlists_for_multiple_accounts
+.. automethod:: tda.client.Client.get_watchlists_for_single_account
+.. automethod:: tda.client.Client.replace_watchlist
+.. automethod:: tda.client.Client.update_watchlist

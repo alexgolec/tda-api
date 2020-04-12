@@ -1,8 +1,8 @@
 '''Defines the basic client and methods for creating one. This client is
-completely unopinionated, and provides an easy-to-use wrapper around the T
+completely unopinionated, and provides an easy-to-use wrapper around the TD
 Ameritrade HTTP API.'''
 
-from enum import Enum, unique
+from enum import Enum
 from requests_oauthlib import OAuth2Session
 
 import datetime
@@ -11,80 +11,19 @@ import time
 
 
 ##########################################################################
-# Authentication Wrappers
-
-
-def __token_updater(token_path):
-    def update_token(t):
-        with open(token_path, 'wb') as f:
-            pickle.dump(t, f)
-    return update_token
-
-
-def client_from_token_file(token_path, api_key):
-    '''Returns a session from the specified token path. The session will
-    perform an auth refresh as needed. It will also update the token on disk
-    whenever appropriate.'''
-
-    # Load old token from secrets directory
-    with open(token_path, 'rb') as f:
-        token = pickle.load(f)
-
-    # Return a new session configured to refresh credentials
-    return Client(
-        api_key,
-        OAuth2Session(api_key, token=token,
-                      auto_refresh_url='https://api.tdameritrade.com/v1/oauth2/token',
-                      auto_refresh_kwargs={'client_id': api_key},
-                      token_updater=__token_updater(token_path)))
-
-
-def client_from_login_flow(webdriver, api_key, redirect_uri, token_path):
-    '''Uses the webdriver to perform an OAuth webapp login flow and creates a
-    client for that token. The session will perform an auth refresh as needed.
-    It will also update the token on disk where appropriate.'''
-    oauth = OAuth2Session(api_key, redirect_uri=redirect_uri)
-    authorization_url, state = oauth.authorization_url(
-        'https://auth.tdameritrade.com/auth')
-
-    # Open the login page and wait for the redirect
-    webdriver.get(authorization_url)
-    callback_url = ''
-    while not callback_url.startswith(redirect_uri):
-        callback_url = webdriver.current_url
-        time.sleep(1)
-
-    token = oauth.fetch_token(
-        'https://api.tdameritrade.com/v1/oauth2/token',
-        authorization_response=callback_url,
-        access_type='offline',
-        client_id=api_key,
-        include_client_id=True)
-
-    # Record the token
-    update_token = __token_updater(token_path)
-    update_token(token)
-
-    # Return a new session configured to refresh credentials
-    return Client(
-        api_key,
-        OAuth2Session(api_key, token=token,
-                      auto_refresh_url='https://api.tdameritrade.com/v1/oauth2/token',
-                      auto_refresh_kwargs={'client_id': api_key},
-                      token_updater=update_token))
-
-
-##########################################################################
 # Client
 
 class Client:
+    # This docstring will appears as documentation for __init__
     '''A basic, completely unopinionated client. This client provides the most
     direct access to the API possible. All methods return the raw response which
     was returned by the underlying API call, and the user is responsible for
-    checking status codes. For methdods which support responses, they can be
-    found in the response object's `json()` method.'''
+    checking status codes. For methods which support responses, they can be
+    found in the response object's ``json()`` method.'''
 
     def __init__(self, api_key, session, *, enforce_enums=True):
+        '''Create a new client with the given API key and session. Set 
+        `enforce_enums=False` to disable strict input type checking.'''
         self.api_key = api_key
         self.session = session
         self.enforce_enums = enforce_enums
@@ -168,17 +107,25 @@ class Client:
     # Orders
 
     def cancel_order(self, order_id, account_id):
-        'Cancel a specific order for a specific account.'
+        '''Cancel a specific order for a specific account.
+        `Official documentation
+        <https://developer.tdameritrade.com/account-access/apis/delete/
+        accounts/%7BaccountId%7D/orders/%7BorderId%7D-0>`__.'''
         path = '/v1/accounts/{}/orders/{}'.format(account_id, order_id)
         return self.__delete_request(path)
 
     def get_order(self, order_id, account_id):
-        'Get a specific order for a specific account.'
+        '''Get a specific order for a specific account by its order ID.
+        `Official documentation
+        <https://developer.tdameritrade.com/account-access/apis/get/accounts/
+        %7BaccountId%7D/orders/%7BorderId%7D-0>`__.'''
         path = '/v1/accounts/{}/orders/{}'.format(account_id, order_id)
         return self.__get_request(path, {})
 
     class Order:
         class Status(Enum):
+            '''Order statuses passed to :meth:`get_orders_by_path` and 
+            :meth:`get_orders_by_query`'''
             AWAITING_PARENT_ORDER = 'AWAITING_PARENT_ORDER'
             AWAITING_CONDITION = 'AWAITING_CONDITION'
             AWAITING_MANUAL_REVIEW = 'AWAITING_MANUAL_REVIEW'
@@ -235,7 +182,24 @@ class Client:
                            to_entered_datetime=None,
                            status=None,
                            statuses=None):
-        'Orders for a specific account.'
+        '''Orders for a specific account. At most one of ``status`` and 
+        ``statuses`` may be set. `Official documentation
+        <https://developer.tdameritrade.com/account-access/apis/get/accounts/
+        %7BaccountId%7D/orders-0>`__.
+
+        :param max_results: The maximum number of orders to retrieve.
+        :param from_entered_datetime: Specifies that no orders entered before 
+                                      this time should be returned. Date must
+                                      be within 60 days from today's date.
+                                      ``toEnteredTime`` must also be set.
+        :param to_entered_datetime: Specifies that no orders entered after this 
+                                    time should be returned. ``fromEnteredTime``
+                                    must also be set.
+        :param status: Restrict query to orders with this status. See 
+                       :class:`Order.Status` for options.
+        :param statuses: Restrict query to orders with any of these statuses.
+                         See :class:`Order.Status` for options.
+        '''
         path = '/v1/accounts/{}/orders'.format(account_id)
         return self.__get_request(path, self.__make_order_query(
             max_results=max_results,
@@ -251,7 +215,24 @@ class Client:
                             to_entered_datetime=None,
                             status=None,
                             statuses=None):
-        'Orders for a specific account.'
+        '''Orders for all linked accounts. At most one of ``status`` and
+        ``statuses`` may be set.
+        `Official documentation
+        <https://developer.tdameritrade.com/account-access/apis/get/orders-0>`__.
+
+        :param max_results: The maximum number of orders to retrieve.
+        :param from_entered_datetime: Specifies that no orders entered before 
+                                      this time should be returned. Date must
+                                      be within 60 days from today's date.
+                                      ``toEnteredTime`` must also be set.
+        :param to_entered_datetime: Specifies that no orders entered after this 
+                                    time should be returned. ``fromEnteredTime``
+                                    must also be set.
+        :param status: Restrict query to orders with this status. See 
+                       :class:`Order.Status` for options.
+        :param statuses: Restrict query to orders with any of these statuses.
+                         See :class:`Order.Status` for options.
+        '''
         path = '/v1/orders'
         return self.__get_request(path, self.__make_order_query(
             max_results=max_results,
@@ -261,14 +242,20 @@ class Client:
             statuses=statuses))
 
     def place_order(self, account_id, order_spec):
-        'Place an order for a specific account.'
+        '''Place an order for a specific account.
+        `Official documentation
+        <https://developer.tdameritrade.com/account-access/apis/post/accounts/
+        %7BaccountId%7D/orders-0>`__.'''
         path = '/v1/accounts/{}/orders'.format(account_id)
         return self.__post_request(path, order_spec)
 
     def replace_order(self, account_id, order_id, order_spec):
         '''Replace an existing order for an account. The existing order will be
         replaced by the new order. Once replaced, the old order will be canceled
-        and a new order will be created.'''
+        and a new order will be created.
+        `Official documentation
+        <https://developer.tdameritrade.com/account-access/apis/put/accounts/
+        %7BaccountId%7D/orders/%7BorderId%7D-0>`__.'''
         path = '/v1/accounts/{}/orders/{}'.format(account_id, order_id)
         return self.__put_request(path, order_spec)
 
@@ -276,28 +263,43 @@ class Client:
     # Saved Orders
 
     def create_saved_order(self, account_id, order_spec):
-        'Save an order for a specific account.'
+        '''Save an order for a specific account.
+        `Official documentation
+        <https://developer.tdameritrade.com/account-access/apis/post/accounts/
+        %7BaccountId%7D/savedorders-0>`__.'''
         path = '/v1/accounts/{}/savedorders'.format(account_id)
         return self.__post_request(path, order_spec)
 
     def delete_saved_order(self, account_id, order_id):
-        'Delete a specific saved order for a specific account.'
+        '''Delete a specific saved order for a specific account.
+        `Official documentation
+        <https://developer.tdameritrade.com/account-access/apis/delete/
+        accounts/%7BaccountId%7D/savedorders/%7BsavedOrderId%7D-0>`__.'''
         path = '/v1/accounts/{}/savedorders/{}'.format(account_id, order_id)
         return self.__delete_request(path)
 
     def get_saved_order(self, account_id, order_id):
-        'Specific saved order by its ID, for a specific account.'
+        '''Specific saved order by its ID, for a specific account.
+        `Official documentation
+        <https://developer.tdameritrade.com/account-access/apis/get/accounts/
+        %7BaccountId%7D/savedorders/%7BsavedOrderId%7D-0>`__.'''
         path = '/v1/accounts/{}/savedorders/{}'.format(account_id, order_id)
         return self.__get_request(path, {})
 
     def get_saved_orders_by_path(self, account_id):
-        'Saved orders for a specific account.'
+        '''Saved orders for a specific account.
+        `Official documentation
+        <https://developer.tdameritrade.com/account-access/apis/get/accounts/
+        %7BaccountId%7D/savedorders-0>`__.'''
         path = '/v1/accounts/{}/savedorders'.format(account_id)
         return self.__get_request(path, {})
 
     def replace_saved_order(self, account_id, order_id, order_spec):
         '''Replace an existing saved order for an account. The existing saved
-        order will be replaced by the new order.'''
+        order will be replaced by the new order.
+        `Official documentation
+        <https://developer.tdameritrade.com/account-access/apis/put/accounts/
+        %7BaccountId%7D/savedorders/%7BsavedOrderId%7D-0>`__.'''
         path = '/v1/accounts/{}/savedorders/{}'.format(account_id, order_id)
         return self.__put_request(path, order_spec)
 
@@ -306,11 +308,20 @@ class Client:
 
     class Account:
         class Fields(Enum):
+            '''Account fields passed to :meth:`get_account` and 
+            :meth:`get_accounts`'''
             POSITIONS = 'positions'
             ORDERS = 'orders'
 
     def get_account(self, account_id, *, fields=None):
-        'Account balances, positions, and orders for a specific account.'
+        '''Account balances, positions, and orders for a specific account.
+        `Official documentation
+        <https://developer.tdameritrade.com/account-access/apis/get/accounts/
+        %7BaccountId%7D-0>`__.
+
+        :param fields: Balances displayed by default, additional fields can be 
+                       added here by adding values from :class:`Account.Fields`.
+        '''
         fields = self.__convert_enum_iterable(fields, self.Account.Fields)
 
         params = {}
@@ -321,7 +332,14 @@ class Client:
         return self.__get_request(path, params)
 
     def get_accounts(self, *, fields=None):
-        'Account balances, positions, and orders for a specific account.'
+        '''Account balances, positions, and orders for all linked accounts.
+        `Official documentation
+        <https://developer.tdameritrade.com/account-access/apis/get/
+        accounts-0>`__.
+
+        :param fields: Balances displayed by default, additional fields can be 
+                       added here by adding values from :class:`Account.Fields`.
+        '''
         fields = self.__convert_enum_iterable(fields, self.Account.Fields)
 
         params = {}
@@ -336,6 +354,10 @@ class Client:
 
     class Instrument:
         class Projection(Enum):
+            '''Search query type for :func:`search_instruments`. See the 
+            `official documentation
+            <https://developer.tdameritrade.com/instruments/apis/get/
+            instruments>`__ for details on the semantics of each.'''
             SYMBOL_SEARCH = 'symbol-search'
             SYMBOL_REGEX = 'symbol-regex'
             DESC_SEARCH = 'desc-search'
@@ -343,7 +365,14 @@ class Client:
             FUNDAMENTAL = 'fundamental'
 
     def search_instruments(self, symbols, projection):
-        'Search or retrieve instrument data, including fundamental data.'
+        '''Search or retrieve instrument data, including fundamental data.
+        `Official documentation
+        <https://developer.tdameritrade.com/instruments/apis/get/
+        instruments>`__.
+
+        :param projection: Query type. See :class:`Instrument.Projection` for 
+                            options.
+        '''
         projection = self.__convert_enum(
             projection, self.Instrument.Projection)
 
@@ -357,7 +386,10 @@ class Client:
         return self.__get_request(path, params)
 
     def get_instrument(self, cusip):
-        'Get an instrument by CUSIP'
+        '''Get an instrument by CUSIP.
+        `Official documentation
+        <https://developer.tdameritrade.com/instruments/apis/get/instruments/
+        %7Bcusip%7D>`__.'''
         if not isinstance(cusip, str):
             raise ValueError('CUSIPs must be passed as strings to preserve ' +
                              'leading zeroes')
@@ -373,6 +405,8 @@ class Client:
     # Market Hours
 
     class Markets(Enum):
+        '''Values for :func:`get_hours_for_multiple_markets` and 
+        :func:`get_hours_for_single_market`.'''
         EQUITY = 'EQUITY'
         OPTION = 'OPTION'
         FUTURE = 'FUTURE'
@@ -380,7 +414,14 @@ class Client:
         FOREX = 'FOREX'
 
     def get_hours_for_multiple_markets(self, markets, date):
-        'Retrieve market hours for specified markets'
+        '''Retrieve market hours for specified markets.
+        `Official documentation
+        <https://developer.tdameritrade.com/market-hours/apis/get/marketdata/
+        hours>`__.
+
+        :param markets: Market to return hours for. Iterable of 
+                        :class:`Markets`.
+        '''
         markets = self.__convert_enum_iterable(markets, self.Markets)
 
         params = {
@@ -394,7 +435,14 @@ class Client:
         return self.__get_request(path, params)
 
     def get_hours_for_single_market(self, market, date):
-        'Retrieve market hours for specified single market'
+        '''Retrieve market hours for specified single market.
+        `Official documentation
+        <https://developer.tdameritrade.com/market-hours/apis/get/marketdata/
+        %7Bmarket%7D/hours>`__.
+
+        :param markets: Market to return hours for. Instance of
+                        :class:`Markets`.
+        '''
         market = self.__convert_enum(market, self.Markets)
 
         params = {
@@ -411,15 +459,25 @@ class Client:
 
     class Movers:
         class Direction(Enum):
+            '''Values for :func:`get_movers`'''
             UP = 'up'
             DOWN = 'down'
 
         class Change(Enum):
+            '''Values for :func:`get_movers`'''
             VALUE = 'value'
             PERCENT = 'percent'
 
     def get_movers(self, index, direction, change):
-        'Search or retrieve instrument data, including fundamental data.'
+        '''Top 10 (up or down) movers by value or percent for a particular 
+        market.
+        `Official documentation
+        <https://developer.tdameritrade.com/movers/apis/get/marketdata/
+        %7Bindex%7D/movers>`__.
+
+        :param direction: See :class:`Movers.Direction`
+        :param change: See :class:`Movers.Change`
+        '''
         direction = self.__convert_enum(direction, self.Movers.Direction)
         change = self.__convert_enum(change, self.Movers.Change)
 
@@ -436,6 +494,11 @@ class Client:
     # Option Chains
 
     class Options:
+        class ContractType(Enum):
+            CALL = 'CALL'
+            PUT = 'PUT'
+            ALL = 'ALL'
+
         class Strategy(Enum):
             SINGLE = 'SINGLE'
             ANALYTICAL = 'ANALYTICAL'
@@ -464,6 +527,20 @@ class Client:
             NON_STANDARD = 'NS'
             ALL = 'ALL'
 
+        class ExpirationMonth(Enum):
+            JANUARY = 'JAN'
+            FEBRUARY = 'FEB'
+            MARCH = 'MAR'
+            APRIL = 'APR'
+            MAY = 'MAY'
+            JUN = 'JUN'
+            JULY = 'JUL'
+            AUGUST = 'AUG'
+            SEPTEMBER = 'SEP'
+            OCTOBER = 'OCT'
+            NOVEMBER = 'NOV'
+            DECEMBER = 'DEC'
+
     def get_option_chain(
             self,
             symbol,
@@ -483,11 +560,47 @@ class Client:
             days_to_expiration=None,
             exp_month=None,
             option_type=None):
-        'Get option chain for an optionable Symbol'
+        '''Get option chain for an optionable Symbol.
+        `Official documentation
+        <https://developer.tdameritrade.com/option-chains/apis/get/marketdata/
+        chains>`__.
+
+        :param contract_type: Type of contracts to return in the chain.
+        :param strike_count: The number of strikes to return above and below
+                             the at-the-money price.
+        :param include_quotes: Include quotes for options in the option chain?
+        :param strategy: If passed, returns a Strategy Chain. See 
+                        :class:`Options.Strategy` for choices.
+        :param interval: Strike interval for spread strategy chains (see 
+                         ``strategy`` param).
+        :param strike: Return options only at this strike price.
+        :param strike_range: Return options for the given range. See 
+                             :class:`Options.StrikeRange` for choices.
+        :param strike_from_date: Only return expirations after this date. For
+                                 strategies, expiration refers to the nearest
+                                 term expiration in the strategy
+        :param strike_to_date: Only return expirations before this date. For
+                               strategies, expiration refers to the nearest
+                               term expiration in the strategy
+        :param volatility: Volatility to use in calculations. Applies only to
+                           ``ANALYTICAL`` strategy chains.
+        :param underlying_price: Underlying price to use in calculations.
+                                 Applies only to ``ANALYTICAL`` strategy chains.
+        :param interest_rate: Interest rate to use in calculations. Applies only
+                              to ``ANALYTICAL`` strategy chains.
+        :param days_to_expiration: Days to expiration to use in calculations.
+                                   Applies only to ``ANALYTICAL`` strategy
+                                   chains
+        :param exp_month: Return only options expiring in the specified month. See 
+                          :class:`Options.ExpirationMonth` for choices.
+        '''
+        contract_type = self.__convert_enum(
+                contract_type, self.Options.ContractType)
         strategy = self.__convert_enum(strategy, self.Options.Strategy)
         strike_range = self.__convert_enum(
             strike_range, self.Options.StrikeRange)
         option_type = self.__convert_enum(option_type, self.Options.Type)
+
 
         params = {
             'apikey': self.api_key,
@@ -592,10 +705,27 @@ class Client:
             period=None,
             frequency_type=None,
             frequency=None,
-            start_date=None,
-            end_date=None,
+            start_datetime=None,
+            end_datetime=None,
             need_extended_hours_data=None):
-        'Get price history for a symbol'
+        '''Get price history for a symbol.
+        `Official documentation
+        <https://developer.tdameritrade.com/price-history/apis/get/marketdata/
+        %7Bsymbol%7D/pricehistory>`__.
+
+        :param period_type: The type of period to show.
+        :param period: The number of periods to show. Should not be provided if 
+                       ``start_datetime`` and ``end_datetime``.
+        :param frequency_type: The type of frequency with which a new candle
+                               is formed.
+        :param frequency: The number of the frequencyType to be included in each
+                          candle.
+        :param start_datetime: End date. Default is previous trading day.
+        :param end_datetime: Start date.
+        :param need_extended_hours_data: If true, return extended hours data. 
+                                         Otherwise return regular market hours
+                                         only.
+        '''
         period_type = self.__convert_enum(
             period_type, self.PriceHistory.PeriodType)
         period = self.__convert_enum(period, self.PriceHistory.Period)
@@ -616,10 +746,10 @@ class Client:
             params['frequencyType'] = frequency_type
         if frequency is not None:
             params['frequency'] = frequency
-        if start_date is not None:
-            params['startDate'] = self.__datetime_as_millis(start_date)
-        if end_date is not None:
-            params['endDate'] = self.__datetime_as_millis(end_date)
+        if start_datetime is not None:
+            params['startDate'] = self.__datetime_as_millis(start_datetime)
+        if end_datetime is not None:
+            params['endDate'] = self.__datetime_as_millis(end_datetime)
         if need_extended_hours_data is not None:
             params['needExtendedHoursData'] = need_extended_hours_data
 
@@ -630,7 +760,10 @@ class Client:
     # Quotes
 
     def get_quote(self, symbol):
-        'Get quote for a symbol'
+        '''Get quote for a symbol.
+        `Official documentation
+        <https://developer.tdameritrade.com/quotes/apis/get/marketdata/
+        %7Bsymbol%7D/quotes>`__.'''
         params = {
             'apikey': self.api_key,
         }
@@ -639,7 +772,10 @@ class Client:
         return self.__get_request(path, params)
 
     def get_quotes(self, symbols):
-        'Get quote for a symbol'
+        '''Get quote for a symbol.
+        `Official documentation
+        <https://developer.tdameritrade.com/quotes/apis/get/marketdata/
+        quotes>`__.'''
         params = {
             'apikey': self.api_key,
             'symbol': ','.join(symbols)
@@ -652,7 +788,10 @@ class Client:
     # Transaction History
 
     def get_transaction(self, account_id, transaction_id):
-        'Transaction for a specific account.'
+        '''Transaction for a specific account.
+        `Official documentation
+        <https://developer.tdameritrade.com/transaction-history/apis/get/
+        accounts/%7BaccountId%7D/transactions/%7BtransactionId%7D-0>`__.'''
         params = {
             'apikey': self.api_key,
         }
@@ -680,9 +819,22 @@ class Client:
             *,
             transaction_type=None,
             symbol=None,
-            start_date=None,
-            end_date=None):
-        'Transaction for a specific account.'
+            start_datetime=None,
+            end_datetime=None):
+        '''Transaction for a specific account.
+        `Official documentation
+        <https://developer.tdameritrade.com/transaction-history/apis/get/
+        accounts/%7BaccountId%7D/transactions-0>`__.
+
+        :param transaction_type: Only transactions with the specified type will 
+                                  be returned.
+        :param symbol: Only transactions with the specified symbol will be
+                        returned.
+        :param start_date: Only transactions after this date will be returned. 
+                           Note the maximum date range is one year.
+        :param end_date: Only transactions before this date will be returned
+                         Note the maximum date range is one year.
+        '''
         transaction_type = self.__convert_enum(
             transaction_type, self.Transactions.TransactionType)
 
@@ -694,10 +846,10 @@ class Client:
             params['type'] = transaction_type
         if symbol is not None:
             params['symbol'] = symbol
-        if start_date is not None:
-            params['startDate'] = self.__format_date(start_date)
-        if end_date is not None:
-            params['endDate'] = self.__format_date(end_date)
+        if start_datetime is not None:
+            params['startDate'] = self.__format_date(start_datetime)
+        if end_datetime is not None:
+            params['endDate'] = self.__format_date(end_datetime)
 
         path = '/v1/accounts/{}/transactions'.format(account_id)
         return self.__get_request(path, params)
@@ -706,7 +858,10 @@ class Client:
     # User Info and Preferences
 
     def get_preferences(self, account_id):
-        'Preferences for a specific account.'
+        '''Preferences for a specific account.
+        `Official documentation
+        <https://developer.tdameritrade.com/user-principal/apis/get/accounts/
+        %7BaccountId%7D/preferences-0>`__.'''
         params = {
             'apikey': self.api_key,
         }
@@ -715,7 +870,10 @@ class Client:
         return self.__get_request(path, params)
 
     def get_streamer_subscription_keys(self, account_ids):
-        'SubscriptionKey for provided accounts or default accounts.'
+        '''SubscriptionKey for provided accounts or default accounts.
+        `Official documentation
+        <https://developer.tdameritrade.com/user-principal/apis/get/
+        userprincipals/streamersubscriptionkeys-0>`__.'''
         params = {
             'apikey': self.api_key,
             'accountIds': ','.join(str(i) for i in account_ids)
@@ -732,7 +890,10 @@ class Client:
             SURROGATE_IDS = 'surrogateIds'
 
     def get_user_principals(self, fields=None):
-        'User Principal details.'
+        '''User Principal details.
+        `Official documentation
+        <https://developer.tdameritrade.com/user-principal/apis/get/
+        userprincipals-0>`__.'''
         fields = self.__convert_enum_iterable(
             fields, self.UserPrincipals.Fields)
 
@@ -750,7 +911,10 @@ class Client:
         '''Update preferences for a specific account.
 
         Please note that the directOptionsRouting and directEquityRouting values
-        cannot be modified via this operation.'''
+        cannot be modified via this operation.
+        `Official documentation
+        <https://developer.tdameritrade.com/user-principal/apis/put/accounts/
+        %7BaccountId%7D/preferences-0>`__.'''
         path = '/v1/accounts/{}/preferences'.format(account_id)
         return self.__put_request(path, preferences)
 
@@ -759,33 +923,51 @@ class Client:
 
     def create_watchlist(self, account_id, watchlist_spec):
         ''''Create watchlist for specific account.This method does not verify
-        that the symbol or asset type are valid.'''
+        that the symbol or asset type are valid.
+        `Official documentation
+        <https://developer.tdameritrade.com/watchlist/apis/post/accounts/
+        %7BaccountId%7D/watchlists-0>`__.'''
         path = '/v1/accounts/{}/watchlists'.format(account_id)
         return self.__post_request(path, watchlist_spec)
 
     def delete_watchlist(self, account_id, watchlist_id):
-        'Delete watchlist for a specific account.'
+        '''Delete watchlist for a specific account.
+        `Official documentation
+        <https://developer.tdameritrade.com/watchlist/apis/delete/accounts/
+        %7BaccountId%7D/watchlists/%7BwatchlistId%7D-0>`__.'''
         path = '/v1/accounts/{}/watchlists/{}'.format(account_id, watchlist_id)
         return self.__delete_request(path)
 
     def get_watchlist(self, account_id, watchlist_id):
-        'Specific watchlist for a specific account.'
+        '''Specific watchlist for a specific account.
+        `Official documentation
+        <https://developer.tdameritrade.com/watchlist/apis/get/accounts/
+        %7BaccountId%7D/watchlists/%7BwatchlistId%7D-0>`__.'''
         path = '/v1/accounts/{}/watchlists/{}'.format(account_id, watchlist_id)
         return self.__get_request(path, params={})
 
     def get_watchlists_for_multiple_accounts(self):
-        'All watchlists for all of the user\'s linked accounts.'
+        '''All watchlists for all of the user\'s linked accounts.
+        `Official documentation
+        <https://developer.tdameritrade.com/watchlist/apis/get/accounts/
+        watchlists-0>`__.'''
         path = '/v1/accounts/watchlists'
         return self.__get_request(path, params={})
 
     def get_watchlists_for_single_account(self, account_id):
-        'All watchlists of an account.'
+        '''All watchlists of an account.
+        `Official documentation
+        <https://developer.tdameritrade.com/watchlist/apis/get/accounts/
+        %7BaccountId%7D/watchlists-0>`__.'''
         path = '/v1/accounts/{}/watchlists'.format(account_id)
         return self.__get_request(path, params={})
 
     def replace_watchlist(self, account_id, watchlist_id, watchlist_spec):
         '''Replace watchlist for a specific account. This method does not verify
-        that the symbol or asset type are valid. '''
+        that the symbol or asset type are valid.
+        `Official documentation
+        <https://developer.tdameritrade.com/watchlist/apis/put/accounts/
+        %7BaccountId%7D/watchlists/%7BwatchlistId%7D-0>`__.'''
         path = '/v1/accounts/{}/watchlists/{}'.format(account_id, watchlist_id)
         return self.__put_request(path, watchlist_spec)
 
@@ -793,6 +975,9 @@ class Client:
         '''Partially update watchlist for a specific account: change watchlist
         name, add to the beginning/end of a watchlist, update or delete items in
         a watchlist. This method does not verify that the symbol or asset type
-        are valid.'''
+        are valid.
+        `Official documentation
+        <https://developer.tdameritrade.com/watchlist/apis/patch/accounts/
+        %7BaccountId%7D/watchlists/%7BwatchlistId%7D-0>`__.'''
         path = '/v1/accounts/{}/watchlists/{}'.format(account_id, watchlist_id)
         return self.__patch_request(path, watchlist_spec)
