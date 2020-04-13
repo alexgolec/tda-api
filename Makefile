@@ -4,6 +4,7 @@ test:
 fix:
 	autopep8 --in-place -r -a tda
 	autopep8 --in-place -r -a tests
+	autopep8 --in-place -r -a examples
 
 dist:
 	python setup.py sdist bdist_wheel

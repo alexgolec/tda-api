@@ -24,7 +24,7 @@ class Client(EnumEnforcer):
     found in the response object's ``json()`` method.'''
 
     def __init__(self, api_key, session, *, enforce_enums=True):
-        '''Create a new client with the given API key and session. Set 
+        '''Create a new client with the given API key and session. Set
         `enforce_enums=False` to disable strict input type checking.'''
         super().__init__(enforce_enums)
 
@@ -92,7 +92,7 @@ class Client(EnumEnforcer):
 
     class Order:
         class Status(Enum):
-            '''Order statuses passed to :meth:`get_orders_by_path` and 
+            '''Order statuses passed to :meth:`get_orders_by_path` and
             :meth:`get_orders_by_query`'''
             AWAITING_PARENT_ORDER = 'AWAITING_PARENT_ORDER'
             AWAITING_CONDITION = 'AWAITING_CONDITION'
@@ -150,20 +150,20 @@ class Client(EnumEnforcer):
                            to_entered_datetime=None,
                            status=None,
                            statuses=None):
-        '''Orders for a specific account. At most one of ``status`` and 
+        '''Orders for a specific account. At most one of ``status`` and
         ``statuses`` may be set. `Official documentation
         <https://developer.tdameritrade.com/account-access/apis/get/accounts/
         %7BaccountId%7D/orders-0>`__.
 
         :param max_results: The maximum number of orders to retrieve.
-        :param from_entered_datetime: Specifies that no orders entered before 
+        :param from_entered_datetime: Specifies that no orders entered before
                                       this time should be returned. Date must
                                       be within 60 days from today's date.
                                       ``toEnteredTime`` must also be set.
-        :param to_entered_datetime: Specifies that no orders entered after this 
+        :param to_entered_datetime: Specifies that no orders entered after this
                                     time should be returned. ``fromEnteredTime``
                                     must also be set.
-        :param status: Restrict query to orders with this status. See 
+        :param status: Restrict query to orders with this status. See
                        :class:`Order.Status` for options.
         :param statuses: Restrict query to orders with any of these statuses.
                          See :class:`Order.Status` for options.
@@ -189,14 +189,14 @@ class Client(EnumEnforcer):
         <https://developer.tdameritrade.com/account-access/apis/get/orders-0>`__.
 
         :param max_results: The maximum number of orders to retrieve.
-        :param from_entered_datetime: Specifies that no orders entered before 
+        :param from_entered_datetime: Specifies that no orders entered before
                                       this time should be returned. Date must
                                       be within 60 days from today's date.
                                       ``toEnteredTime`` must also be set.
-        :param to_entered_datetime: Specifies that no orders entered after this 
+        :param to_entered_datetime: Specifies that no orders entered after this
                                     time should be returned. ``fromEnteredTime``
                                     must also be set.
-        :param status: Restrict query to orders with this status. See 
+        :param status: Restrict query to orders with this status. See
                        :class:`Order.Status` for options.
         :param statuses: Restrict query to orders with any of these statuses.
                          See :class:`Order.Status` for options.
@@ -276,7 +276,7 @@ class Client(EnumEnforcer):
 
     class Account:
         class Fields(Enum):
-            '''Account fields passed to :meth:`get_account` and 
+            '''Account fields passed to :meth:`get_account` and
             :meth:`get_accounts`'''
             POSITIONS = 'positions'
             ORDERS = 'orders'
@@ -287,7 +287,7 @@ class Client(EnumEnforcer):
         <https://developer.tdameritrade.com/account-access/apis/get/accounts/
         %7BaccountId%7D-0>`__.
 
-        :param fields: Balances displayed by default, additional fields can be 
+        :param fields: Balances displayed by default, additional fields can be
                        added here by adding values from :class:`Account.Fields`.
         '''
         fields = self.convert_enum_iterable(fields, self.Account.Fields)
@@ -305,7 +305,7 @@ class Client(EnumEnforcer):
         <https://developer.tdameritrade.com/account-access/apis/get/
         accounts-0>`__.
 
-        :param fields: Balances displayed by default, additional fields can be 
+        :param fields: Balances displayed by default, additional fields can be
                        added here by adding values from :class:`Account.Fields`.
         '''
         fields = self.convert_enum_iterable(fields, self.Account.Fields)
@@ -322,7 +322,7 @@ class Client(EnumEnforcer):
 
     class Instrument:
         class Projection(Enum):
-            '''Search query type for :func:`search_instruments`. See the 
+            '''Search query type for :func:`search_instruments`. See the
             `official documentation
             <https://developer.tdameritrade.com/instruments/apis/get/
             instruments>`__ for details on the semantics of each.'''
@@ -338,7 +338,7 @@ class Client(EnumEnforcer):
         <https://developer.tdameritrade.com/instruments/apis/get/
         instruments>`__.
 
-        :param projection: Query type. See :class:`Instrument.Projection` for 
+        :param projection: Query type. See :class:`Instrument.Projection` for
                             options.
         '''
         projection = self.convert_enum(
@@ -373,7 +373,7 @@ class Client(EnumEnforcer):
     # Market Hours
 
     class Markets(Enum):
-        '''Values for :func:`get_hours_for_multiple_markets` and 
+        '''Values for :func:`get_hours_for_multiple_markets` and
         :func:`get_hours_for_single_market`.'''
         EQUITY = 'EQUITY'
         OPTION = 'OPTION'
@@ -387,7 +387,7 @@ class Client(EnumEnforcer):
         <https://developer.tdameritrade.com/market-hours/apis/get/marketdata/
         hours>`__.
 
-        :param markets: Market to return hours for. Iterable of 
+        :param markets: Market to return hours for. Iterable of
                         :class:`Markets`.
         '''
         markets = self.convert_enum_iterable(markets, self.Markets)
@@ -437,7 +437,7 @@ class Client(EnumEnforcer):
             PERCENT = 'percent'
 
     def get_movers(self, index, direction, change):
-        '''Top 10 (up or down) movers by value or percent for a particular 
+        '''Top 10 (up or down) movers by value or percent for a particular
         market.
         `Official documentation
         <https://developer.tdameritrade.com/movers/apis/get/marketdata/
@@ -537,12 +537,12 @@ class Client(EnumEnforcer):
         :param strike_count: The number of strikes to return above and below
                              the at-the-money price.
         :param include_quotes: Include quotes for options in the option chain?
-        :param strategy: If passed, returns a Strategy Chain. See 
+        :param strategy: If passed, returns a Strategy Chain. See
                         :class:`Options.Strategy` for choices.
-        :param interval: Strike interval for spread strategy chains (see 
+        :param interval: Strike interval for spread strategy chains (see
                          ``strategy`` param).
         :param strike: Return options only at this strike price.
-        :param strike_range: Return options for the given range. See 
+        :param strike_range: Return options for the given range. See
                              :class:`Options.StrikeRange` for choices.
         :param strike_from_date: Only return expirations after this date. For
                                  strategies, expiration refers to the nearest
@@ -559,16 +559,15 @@ class Client(EnumEnforcer):
         :param days_to_expiration: Days to expiration to use in calculations.
                                    Applies only to ``ANALYTICAL`` strategy
                                    chains
-        :param exp_month: Return only options expiring in the specified month. See 
+        :param exp_month: Return only options expiring in the specified month. See
                           :class:`Options.ExpirationMonth` for choices.
         '''
         contract_type = self.convert_enum(
-                contract_type, self.Options.ContractType)
+            contract_type, self.Options.ContractType)
         strategy = self.convert_enum(strategy, self.Options.Strategy)
         strike_range = self.convert_enum(
             strike_range, self.Options.StrikeRange)
         option_type = self.convert_enum(option_type, self.Options.Type)
-
 
         params = {
             'apikey': self.api_key,
@@ -682,7 +681,7 @@ class Client(EnumEnforcer):
         %7Bsymbol%7D/pricehistory>`__.
 
         :param period_type: The type of period to show.
-        :param period: The number of periods to show. Should not be provided if 
+        :param period: The number of periods to show. Should not be provided if
                        ``start_datetime`` and ``end_datetime``.
         :param frequency_type: The type of frequency with which a new candle
                                is formed.
@@ -690,7 +689,7 @@ class Client(EnumEnforcer):
                           candle.
         :param start_datetime: End date. Default is previous trading day.
         :param end_datetime: Start date.
-        :param need_extended_hours_data: If true, return extended hours data. 
+        :param need_extended_hours_data: If true, return extended hours data.
                                          Otherwise return regular market hours
                                          only.
         '''
@@ -794,11 +793,11 @@ class Client(EnumEnforcer):
         <https://developer.tdameritrade.com/transaction-history/apis/get/
         accounts/%7BaccountId%7D/transactions-0>`__.
 
-        :param transaction_type: Only transactions with the specified type will 
+        :param transaction_type: Only transactions with the specified type will
                                   be returned.
         :param symbol: Only transactions with the specified symbol will be
                         returned.
-        :param start_date: Only transactions after this date will be returned. 
+        :param start_date: Only transactions after this date will be returned.
                            Note the maximum date range is one year.
         :param end_date: Only transactions before this date will be returned
                          Note the maximum date range is one year.

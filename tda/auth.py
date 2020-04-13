@@ -1,6 +1,10 @@
 ##########################################################################
 # Authentication Wrappers
 
+from requests_oauthlib import OAuth2Session
+
+import pickle
+import time
 
 from tda.client import Client
 
@@ -25,7 +29,7 @@ def client_from_token_file(token_path, api_key):
 
     :param token_path: Path to the token. Updated tokens will be written to this
                        path.
-    :param api_key: Your TD Ameritrade application's API key, also known as the 
+    :param api_key: Your TD Ameritrade application's API key, also known as the
                     client ID.
     '''
 
@@ -44,19 +48,19 @@ def client_from_token_file(token_path, api_key):
 
 def client_from_login_flow(webdriver, api_key, redirect_url, token_path):
     '''Uses the webdriver to perform an OAuth webapp login flow and creates a
-    client wrapped around the resulting token. The client will be configured to 
+    client wrapped around the resulting token. The client will be configured to
     refresh the token as necessary, writing each updated version to
     ``token_path``.
 
-    :param webdriver: `selenium <https://selenium-python.readthedocs.io>`__ 
+    :param webdriver: `selenium <https://selenium-python.readthedocs.io>`__
                       webdriver which will be used to perform the login flow.
-    :param api_key: Your TD Ameritrade application's API key, also known as the 
+    :param api_key: Your TD Ameritrade application's API key, also known as the
                     client ID.
-    :param redirect_url: Your TD Ameritrade application's redirect URL. Note 
-                         this must *exactly* match the value you've entered in 
-                         your application configuration, otherwise login will 
+    :param redirect_url: Your TD Ameritrade application's redirect URL. Note
+                         this must *exactly* match the value you've entered in
+                         your application configuration, otherwise login will
                          fail with a security error.
-    :param token_path: Path to which the new token will be written. Updated 
+    :param token_path: Path to which the new token will be written. Updated
                        tokens will be written to this path as well.
     '''
     oauth = OAuth2Session(api_key, redirect_uri=redirect_url)
@@ -92,20 +96,20 @@ def client_from_login_flow(webdriver, api_key, redirect_url, token_path):
 
 def easy_client(api_key, redirect_uri, token_path, webdriver_func=None):
     '''Convenient wrapper around :func:`client_from_login_flow` and
-    :func:`client_from_token_file`. If ``token_path`` exists, loads the token 
-    from it. Otherwise open a login flow to fetch a new token. Returns a client 
+    :func:`client_from_token_file`. If ``token_path`` exists, loads the token
+    from it. Otherwise open a login flow to fetch a new token. Returns a client
     configured to refresh the token to ``token_path``.
 
-    :param api_key: Your TD Ameritrade application's API key, also known as the 
+    :param api_key: Your TD Ameritrade application's API key, also known as the
                     client ID.
-    :param redirect_url: Your TD Ameritrade application's redirect URL. Note 
-                         this must *exactly* match the value you've entered in 
-                         your application configuration, otherwise login will 
+    :param redirect_url: Your TD Ameritrade application's redirect URL. Note
+                         this must *exactly* match the value you've entered in
+                         your application configuration, otherwise login will
                          fail with a security error.
     :param token_path: Path that new token will be read from and written to.
                        Updated tokens will be written to this path as well.
     :param webdriver_func: Function that returns a webdriver for use in fetching
-                           a new token. Will only be called if the token file 
+                           a new token. Will only be called if the token file
                            cannot be found.
     '''
     api_key = __normalize_api_key(api_key)
@@ -118,4 +122,3 @@ def easy_client(api_key, redirect_uri, token_path, webdriver_func=None):
             with webdriver_func() as driver:
                 return client_from_login_flow(
                     driver, api_key, redirect_uri, token_path)
-

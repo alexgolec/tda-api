@@ -5,10 +5,12 @@ class InvalidOrderException(Exception):
     '''Raised when attempting to build an incomplete order'''
     pass
 
+
 class Duration(Enum):
     DAY = 'DAY'
     GOOD_TILL_CANCEL = 'GOOD_TILL_CANCEL'
     FILL_OR_KILL = 'FILL_OR_KILL'
+
 
 class Session(Enum):
     NORMAL = 'NORMAL'
@@ -16,11 +18,12 @@ class Session(Enum):
     PM = 'PM'
     SEAMESS = 'SEAMLESS'
 
+
 class EquityOrderBuilder:
     '''Helper class to construct equity orders.'''
 
     def __init__(self, symbol, quantity):
-        '''Create an order for the given symbol and quantity. Note all 
+        '''Create an order for the given symbol and quantity. Note all
         unspecified parameters must be set prior to building the order spec.
 
         :param symbol: Symbol for the order
@@ -113,14 +116,14 @@ class EquityOrderBuilder:
         return spec
 
     def matches(self, order):
-        '''Takes a real object, as might be returned from the TD Ameritrade API, 
+        '''Takes a real object, as might be returned from the TD Ameritrade API,
         and indicates whether this order object matches it. Returns true if the
         given order if the given order *could have* been placed by calling
-        :meth:`Client.place_order()<tda.client.Client.place_order>` with this 
+        :meth:`Client.place_order()<tda.client.Client.place_order>` with this
         order.
 
         This method may be called on incomplete orders builders (builders whose
-        :meth:`build` method would fail if called. In such a case, unset values 
+        :meth:`build` method would fail if called. In such a case, unset values
         are ignored and have no effect on filtering.'''
         def matches_path(value, obj, path):
             if value is None:

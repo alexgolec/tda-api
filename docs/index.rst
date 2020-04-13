@@ -10,6 +10,7 @@
   client
   orders
   util
+  example
   contributing
 
 Indices and tables
