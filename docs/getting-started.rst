@@ -56,7 +56,7 @@ The recommended method of installing ``tda-api`` is using ``pip`` from
 virtualenv.pypa.io/en/latest/>`__. First create a virtualenv in your project 
 diretory. Here we assume your virtualenv is called ``my-venv``:
 
-.. code-block::
+.. code-block:: shell
 
   pip install virtualenv
   virtualenv -v my-venv
@@ -64,7 +64,7 @@ diretory. Here we assume your virtualenv is called ``my-venv``:
 
 You are now ready to install ``tda-api``:
 
-.. code-block::
+.. code-block:: shell
 
   pip install tda-api
 

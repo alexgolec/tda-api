@@ -13,7 +13,7 @@ client provides access to all endpoints of the API in as easy and direct a way
 as possible. For example, here is how you can fetch the past 20 years of data 
 for Apple stock: 
 
-.. code-block::
+.. code-block:: python
 
   from tda.auth import easy_client
   from tda.client import Client

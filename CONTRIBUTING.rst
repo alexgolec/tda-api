@@ -18,7 +18,7 @@ some additional packages around testing, documentation generation, etc.
 Before you install anything, I highly recommend setting up a `virtualenv` so you 
 don't pollute your system installation directories:
 
-.. code-block::
+.. code-block:: shell
 
   pip install virtualenv
   virtualenv -v virtualenv
@@ -26,13 +26,13 @@ don't pollute your system installation directories:
 
 Next, install project requirements:
 
-.. code-block::
+.. code-block:: shell
 
   pip install -r requirements.txt
 
 Finally, verify everything works by running tests:
 
-.. code-block::
+.. code-block:: shell
 
   make test
 
@@ -50,7 +50,7 @@ This project aims for high test coverage. All changes must be properly tested,
 and we will accept no PRs that lack appropriate unit testing. We also expect 
 existing tests to pass. You can run your tests using: 
 
-.. code-block::
+.. code-block:: shell
 
   make test
 
@@ -68,6 +68,6 @@ Documentation is built using `Sphinx <https://www.sphinx-doc.org/en/master/>`__.
 You can build the documentation using the `Makefile.sphinx` makefile. For 
 example you can build the HTML documentation like so:
 
-.. code-block::
+.. code-block:: shell
 
   make -f Makefile.sphinx
