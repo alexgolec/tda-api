@@ -29,7 +29,8 @@ client = tda.auth.easy_client(
     make_webdriver)
 
 # Load S&P 500 composition from documentation
-sp500 = urlopen('').read().decode().split()
+sp500 = urlopen(
+    'https://tda-api.readthedocs.io/en/latest/_static/sp500.txt').read().decode().split()
 
 # Fetch fundamentals for all symbols and filter out the ones with ex-dividend
 # dates in the future and dividend payment dates on your birth month. Note we
