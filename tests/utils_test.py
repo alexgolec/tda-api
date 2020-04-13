@@ -134,12 +134,12 @@ class UtilsTest(unittest.TestCase):
             return_value=MockResponse([order1, order2], True))
 
         out_order = self.utils.get_most_recent_order(
-                instruction=EquityOrderBuilder.Instruction.BUY)
+            instruction=EquityOrderBuilder.Instruction.BUY)
         self.assertEqual(order2, out_order)
 
         order2['orderLegCollection'][0]['instruction'] = 'SELL'
         out_order = self.utils.get_most_recent_order(
-                instruction=EquityOrderBuilder.Instruction.BUY)
+            instruction=EquityOrderBuilder.Instruction.BUY)
         self.assertEqual(order1, out_order)
 
     def test_different_order_type(self):
@@ -152,10 +152,10 @@ class UtilsTest(unittest.TestCase):
             return_value=MockResponse([order1, order2], True))
 
         out_order = self.utils.get_most_recent_order(
-                order_type=EquityOrderBuilder.OrderType.MARKET)
+            order_type=EquityOrderBuilder.OrderType.MARKET)
         self.assertEqual(order2, out_order)
 
         order2['orderType'] = 'LIMIT'
         out_order = self.utils.get_most_recent_order(
-                order_type=EquityOrderBuilder.OrderType.MARKET)
+            order_type=EquityOrderBuilder.OrderType.MARKET)
         self.assertEqual(order1, out_order)

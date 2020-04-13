@@ -456,7 +456,7 @@ class TestClient(unittest.TestCase):
 
     def test_get_option_chain_contract_type(self):
         self.client.get_option_chain(
-                'AAPL', contract_type=Client.Options.ContractType.PUT)
+            'AAPL', contract_type=Client.Options.ContractType.PUT)
         self.mock_session.get.assert_called_once_with(
             self.make_url('/v1/marketdata/chains'), params={
                 'apikey': API_KEY,
@@ -769,7 +769,7 @@ class TestClient(unittest.TestCase):
 
     def test_get_transactions_start_datetime(self):
         self.client.get_transactions(
-                ACCOUNT_ID, start_datetime=EARLIER_DATETIME)
+            ACCOUNT_ID, start_datetime=EARLIER_DATETIME)
         self.mock_session.get.assert_called_once_with(
             self.make_url('/v1/accounts/{accountId}/transactions'), params={
                 'apikey': API_KEY,
