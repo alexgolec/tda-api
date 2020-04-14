@@ -108,6 +108,11 @@ class UtilsTest(unittest.TestCase):
         out_order = self.utils.get_most_recent_order(symbol='AAPL')
         self.assertEqual(order1, out_order)
 
+    def test_quantity_and_symbol(self):
+        msg = 'when specifying quantity, must also specify symbol'
+        with self.assertRaises(ValueError, msg=msg):
+            out_order = self.utils.get_most_recent_order(quantity=1)
+
     def test_different_quantity(self):
         order1 = self.order(
             '2020-01-01T12:00:00+0000', 'AAPL', 1, 'BUY', 'MARKET')
@@ -117,11 +122,13 @@ class UtilsTest(unittest.TestCase):
         self.mock_client.get_orders_by_path = MagicMock(
             return_value=MockResponse([order1, order2], True))
 
-        out_order = self.utils.get_most_recent_order(symbol='AAPL', quantity=1)
+        out_order = self.utils.get_most_recent_order(
+            symbol='AAPL', quantity=1)
         self.assertEqual(order2, out_order)
 
         order2['orderLegCollection'][0]['quantity'] = 10
-        out_order = self.utils.get_most_recent_order(symbol='AAPL', quantity=1)
+        out_order = self.utils.get_most_recent_order(
+            symbol='AAPL', quantity=1)
         self.assertEqual(order1, out_order)
 
     def test_different_instruction(self):

@@ -122,7 +122,7 @@ class Client(EnumEnforcer):
 
         if from_entered_datetime is None:
             from_entered_datetime = datetime.datetime(
-                    year=1900, month=1, day=1)
+                year=1900, month=1, day=1)
         if to_entered_datetime is None:
             to_entered_datetime = datetime.datetime.utcnow()
 
