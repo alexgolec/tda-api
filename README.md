@@ -1,8 +1,7 @@
 # ``tda-api``: A TD Ameritrade API Wrapper
 
 [![Documentation Status](https://readthedocs.org/projects/tda-api/badge/?version=latest)](https://tda-api.readthedocs.io/en/latest/?badge=latest)
-
-[![<alexgolec>](https://circleci.com/gh/alexgolec/tda-api.svg?style=svg)](<https://circleci.com/gh/alexgolec/tda-api>)
+[![<alexgolec>](https://circleci.com/gh/alexgolec/tda-api.svg?style=shield)](<https://circleci.com/gh/alexgolec/tda-api>)
 
 What is ``tda-api``?
 --------------------
