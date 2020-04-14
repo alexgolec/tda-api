@@ -14,6 +14,12 @@ jobs:
       - run:
           command: python -m nose
           name: Test
+      - run:
+          command: python -m coverage run --source=tda -m nose
+          name: Coverage
+      - run:
+          command: bash <(curl -s https://codecov.io/bash)
+          name: Upload to codecov
 
 workflows:
   main:
