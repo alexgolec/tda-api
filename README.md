@@ -2,6 +2,7 @@
 
 [![Documentation Status](https://readthedocs.org/projects/tda-api/badge/?version=latest)](https://tda-api.readthedocs.io/en/latest/?badge=latest)
 [![<alexgolec>](https://circleci.com/gh/alexgolec/tda-api.svg?style=shield)](<https://circleci.com/gh/alexgolec/tda-api>)
+[![PyPI version](https://badge.fury.io/py/tda-api.svg)](https://badge.fury.io/py/tda-api)
 
 What is ``tda-api``?
 --------------------
