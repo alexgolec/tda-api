@@ -63,8 +63,8 @@ for s in (sp500[:250], sp500[250:]):
             birth_month_dividends.append(symbol)
 
 if not birth_month_dividends:
-    print('Sorry, no stocks are paying out in your birth month yet. This is',
-          'most likely because the dividends haven\'t been announced yet.',
+    print('Sorry, no stocks are paying out in your birth month yet. This is ',
+          'most likely because the dividends haven\'t been announced yet. ',
           'Try again closer to your birthday.')
     sys.exit(1)
 
