@@ -19,13 +19,13 @@ order for ten shares of Apple common stock:
 
 .. code-block:: python
 
-  from tda.orders import EquityOrderBuilder
+  from tda.orders import EquityOrderBuilder, Duration, Session
 
   builder = EquityOrderBuilder('AAPL', 10)
   builder.set_instruction(EquityOrderBuilder.Instruction.SELL)
   builder.set_order_type(EquityOrderBuilder.OrderType.MARKET)
-  builder.set_duration(EquityOrderBuilder.Duration.DAY)
-  builder.set_session(EquityOrderBuilder.Session.NORMAL)
+  builder.set_duration(Duration.DAY)
+  builder.set_session(Session.NORMAL)
 
   client = ...  # Get a client however you see fit
   account_id = 12345678
