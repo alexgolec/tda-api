@@ -146,11 +146,4 @@ tags
 .DS_Store
 virtualenv
 
-data/historical/
-data/fundamentals/
-data/dividend/
-data/current_portfolio.txt
-
-secrets
-scratch.py
 docs-build/
