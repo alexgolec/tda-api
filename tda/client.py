@@ -120,6 +120,9 @@ class Client(EnumEnforcer):
         status = self.convert_enum(status, self.Order.Status)
         statuses = self.convert_enum_iterable(statuses, self.Order.Status)
 
+        if status is not None and statuses is not None:
+            raise ValueError('at most one of status or statuses may be set')
+
         if from_entered_datetime is None:
             from_entered_datetime = datetime.datetime(
                 year=1900, month=1, day=1)
@@ -134,8 +137,6 @@ class Client(EnumEnforcer):
         if max_results:
             params['maxResults'] = max_results
 
-        if status is not None and statuses is not None:
-            raise ValueError('at most one of status or statuses may be set')
         if status:
             params['status'] = status
         if statuses:
