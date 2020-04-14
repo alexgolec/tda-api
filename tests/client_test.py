@@ -1,5 +1,6 @@
 import datetime
 import os
+import pytz
 import unittest
 from unittest.mock import ANY, MagicMock, Mock, patch
 
@@ -30,17 +31,16 @@ class mockdatetime(datetime.datetime):
         return NOW_DATETIME
 
 
-EARLIER_DATETIME = datetime.datetime(2001, 1, 2, 3, 4, 5)
-EARLIER_ISO = '2001-01-02T03:04:05+0000'
-EARLIER_MILLIS = 978422645000
+EARLIER_DATETIME = datetime.datetime(2001, 1, 2, 3, 4, 5, 
+        tzinfo=pytz.timezone('America/New_York'))
+EARLIER_ISO = '2001-01-02T03:04:05-0456'
+EARLIER_MILLIS = 978422405000
 EARLIER_DATE_STR = '2001-01-02'
 
 
 class TestClient(unittest.TestCase):
 
     def setUp(self):
-        os.environ['TZ'] = 'America/New_York'
-
         self.mock_session = MagicMock()
         self.client = Client(API_KEY, self.mock_session)
 
