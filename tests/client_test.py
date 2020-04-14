@@ -1,4 +1,5 @@
 import datetime
+import os
 import unittest
 from unittest.mock import ANY, MagicMock, Mock, patch
 
@@ -38,6 +39,8 @@ EARLIER_DATE_STR = '2001-01-02'
 class TestClient(unittest.TestCase):
 
     def setUp(self):
+        os.environ['TZ'] = 'America/New_York'
+
         self.mock_session = MagicMock()
         self.client = Client(API_KEY, self.mock_session)
 
