@@ -16,13 +16,13 @@ jobs:
           name: Test
       - run:
           command: python -m coverage run --source=tda -m nose
-          name: Coverage
+          name: Run coverage
       - run:
-          command: ls
-          name: ls
+          command: python -m coverage xml
+          name: Generate coverage XML
       - run:
           command: bash <(curl -s https://codecov.io/bash)
-          name: Upload to codecov
+          name: Upload coverage report
 
 workflows:
   main:
