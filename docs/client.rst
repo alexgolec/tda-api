@@ -55,6 +55,34 @@ here, you can use ``set_enforce_enums`` to disable this behavior at your own
 risk. If you *do* find a supported value that isn't listed here, please open an
 issue describing it or submit a PR adding the new functionality.
 
++++++++++++++
+Return Values
++++++++++++++
+
+All methods return a response object generated under the hood by the
+`requests <https://requests.readthedocs.io/en/master/>`__ module. For a full 
+listing of what's possible, read that module's documentation. Most if not all 
+users can simply use the following pattern:
+
+.. code-block:: python
+
+  r = client.some_endpoint()
+  assert r.ok, r.raise_for_status()
+  data = r.json()
+
+The API indicates errors using the response status code, and this pattern will 
+raise the appropriate exception if the response is not a success. The data can 
+be fetched by calling the ``.json()`` method.
+
+**Note:** Because the author has no relationship whatsoever with TD Ameritrade, 
+this document makes no effort to describe the structure of the returned JSON 
+objects. TDA might change them at any time, at which point this document will 
+become silently out of date. Instead, each of the methods described below 
+contains a link to the official documentation. For endpoints that return 
+meaningful JSON objects, it includes a JSON schema which describes the return 
+value. Please use that documentation or your own experimentation when figuring 
+out how to use the data returned by this API.
+
 +++++++++++++++++++++
 Creating a New Client
 +++++++++++++++++++++

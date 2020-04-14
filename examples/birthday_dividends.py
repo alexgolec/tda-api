@@ -41,7 +41,7 @@ birth_month_dividends = []
 for s in (sp500[:250], sp500[250:]):
     r = client.search_instruments(
         s, tda.client.Client.Instrument.Projection.FUNDAMENTAL)
-    assert r.ok
+    assert r.ok, r.raise_for_status()
 
     for symbol, f in r.json().items():
 
