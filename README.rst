@@ -20,6 +20,7 @@ What is ``tda-api``?
 <https://developer.tdameritrade.com/apis>`__. It strives to be as thin and
 unopinionated as possible, offering an elegant programmatic interface over each
 endpoint. Notable functionality includes:
+
 * Login and authentication
 * Quotes, fundamentals, and historical pricing data
 * Options chains
@@ -30,7 +31,7 @@ How do I use ``tda-api``?
 -------------------------
 
 For a full description of ``tda-api``'s functionality, checkout the 
-`Documentation <https://tda-api.readthedocs.io/en/latest/>`__. Meawhile, here's 
+`documentation <https://tda-api.readthedocs.io/en/latest/>`__. Meawhile, here's 
 a quick getting started guide:
 
 Before you do anything, create an account and an application on the
