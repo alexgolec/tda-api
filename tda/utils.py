@@ -3,6 +3,7 @@ module.'''
 
 import datetime
 import dateutil.parser
+import re
 
 from .orders import EquityOrderBuilder
 
@@ -63,7 +64,44 @@ class Utils(EnumEnforcer):
         '''Set the account ID used by this ``Utils`` instance.'''
         self.account_id = account_id
 
-    def get_most_recent_order(
+    def extract_order_id(self, place_order_response):
+        '''Attempts to extract the order ID from a response object returned by
+        :meth:`Client.place_order() <tda.client.Client.place_order>`. Return 
+        ``None`` if the order location is not contained in the response.
+
+        :param place_order_response: Order response as returned by
+                                     :meth:`Client.place_order() 
+                                     <tda.client.Client.place_order>`. Note this 
+                                     method requires that the order was 
+                                     successful.
+
+        :raise ValueError: if the order was not succesful or if the order's 
+                           account ID is not equal to the account ID set in this 
+                           ``Utils`` object.
+
+        '''
+        if not place_order_response.ok:
+            raise ValueError('order not successful')
+
+        try:
+            location = place_order_response.headers['Location']
+        except KeyError:
+            return None
+
+        m = re.match(
+            r'https://api.tdameritrade.com/v1/accounts/(\d+)/orders/(\d+)',
+            location)
+
+        if m is None:
+            return None
+        account_id, order_id = int(m.group(1)), int(m.group(2))
+
+        if account_id != self.account_id:
+            raise ValueError('order request account ID != Utils.account_id')
+
+        return order_id
+
+    def find_most_recent_order(
             self,
             *,
             symbol=None,
@@ -72,11 +110,12 @@ class Utils(EnumEnforcer):
             order_type=None,
             lookback_window=datetime.timedelta(seconds=60 * 60 * 24)):
         '''
-        When placing orders, the TDA API does seem to ever return the order ID
-        of the newly placed order. This means if we want to cancel, modify, or
-        even monitor its status, we have to take a guess as to which order we
-        just placed. This method simplifies things by returning the most
-        recently-placed order with the given order signature.
+        When placing orders, the TDA API does not always return the order ID
+        of the newly placed order, especially when the order was rejected. This
+        means if we want to make extra sure of its status, we have to take a
+        guess as to which order we just placed. This method simplifies things by
+        returning the most recently-placed order with the given order
+        signature.
 
         **Note:** This method cannot guarantee that the calling process was the
         one which placed an order. This means that if there are multiple sources

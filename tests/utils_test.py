@@ -10,9 +10,10 @@ from . import test_utils
 
 
 class MockResponse:
-    def __init__(self, json, ok):
+    def __init__(self, json, ok, headers=None):
         self._json = json
         self.ok = ok
+        self.headers = headers if headers is not None else {}
 
     def json(self):
         return self._json
@@ -28,6 +29,43 @@ class UtilsTest(unittest.TestCase):
         self.order_id = 1
 
         self.maxDiff = None
+
+    ##########################################################################
+    # extract_order_id tests
+
+    def test_extract_order_id_order_not_ok(self):
+        response = MockResponse({}, False)
+        with self.assertRaises(ValueError, msg='order not successful'):
+            self.utils.extract_order_id(response)
+
+    def test_extract_order_id_no_location(self):
+        response = MockResponse({}, True, headers={})
+        self.assertIsNone(self.utils.extract_order_id(response))
+
+    def test_extract_order_id_no_pattern_match(self):
+        response = MockResponse({}, True, headers={
+            'Location': 'https://api.tdameritrade.com/v1/accounts/12345'})
+        self.assertIsNone(self.utils.extract_order_id(response))
+
+    def test_get_order_nonmatching_account_id(self):
+        response = MockResponse({}, True, headers={
+            'Location':
+            'https://api.tdameritrade.com/v1/accounts/{}/orders/456'.format(
+                self.account_id + 1)})
+        with self.assertRaises(
+                ValueError, msg='order request account ID != Utils.account_id'):
+            self.utils.extract_order_id(response)
+
+    def test_get_order_success(self):
+        order_id = self.account_id + 100
+        response = MockResponse({}, True, headers={
+            'Location':
+            'https://api.tdameritrade.com/v1/accounts/{}/orders/{}'.format(
+                self.account_id, order_id)})
+        self.assertEqual(order_id, self.utils.extract_order_id(response))
+
+    ##########################################################################
+    # find_most_recent_order tests
 
     def order(self, time, symbol, quantity, instruction, order_type):
         order = test_utils.real_order()
@@ -57,7 +95,7 @@ class UtilsTest(unittest.TestCase):
         self.mock_client.get_orders_by_path = MagicMock(
             return_value=MockResponse([order1, order2], True))
 
-        order = self.utils.get_most_recent_order()
+        order = self.utils.find_most_recent_order()
         self.assertEqual(order2, order)
 
     def test_too_many_order_legs(self):
@@ -69,11 +107,11 @@ class UtilsTest(unittest.TestCase):
         self.mock_client.get_orders_by_path = MagicMock(
             return_value=MockResponse([order1, order2], True))
 
-        out_order = self.utils.get_most_recent_order()
+        out_order = self.utils.find_most_recent_order()
         self.assertEqual(order2, out_order)
 
         order2['orderLegCollection'].append(order2['orderLegCollection'][0])
-        out_order = self.utils.get_most_recent_order()
+        out_order = self.utils.find_most_recent_order()
         self.assertEqual(order1, out_order)
 
     def test_non_equity_asset_type(self):
@@ -85,11 +123,11 @@ class UtilsTest(unittest.TestCase):
         self.mock_client.get_orders_by_path = MagicMock(
             return_value=MockResponse([order1, order2], True))
 
-        out_order = self.utils.get_most_recent_order()
+        out_order = self.utils.find_most_recent_order()
         self.assertEqual(order2, out_order)
 
         order2['orderLegCollection'][0]['instrument']['assetType'] = 'OPTION'
-        out_order = self.utils.get_most_recent_order()
+        out_order = self.utils.find_most_recent_order()
         self.assertEqual(order1, out_order)
 
     def test_different_symbol(self):
@@ -101,17 +139,17 @@ class UtilsTest(unittest.TestCase):
         self.mock_client.get_orders_by_path = MagicMock(
             return_value=MockResponse([order1, order2], True))
 
-        out_order = self.utils.get_most_recent_order(symbol='AAPL')
+        out_order = self.utils.find_most_recent_order(symbol='AAPL')
         self.assertEqual(order2, out_order)
 
         order2['orderLegCollection'][0]['instrument']['symbol'] = 'MSFT'
-        out_order = self.utils.get_most_recent_order(symbol='AAPL')
+        out_order = self.utils.find_most_recent_order(symbol='AAPL')
         self.assertEqual(order1, out_order)
 
     def test_quantity_and_symbol(self):
         msg = 'when specifying quantity, must also specify symbol'
         with self.assertRaises(ValueError, msg=msg):
-            out_order = self.utils.get_most_recent_order(quantity=1)
+            out_order = self.utils.find_most_recent_order(quantity=1)
 
     def test_different_quantity(self):
         order1 = self.order(
@@ -122,12 +160,12 @@ class UtilsTest(unittest.TestCase):
         self.mock_client.get_orders_by_path = MagicMock(
             return_value=MockResponse([order1, order2], True))
 
-        out_order = self.utils.get_most_recent_order(
+        out_order = self.utils.find_most_recent_order(
             symbol='AAPL', quantity=1)
         self.assertEqual(order2, out_order)
 
         order2['orderLegCollection'][0]['quantity'] = 10
-        out_order = self.utils.get_most_recent_order(
+        out_order = self.utils.find_most_recent_order(
             symbol='AAPL', quantity=1)
         self.assertEqual(order1, out_order)
 
@@ -140,12 +178,12 @@ class UtilsTest(unittest.TestCase):
         self.mock_client.get_orders_by_path = MagicMock(
             return_value=MockResponse([order1, order2], True))
 
-        out_order = self.utils.get_most_recent_order(
+        out_order = self.utils.find_most_recent_order(
             instruction=EquityOrderBuilder.Instruction.BUY)
         self.assertEqual(order2, out_order)
 
         order2['orderLegCollection'][0]['instruction'] = 'SELL'
-        out_order = self.utils.get_most_recent_order(
+        out_order = self.utils.find_most_recent_order(
             instruction=EquityOrderBuilder.Instruction.BUY)
         self.assertEqual(order1, out_order)
 
@@ -158,11 +196,11 @@ class UtilsTest(unittest.TestCase):
         self.mock_client.get_orders_by_path = MagicMock(
             return_value=MockResponse([order1, order2], True))
 
-        out_order = self.utils.get_most_recent_order(
+        out_order = self.utils.find_most_recent_order(
             order_type=EquityOrderBuilder.OrderType.MARKET)
         self.assertEqual(order2, out_order)
 
         order2['orderType'] = 'LIMIT'
-        out_order = self.utils.get_most_recent_order(
+        out_order = self.utils.find_most_recent_order(
             order_type=EquityOrderBuilder.OrderType.MARKET)
         self.assertEqual(order1, out_order)

@@ -212,10 +212,12 @@ class Client(EnumEnforcer):
             statuses=statuses))
 
     def place_order(self, account_id, order_spec):
-        '''Place an order for a specific account.
+        '''Place an order for a specific account. If order creation was 
+        successful, the response will contain the ID of the generated order. See 
+        :meth:`tda.utils.Utils.extract_order_id` for more details.
         `Official documentation
         <https://developer.tdameritrade.com/account-access/apis/post/accounts/
-        %7BaccountId%7D/orders-0>`__.'''
+        %7BaccountId%7D/orders-0>`__. '''
         path = '/v1/accounts/{}/orders'.format(account_id)
         return self.__post_request(path, order_spec)
 

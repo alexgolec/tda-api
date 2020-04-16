@@ -93,6 +93,8 @@ own, the constructor looks like this:
 
 .. automethod:: tda.client.Client.__init__
 
+.. _orders-section:
+
 ++++++
 Orders
 ++++++
