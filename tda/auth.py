@@ -46,7 +46,8 @@ def client_from_token_file(token_path, api_key):
                       token_updater=__token_updater(token_path)))
 
 
-def client_from_login_flow(webdriver, api_key, redirect_url, token_path):
+def client_from_login_flow(webdriver, api_key, redirect_url, token_path,
+                           redirect_wait_time_seconds=0.1):
     '''Uses the webdriver to perform an OAuth webapp login flow and creates a
     client wrapped around the resulting token. The client will be configured to
     refresh the token as necessary, writing each updated version to
@@ -72,7 +73,7 @@ def client_from_login_flow(webdriver, api_key, redirect_url, token_path):
     callback_url = ''
     while not callback_url.startswith(redirect_url):
         callback_url = webdriver.current_url
-        time.sleep(1)
+        time.sleep(redirect_wait_time_seconds)
 
     token = oauth.fetch_token(
         'https://api.tdameritrade.com/v1/oauth2/token',
@@ -117,8 +118,9 @@ def easy_client(api_key, redirect_uri, token_path, webdriver_func=None):
     try:
         return client_from_token_file(token_path, api_key)
     except FileNotFoundError:
-        from selenium import webdriver
         if webdriver_func is not None:
             with webdriver_func() as driver:
                 return client_from_login_flow(
                     driver, api_key, redirect_uri, token_path)
+        else:
+            raise
