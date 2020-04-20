@@ -74,7 +74,7 @@ class TestClient(unittest.TestCase):
 
     # get_orders_by_path
 
-    @patch('datetime.datetime', mockdatetime)
+    @patch('tda.client.datetime.datetime', mockdatetime)
     def test_get_orders_by_path_vanilla(self):
         self.client.get_orders_by_path(ACCOUNT_ID)
         self.mock_session.get.assert_called_once_with(
@@ -83,7 +83,7 @@ class TestClient(unittest.TestCase):
                 'toEnteredTime': NOW_ISO
             })
 
-    @patch('datetime.datetime', mockdatetime)
+    @patch('tda.client.datetime.datetime', mockdatetime)
     def test_get_orders_by_path_max_results(self):
         self.client.get_orders_by_path(ACCOUNT_ID, max_results=100)
         self.mock_session.get.assert_called_once_with(
@@ -93,7 +93,7 @@ class TestClient(unittest.TestCase):
                 'maxResults': 100,
             })
 
-    @patch('datetime.datetime', mockdatetime)
+    @patch('tda.client.datetime.datetime', mockdatetime)
     def test_get_orders_by_path_from_entered_datetime(self):
         self.client.get_orders_by_path(
             ACCOUNT_ID, from_entered_datetime=EARLIER_DATETIME)
@@ -103,7 +103,7 @@ class TestClient(unittest.TestCase):
                 'toEnteredTime': NOW_ISO,
             })
 
-    @patch('datetime.datetime', mockdatetime)
+    @patch('tda.client.datetime.datetime', mockdatetime)
     def test_get_orders_by_path_to_entered_datetime(self):
         self.client.get_orders_by_path(
             ACCOUNT_ID, to_entered_datetime=EARLIER_DATETIME)
@@ -113,13 +113,13 @@ class TestClient(unittest.TestCase):
                 'toEnteredTime': EARLIER_ISO,
             })
 
-    @patch('datetime.datetime', mockdatetime)
+    @patch('tda.client.datetime.datetime', mockdatetime)
     def test_get_orders_by_path_status_and_statuses(self):
         self.assertRaises(ValueError, lambda: self.client.get_orders_by_path(
             ACCOUNT_ID, to_entered_datetime=EARLIER_DATETIME,
             status='EXPIRED', statuses=[Client.Order.Status.FILLED]))
 
-    @patch('datetime.datetime', mockdatetime)
+    @patch('tda.client.datetime.datetime', mockdatetime)
     def test_get_orders_by_path_status(self):
         self.client.get_orders_by_path(
             ACCOUNT_ID, status=Client.Order.Status.FILLED)
@@ -130,7 +130,7 @@ class TestClient(unittest.TestCase):
                 'status': 'FILLED'
             })
 
-    @patch('datetime.datetime', mockdatetime)
+    @patch('tda.client.datetime.datetime', mockdatetime)
     def test_get_orders_by_path_status_unchecked(self):
         self.client.set_enforce_enums(False)
         self.client.get_orders_by_path(ACCOUNT_ID, status='FILLED')
@@ -141,7 +141,7 @@ class TestClient(unittest.TestCase):
                 'status': 'FILLED'
             })
 
-    @patch('datetime.datetime', mockdatetime)
+    @patch('tda.client.datetime.datetime', mockdatetime)
     def test_get_orders_by_path_statuses(self):
         self.client.get_orders_by_path(
             ACCOUNT_ID, statuses=[
@@ -154,7 +154,7 @@ class TestClient(unittest.TestCase):
                 'status': 'FILLED,EXPIRED'
             })
 
-    @patch('datetime.datetime', mockdatetime)
+    @patch('tda.client.datetime.datetime', mockdatetime)
     def test_get_orders_by_path_statuses_unchecked(self):
         self.client.set_enforce_enums(False)
         self.client.get_orders_by_path(
@@ -168,7 +168,7 @@ class TestClient(unittest.TestCase):
 
     # get_orders_by_query
 
-    @patch('datetime.datetime', mockdatetime)
+    @patch('tda.client.datetime.datetime', mockdatetime)
     def test_get_orders_by_query_vanilla(self):
         self.client.get_orders_by_query()
         self.mock_session.get.assert_called_once_with(
@@ -177,7 +177,7 @@ class TestClient(unittest.TestCase):
                 'toEnteredTime': NOW_ISO
             })
 
-    @patch('datetime.datetime', mockdatetime)
+    @patch('tda.client.datetime.datetime', mockdatetime)
     def test_get_orders_by_query_max_results(self):
         self.client.get_orders_by_query(max_results=100)
         self.mock_session.get.assert_called_once_with(
@@ -187,7 +187,7 @@ class TestClient(unittest.TestCase):
                 'maxResults': 100,
             })
 
-    @patch('datetime.datetime', mockdatetime)
+    @patch('tda.client.datetime.datetime', mockdatetime)
     def test_get_orders_by_query_from_entered_datetime(self):
         self.client.get_orders_by_query(from_entered_datetime=EARLIER_DATETIME)
         self.mock_session.get.assert_called_once_with(
@@ -196,7 +196,7 @@ class TestClient(unittest.TestCase):
                 'toEnteredTime': NOW_ISO,
             })
 
-    @patch('datetime.datetime', mockdatetime)
+    @patch('tda.client.datetime.datetime', mockdatetime)
     def test_get_orders_by_query_to_entered_datetime(self):
         self.client.get_orders_by_query(to_entered_datetime=EARLIER_DATETIME)
         self.mock_session.get.assert_called_once_with(
@@ -205,7 +205,7 @@ class TestClient(unittest.TestCase):
                 'toEnteredTime': EARLIER_ISO,
             })
 
-    @patch('datetime.datetime', mockdatetime)
+    @patch('tda.client.datetime.datetime', mockdatetime)
     def test_get_orders_by_query_status_and_statuses(self):
         with self.assertRaises(
                 ValueError, msg='at most one of status or statuses may be set'):
@@ -215,7 +215,7 @@ class TestClient(unittest.TestCase):
                     Client.Order.Status.FILLED,
                     Client.Order.Status.EXPIRED])
 
-    @patch('datetime.datetime', mockdatetime)
+    @patch('tda.client.datetime.datetime', mockdatetime)
     def test_get_orders_by_query_status(self):
         self.client.get_orders_by_query(status=Client.Order.Status.FILLED)
         self.mock_session.get.assert_called_once_with(
@@ -225,7 +225,7 @@ class TestClient(unittest.TestCase):
                 'status': 'FILLED'
             })
 
-    @patch('datetime.datetime', mockdatetime)
+    @patch('tda.client.datetime.datetime', mockdatetime)
     def test_get_orders_by_query_status_unchecked(self):
         self.client.set_enforce_enums(False)
         self.client.get_orders_by_query(status='FILLED')
@@ -236,7 +236,7 @@ class TestClient(unittest.TestCase):
                 'status': 'FILLED'
             })
 
-    @patch('datetime.datetime', mockdatetime)
+    @patch('tda.client.datetime.datetime', mockdatetime)
     def test_get_orders_by_query_statuses(self):
         self.client.get_orders_by_query(statuses=[
             Client.Order.Status.FILLED,
@@ -248,7 +248,7 @@ class TestClient(unittest.TestCase):
                 'status': 'FILLED,EXPIRED'
             })
 
-    @patch('datetime.datetime', mockdatetime)
+    @patch('tda.client.datetime.datetime', mockdatetime)
     def test_get_orders_by_query_statuses_unchecked(self):
         self.client.set_enforce_enums(False)
         self.client.get_orders_by_query(statuses=['FILLED', 'EXPIRED'])

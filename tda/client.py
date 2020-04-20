@@ -537,7 +537,8 @@ class Client(EnumEnforcer):
         <https://developer.tdameritrade.com/option-chains/apis/get/marketdata/
         chains>`__.
 
-        :param contract_type: Type of contracts to return in the chain.
+        :param contract_type: Type of contracts to return in the chain. See
+                              :class:`Options.ContractType` for choices.
         :param strike_count: The number of strikes to return above and below
                              the at-the-money price.
         :param include_quotes: Include quotes for options in the option chain?
@@ -565,6 +566,8 @@ class Client(EnumEnforcer):
                                    chains
         :param exp_month: Return only options expiring in the specified month. See
                           :class:`Options.ExpirationMonth` for choices.
+        :param option_type: Types of options to return. See
+                            :class:`Options.Type` for choices.
         '''
         contract_type = self.convert_enum(
             contract_type, self.Options.ContractType)
