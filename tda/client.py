@@ -31,23 +31,50 @@ class Client(EnumEnforcer):
         self.api_key = api_key
         self.session = session
 
-    def __format_datetime(self, dt):
+    # XXX: This class's tests perform monkey patching to inject synthetic values 
+    # of utcnow(). To avoid being confused by this, capture these values here so
+    # we can use them later.
+    _DATETIME = datetime.datetime
+    _DATE = datetime.date
+
+    def __assert_type(self, name, value, exp_types):
+        value_type = type(value)
+        value_type_name = '{}.{}'.format(
+                value_type.__module__, value_type.__name__)
+        exp_type_names = ['{}.{}'.format(
+                t.__module__, t.__name__) for t in exp_types]
+        if not any(isinstance(value, t) for t in exp_types):
+            if len(exp_types) == 1:
+                error_str = "expected type '{}' for {}, got '{}'".format(
+                        exp_type_names[0], name, value_type_name)
+            else:
+                error_str = "expected type in ({}) for {}, got '{}'".format(
+                        ', '.join(exp_type_names), name, value_type_name)
+            raise ValueError(error_str)
+
+    def __format_datetime(self, var_name, dt):
         '''Formats datetime objects appropriately, depending on whether they are
         naive or timezone-aware'''
+        self.__assert_type(var_name, dt, [self._DATETIME])
+
         tz_offset = dt.strftime('%z')
         tz_offset = tz_offset if tz_offset else '+0000'
 
         return dt.strftime('%Y-%m-%dT%H:%M:%S') + tz_offset
 
-    def __format_date(self, dt):
+    def __format_date(self, var_name, dt):
         '''Formats datetime objects appropriately, depending on whether they are
         naive or timezone-aware'''
+        self.__assert_type(var_name, dt, [self._DATE, self._DATETIME])
+
         d = datetime.date(year=dt.year, month=dt.month, day=dt.day)
 
         return d.isoformat()
 
-    def __datetime_as_millis(self, dt):
+    def __datetime_as_millis(self, var_name, dt):
         'Converts datetime objects to compatible millisecond values'
+        self.__assert_type(var_name, dt, [self._DATETIME])
+
         return int(dt.timestamp() * 1000)
 
     def __get_request(self, path, params):
@@ -130,8 +157,10 @@ class Client(EnumEnforcer):
             to_entered_datetime = datetime.datetime.utcnow()
 
         params = {
-            'fromEnteredTime': self.__format_datetime(from_entered_datetime),
-            'toEnteredTime': self.__format_datetime(to_entered_datetime),
+            'fromEnteredTime': self.__format_datetime(
+                'from_entered_datetime', from_entered_datetime),
+            'toEnteredTime': self.__format_datetime(
+                'to_entered_datetime', to_entered_datetime),
         }
 
         if max_results:
@@ -393,15 +422,16 @@ class Client(EnumEnforcer):
 
         :param markets: Market to return hours for. Iterable of
                         :class:`Markets`.
+        :param date: The date for which market hours information is requested. 
+                     Accepts ``datetime.date`` and ``datetime.datetime``.
         '''
         markets = self.convert_enum_iterable(markets, self.Markets)
 
         params = {
             'apikey': self.api_key,
             'markets': ','.join(markets),
-            'date': self.__format_datetime(date),
+            'date': self.__format_date('date', date),
         }
-        print(params)
 
         path = '/v1/marketdata/hours'
         return self.__get_request(path, params)
@@ -414,12 +444,15 @@ class Client(EnumEnforcer):
 
         :param markets: Market to return hours for. Instance of
                         :class:`Markets`.
+        :param date: The date for which market hours information is requested. 
+                     Accepts ``datetime.date`` and ``datetime.datetime``.
         '''
         market = self.convert_enum(market, self.Markets)
 
+        print(type(date))
         params = {
             'apikey': self.api_key,
-            'date': self.__format_datetime(date),
+            'date': self.__format_date('date', date),
         }
         print(params)
 
@@ -551,10 +584,12 @@ class Client(EnumEnforcer):
                              :class:`Options.StrikeRange` for choices.
         :param strike_from_date: Only return expirations after this date. For
                                  strategies, expiration refers to the nearest
-                                 term expiration in the strategy
+                                 term expiration in the strategy. Accepts
+                                 ``datetime.date`` and ``datetime.datetime``.
         :param strike_to_date: Only return expirations before this date. For
                                strategies, expiration refers to the nearest
-                               term expiration in the strategy
+                               term expiration in the strategy. Accepts
+                               ``datetime.date`` and ``datetime.datetime``.
         :param volatility: Volatility to use in calculations. Applies only to
                            ``ANALYTICAL`` strategy chains.
         :param underlying_price: Underlying price to use in calculations.
@@ -596,9 +631,11 @@ class Client(EnumEnforcer):
         if strike_range is not None:
             params['range'] = strike_range
         if strike_from_date is not None:
-            params['fromDate'] = self.__format_datetime(strike_from_date)
+            params['fromDate'] = self.__format_date(
+                    'strike_from_date', strike_from_date)
         if strike_to_date is not None:
-            params['toDate'] = self.__format_datetime(strike_to_date)
+            params['toDate'] = self.__format_date(
+                    'strike_to_date', strike_to_date)
         if volatility is not None:
             params['volatility'] = volatility
         if underlying_price is not None:
@@ -721,9 +758,11 @@ class Client(EnumEnforcer):
         if frequency is not None:
             params['frequency'] = frequency
         if start_datetime is not None:
-            params['startDate'] = self.__datetime_as_millis(start_datetime)
+            params['startDate'] = self.__datetime_as_millis(
+                    'start_datetime', start_datetime)
         if end_datetime is not None:
-            params['endDate'] = self.__datetime_as_millis(end_datetime)
+            params['endDate'] = self.__datetime_as_millis(
+                    'end_datetime', end_datetime)
         if need_extended_hours_data is not None:
             params['needExtendedHoursData'] = need_extended_hours_data
 
@@ -793,8 +832,8 @@ class Client(EnumEnforcer):
             *,
             transaction_type=None,
             symbol=None,
-            start_datetime=None,
-            end_datetime=None):
+            start_date=None,
+            end_date=None):
         '''Transaction for a specific account.
         `Official documentation
         <https://developer.tdameritrade.com/transaction-history/apis/get/
@@ -806,8 +845,10 @@ class Client(EnumEnforcer):
                         returned.
         :param start_date: Only transactions after this date will be returned.
                            Note the maximum date range is one year.
+                           Accepts ``datetime.date`` and ``datetime.datetime``.
         :param end_date: Only transactions before this date will be returned
                          Note the maximum date range is one year.
+                         Accepts ``datetime.date`` and ``datetime.datetime``.
         '''
         transaction_type = self.convert_enum(
             transaction_type, self.Transactions.TransactionType)
@@ -820,10 +861,10 @@ class Client(EnumEnforcer):
             params['type'] = transaction_type
         if symbol is not None:
             params['symbol'] = symbol
-        if start_datetime is not None:
-            params['startDate'] = self.__format_date(start_datetime)
-        if end_datetime is not None:
-            params['endDate'] = self.__format_date(end_datetime)
+        if start_date is not None:
+            params['startDate'] = self.__format_date('start_date', start_date)
+        if end_date is not None:
+            params['endDate'] = self.__format_date('end_date', end_date)
 
         path = '/v1/accounts/{}/transactions'.format(account_id)
         return self.__get_request(path, params)

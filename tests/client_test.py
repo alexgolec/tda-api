@@ -22,7 +22,9 @@ WATCHLIST_ID = 5000000
 MIN_ISO = '1900-01-01T00:00:00+0000'
 
 NOW_DATETIME = datetime.datetime(2020, 1, 2, 3, 4, 5)
-NOW_ISO = '2020-01-02T03:04:05+0000'
+NOW_DATE = datetime.date(2020, 1, 2)
+NOW_DATETIME_ISO = '2020-01-02T03:04:05+0000'
+NOW_DATE_ISO = '2020-01-02'
 
 
 class mockdatetime(datetime.datetime):
@@ -80,8 +82,26 @@ class TestClient(unittest.TestCase):
         self.mock_session.get.assert_called_once_with(
             self.make_url('/v1/accounts/{accountId}/orders'), params={
                 'fromEnteredTime': MIN_ISO,
-                'toEnteredTime': NOW_ISO
+                'toEnteredTime': NOW_DATETIME_ISO
             })
+
+    @patch('tda.client.datetime.datetime', mockdatetime)
+    def test_get_orders_by_path_from_not_datetime(self):
+        with self.assertRaises(ValueError) as cm:
+            self.client.get_orders_by_path(
+                    ACCOUNT_ID, from_entered_datetime='2020-01-01')
+        self.assertEqual(str(cm.exception),
+                "expected type 'datetime.datetime' for " +
+                "from_entered_datetime, got 'builtins.str'")
+
+    @patch('tda.client.datetime.datetime', mockdatetime)
+    def test_get_orders_by_path_to_not_datetime(self):
+        with self.assertRaises(ValueError) as cm:
+            self.client.get_orders_by_path(
+                    ACCOUNT_ID, to_entered_datetime='2020-01-01')
+        self.assertEqual(str(cm.exception),
+                "expected type 'datetime.datetime' for " +
+                "to_entered_datetime, got 'builtins.str'")
 
     @patch('tda.client.datetime.datetime', mockdatetime)
     def test_get_orders_by_path_max_results(self):
@@ -89,7 +109,7 @@ class TestClient(unittest.TestCase):
         self.mock_session.get.assert_called_once_with(
             self.make_url('/v1/accounts/{accountId}/orders'), params={
                 'fromEnteredTime': MIN_ISO,
-                'toEnteredTime': NOW_ISO,
+                'toEnteredTime': NOW_DATETIME_ISO,
                 'maxResults': 100,
             })
 
@@ -100,7 +120,7 @@ class TestClient(unittest.TestCase):
         self.mock_session.get.assert_called_once_with(
             self.make_url('/v1/accounts/{accountId}/orders'), params={
                 'fromEnteredTime': EARLIER_ISO,
-                'toEnteredTime': NOW_ISO,
+                'toEnteredTime': NOW_DATETIME_ISO,
             })
 
     @patch('tda.client.datetime.datetime', mockdatetime)
@@ -126,7 +146,7 @@ class TestClient(unittest.TestCase):
         self.mock_session.get.assert_called_once_with(
             self.make_url('/v1/accounts/{accountId}/orders'), params={
                 'fromEnteredTime': MIN_ISO,
-                'toEnteredTime': NOW_ISO,
+                'toEnteredTime': NOW_DATETIME_ISO,
                 'status': 'FILLED'
             })
 
@@ -137,7 +157,7 @@ class TestClient(unittest.TestCase):
         self.mock_session.get.assert_called_once_with(
             self.make_url('/v1/accounts/{accountId}/orders'), params={
                 'fromEnteredTime': MIN_ISO,
-                'toEnteredTime': NOW_ISO,
+                'toEnteredTime': NOW_DATETIME_ISO,
                 'status': 'FILLED'
             })
 
@@ -150,7 +170,7 @@ class TestClient(unittest.TestCase):
         self.mock_session.get.assert_called_once_with(
             self.make_url('/v1/accounts/{accountId}/orders'), params={
                 'fromEnteredTime': MIN_ISO,
-                'toEnteredTime': NOW_ISO,
+                'toEnteredTime': NOW_DATETIME_ISO,
                 'status': 'FILLED,EXPIRED'
             })
 
@@ -162,7 +182,7 @@ class TestClient(unittest.TestCase):
         self.mock_session.get.assert_called_once_with(
             self.make_url('/v1/accounts/{accountId}/orders'), params={
                 'fromEnteredTime': MIN_ISO,
-                'toEnteredTime': NOW_ISO,
+                'toEnteredTime': NOW_DATETIME_ISO,
                 'status': 'FILLED,EXPIRED'
             })
 
@@ -174,7 +194,7 @@ class TestClient(unittest.TestCase):
         self.mock_session.get.assert_called_once_with(
             self.make_url('/v1/orders'), params={
                 'fromEnteredTime': MIN_ISO,
-                'toEnteredTime': NOW_ISO
+                'toEnteredTime': NOW_DATETIME_ISO
             })
 
     @patch('tda.client.datetime.datetime', mockdatetime)
@@ -183,7 +203,7 @@ class TestClient(unittest.TestCase):
         self.mock_session.get.assert_called_once_with(
             self.make_url('/v1/orders'), params={
                 'fromEnteredTime': MIN_ISO,
-                'toEnteredTime': NOW_ISO,
+                'toEnteredTime': NOW_DATETIME_ISO,
                 'maxResults': 100,
             })
 
@@ -193,7 +213,7 @@ class TestClient(unittest.TestCase):
         self.mock_session.get.assert_called_once_with(
             self.make_url('/v1/orders'), params={
                 'fromEnteredTime': EARLIER_ISO,
-                'toEnteredTime': NOW_ISO,
+                'toEnteredTime': NOW_DATETIME_ISO,
             })
 
     @patch('tda.client.datetime.datetime', mockdatetime)
@@ -221,7 +241,7 @@ class TestClient(unittest.TestCase):
         self.mock_session.get.assert_called_once_with(
             self.make_url('/v1/orders'), params={
                 'fromEnteredTime': MIN_ISO,
-                'toEnteredTime': NOW_ISO,
+                'toEnteredTime': NOW_DATETIME_ISO,
                 'status': 'FILLED'
             })
 
@@ -232,7 +252,7 @@ class TestClient(unittest.TestCase):
         self.mock_session.get.assert_called_once_with(
             self.make_url('/v1/orders'), params={
                 'fromEnteredTime': MIN_ISO,
-                'toEnteredTime': NOW_ISO,
+                'toEnteredTime': NOW_DATETIME_ISO,
                 'status': 'FILLED'
             })
 
@@ -244,7 +264,7 @@ class TestClient(unittest.TestCase):
         self.mock_session.get.assert_called_once_with(
             self.make_url('/v1/orders'), params={
                 'fromEnteredTime': MIN_ISO,
-                'toEnteredTime': NOW_ISO,
+                'toEnteredTime': NOW_DATETIME_ISO,
                 'status': 'FILLED,EXPIRED'
             })
 
@@ -255,7 +275,7 @@ class TestClient(unittest.TestCase):
         self.mock_session.get.assert_called_once_with(
             self.make_url('/v1/orders'), params={
                 'fromEnteredTime': MIN_ISO,
-                'toEnteredTime': NOW_ISO,
+                'toEnteredTime': NOW_DATETIME_ISO,
                 'status': 'FILLED,EXPIRED'
             })
 
@@ -397,7 +417,7 @@ class TestClient(unittest.TestCase):
 
     # get_hours_for_multiple_markets
 
-    def test_get_hours_for_multiple_markets(self):
+    def test_get_hours_for_multiple_markets_datetime(self):
         self.client.get_hours_for_multiple_markets([
             Client.Markets.EQUITY,
             Client.Markets.BOND], NOW_DATETIME)
@@ -405,7 +425,26 @@ class TestClient(unittest.TestCase):
             self.make_url('/v1/marketdata/hours'), params={
                 'apikey': API_KEY,
                 'markets': 'EQUITY,BOND',
-                'date': NOW_ISO})
+                'date': NOW_DATE_ISO})
+
+    def test_get_hours_for_multiple_markets_date(self):
+        self.client.get_hours_for_multiple_markets([
+            Client.Markets.EQUITY,
+            Client.Markets.BOND], NOW_DATE)
+        self.mock_session.get.assert_called_once_with(
+            self.make_url('/v1/marketdata/hours'), params={
+                'apikey': API_KEY,
+                'markets': 'EQUITY,BOND',
+                'date': NOW_DATE_ISO})
+
+    def test_get_hours_for_multiple_markets_str(self):
+        with self.assertRaises(ValueError) as cm:
+            self.client.get_hours_for_multiple_markets([
+                Client.Markets.EQUITY,
+                Client.Markets.BOND], '2020-01-01')
+        self.assertEqual(str(cm.exception),
+                "expected type in (datetime.date, datetime.datetime) for " +
+                "date, got 'builtins.str'")
 
     def test_get_hours_for_multiple_markets_unchecked(self):
         self.client.set_enforce_enums(False)
@@ -415,17 +454,33 @@ class TestClient(unittest.TestCase):
             self.make_url('/v1/marketdata/hours'), params={
                 'apikey': API_KEY,
                 'markets': 'EQUITY,BOND',
-                'date': NOW_ISO})
+                'date': NOW_DATE_ISO})
 
     # get_hours_for_single_market
 
-    def test_get_hours_for_single_market(self):
+    def test_get_hours_for_single_market_datetime(self):
         self.client.get_hours_for_single_market(
             Client.Markets.EQUITY, NOW_DATETIME)
         self.mock_session.get.assert_called_once_with(
             self.make_url('/v1/marketdata/{market}/hours'), params={
                 'apikey': API_KEY,
-                'date': NOW_ISO})
+                'date': NOW_DATE_ISO})
+
+    def test_get_hours_for_single_market_date(self):
+        self.client.get_hours_for_single_market(
+            Client.Markets.EQUITY, NOW_DATE)
+        self.mock_session.get.assert_called_once_with(
+            self.make_url('/v1/marketdata/{market}/hours'), params={
+                'apikey': API_KEY,
+                'date': NOW_DATE_ISO})
+
+    def test_get_hours_for_single_market_str(self):
+        with self.assertRaises(ValueError) as cm:
+            self.client.get_hours_for_single_market(
+                Client.Markets.EQUITY, '2020-01-01')
+        self.assertEqual(str(cm.exception),
+                "expected type in (datetime.date, datetime.datetime) for " +
+                "date, got 'builtins.str'")
 
     def test_get_hours_for_single_market_unchecked(self):
         self.client.set_enforce_enums(False)
@@ -433,7 +488,7 @@ class TestClient(unittest.TestCase):
         self.mock_session.get.assert_called_once_with(
             self.make_url('/v1/marketdata/{market}/hours'), params={
                 'apikey': API_KEY,
-                'date': NOW_ISO})
+                'date': NOW_DATE_ISO})
 
     # get_movers
 
@@ -550,22 +605,52 @@ class TestClient(unittest.TestCase):
                 'symbol': 'AAPL',
                 'range': 'ITM'})
 
-    def test_get_option_chain_from_date(self):
+    def test_get_option_chain_from_date_datetime(self):
         self.client.get_option_chain(
-            'AAPL', strike_from_date=EARLIER_DATETIME)
+            'AAPL', strike_from_date=NOW_DATETIME)
         self.mock_session.get.assert_called_once_with(
             self.make_url('/v1/marketdata/chains'), params={
                 'apikey': API_KEY,
                 'symbol': 'AAPL',
-                'fromDate': EARLIER_ISO})
+                'fromDate': NOW_DATE_ISO})
 
-    def test_get_option_chain_to_date(self):
+    def test_get_option_chain_from_date_date(self):
+        self.client.get_option_chain('AAPL', strike_from_date=NOW_DATE)
+        self.mock_session.get.assert_called_once_with(
+            self.make_url('/v1/marketdata/chains'), params={
+                'apikey': API_KEY,
+                'symbol': 'AAPL',
+                'fromDate': NOW_DATE_ISO})
+
+    def test_get_option_chain_from_date_str(self):
+        with self.assertRaises(ValueError) as cm:
+            self.client.get_option_chain('AAPL', strike_from_date='2020-01-01')
+        self.assertEqual(str(cm.exception),
+                "expected type in (datetime.date, datetime.datetime) for " +
+                "strike_from_date, got 'builtins.str'")
+
+    def test_get_option_chain_to_date_datetime(self):
         self.client.get_option_chain('AAPL', strike_to_date=NOW_DATETIME)
         self.mock_session.get.assert_called_once_with(
             self.make_url('/v1/marketdata/chains'), params={
                 'apikey': API_KEY,
                 'symbol': 'AAPL',
-                'toDate': NOW_ISO})
+                'toDate': NOW_DATE_ISO})
+
+    def test_get_option_chain_to_date_date(self):
+        self.client.get_option_chain('AAPL', strike_to_date=NOW_DATE)
+        self.mock_session.get.assert_called_once_with(
+            self.make_url('/v1/marketdata/chains'), params={
+                'apikey': API_KEY,
+                'symbol': 'AAPL',
+                'toDate': NOW_DATE_ISO})
+
+    def test_get_option_chain_to_date_str(self):
+        with self.assertRaises(ValueError) as cm:
+            self.client.get_option_chain('AAPL', strike_to_date='2020-01-01')
+        self.assertEqual(str(cm.exception),
+                "expected type in (datetime.date, datetime.datetime) for " +
+                "strike_to_date, got 'builtins.str'")
 
     def test_get_option_chain_volatility(self):
         self.client.get_option_chain('AAPL', volatility=40.0)
@@ -707,12 +792,26 @@ class TestClient(unittest.TestCase):
                 'apikey': API_KEY,
                 'startDate': EARLIER_MILLIS})
 
+    def test_get_price_history_start_datetime_str(self):
+        with self.assertRaises(ValueError) as cm:
+            self.client.get_price_history(SYMBOL, start_datetime='2020-01-01')
+        self.assertEqual(str(cm.exception),
+                "expected type 'datetime.datetime' for " +
+                "start_datetime, got 'builtins.str'")
+
     def test_get_price_history_end_datetime(self):
         self.client.get_price_history(SYMBOL, end_datetime=EARLIER_DATETIME)
         self.mock_session.get.assert_called_once_with(
             self.make_url('/v1/marketdata/{symbol}/pricehistory'), params={
                 'apikey': API_KEY,
                 'endDate': EARLIER_MILLIS})
+
+    def test_get_price_history_end_datetime_str(self):
+        with self.assertRaises(ValueError) as cm:
+            self.client.get_price_history(SYMBOL, end_datetime='2020-01-01')
+        self.assertEqual(str(cm.exception),
+                "expected type 'datetime.datetime' for " +
+                "end_datetime, got 'builtins.str'")
 
     def test_get_price_history_need_extended_hours_data(self):
         self.client.get_price_history(SYMBOL, need_extended_hours_data=True)
@@ -779,21 +878,47 @@ class TestClient(unittest.TestCase):
                 'apikey': API_KEY,
                 'symbol': 'AAPL'})
 
-    def test_get_transactions_start_datetime(self):
-        self.client.get_transactions(
-            ACCOUNT_ID, start_datetime=EARLIER_DATETIME)
+    def test_get_transactions_start_date_datetime(self):
+        self.client.get_transactions(ACCOUNT_ID, start_date=NOW_DATETIME)
         self.mock_session.get.assert_called_once_with(
             self.make_url('/v1/accounts/{accountId}/transactions'), params={
                 'apikey': API_KEY,
-                'startDate': EARLIER_DATE_STR})
+                'startDate': NOW_DATE_ISO})
 
-    def test_get_transactions_end_datetime(self):
-        self.client.get_transactions(
-            ACCOUNT_ID, end_datetime=EARLIER_DATETIME)
+    def test_get_transactions_start_date_date(self):
+        self.client.get_transactions(ACCOUNT_ID, start_date=NOW_DATE)
         self.mock_session.get.assert_called_once_with(
             self.make_url('/v1/accounts/{accountId}/transactions'), params={
                 'apikey': API_KEY,
-                'endDate': EARLIER_DATE_STR})
+                'startDate': NOW_DATE_ISO})
+
+    def test_get_transactions_start_date_str(self):
+        with self.assertRaises(ValueError) as cm:
+            self.client.get_transactions(ACCOUNT_ID, start_date='2020-01-01')
+        self.assertEqual(str(cm.exception),
+                "expected type in (datetime.date, datetime.datetime) for " +
+                "start_date, got 'builtins.str'")
+
+    def test_get_transactions_end_date(self):
+        self.client.get_transactions(ACCOUNT_ID, end_date=NOW_DATETIME)
+        self.mock_session.get.assert_called_once_with(
+            self.make_url('/v1/accounts/{accountId}/transactions'), params={
+                'apikey': API_KEY,
+                'endDate': NOW_DATE_ISO})
+
+    def test_get_transactions_end_date_datetime(self):
+        self.client.get_transactions(ACCOUNT_ID, end_date=NOW_DATETIME)
+        self.mock_session.get.assert_called_once_with(
+            self.make_url('/v1/accounts/{accountId}/transactions'), params={
+                'apikey': API_KEY,
+                'endDate': NOW_DATE_ISO})
+
+    def test_get_transactions_end_date_str(self):
+        with self.assertRaises(ValueError) as cm:
+            self.client.get_transactions(ACCOUNT_ID, end_date='2020-01-01')
+        self.assertEqual(str(cm.exception),
+                "expected type in (datetime.date, datetime.datetime) for " +
+                "end_date, got 'builtins.str'")
 
     # get_preferences
 
