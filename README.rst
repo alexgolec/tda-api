@@ -89,6 +89,14 @@ Why should I use ``tda-api``?
    fit. Anything you can do with raw HTTP requests you can do with ``tda-api``, 
    only more easily.
 
+Why should I *not* use ``tda-api``?
+-----------------------------
+
+Unfortunately, the TD Ameritrade API does not seem to expose any endpoints 
+around the `papermoney <https://tickertape.tdameritrade.com/tools/papermoney
+-stock-market-simulator-16834>`__ simulated trading product. ``tda-api`` can 
+only be used to perform real trades using a TD Ameritrade account.
+
 What else?
 ----------
 
