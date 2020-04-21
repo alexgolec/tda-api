@@ -31,7 +31,7 @@ class Client(EnumEnforcer):
         self.api_key = api_key
         self.session = session
 
-    # XXX: This class's tests perform monkey patching to inject synthetic values 
+    # XXX: This class's tests perform monkey patching to inject synthetic values
     # of utcnow(). To avoid being confused by this, capture these values here so
     # we can use them later.
     _DATETIME = datetime.datetime
@@ -40,16 +40,16 @@ class Client(EnumEnforcer):
     def __assert_type(self, name, value, exp_types):
         value_type = type(value)
         value_type_name = '{}.{}'.format(
-                value_type.__module__, value_type.__name__)
+            value_type.__module__, value_type.__name__)
         exp_type_names = ['{}.{}'.format(
-                t.__module__, t.__name__) for t in exp_types]
+            t.__module__, t.__name__) for t in exp_types]
         if not any(isinstance(value, t) for t in exp_types):
             if len(exp_types) == 1:
                 error_str = "expected type '{}' for {}, got '{}'".format(
-                        exp_type_names[0], name, value_type_name)
+                    exp_type_names[0], name, value_type_name)
             else:
                 error_str = "expected type in ({}) for {}, got '{}'".format(
-                        ', '.join(exp_type_names), name, value_type_name)
+                    ', '.join(exp_type_names), name, value_type_name)
             raise ValueError(error_str)
 
     def __format_datetime(self, var_name, dt):
@@ -241,8 +241,8 @@ class Client(EnumEnforcer):
             statuses=statuses))
 
     def place_order(self, account_id, order_spec):
-        '''Place an order for a specific account. If order creation was 
-        successful, the response will contain the ID of the generated order. See 
+        '''Place an order for a specific account. If order creation was
+        successful, the response will contain the ID of the generated order. See
         :meth:`tda.utils.Utils.extract_order_id` for more details.
         `Official documentation
         <https://developer.tdameritrade.com/account-access/apis/post/accounts/
@@ -383,6 +383,8 @@ class Client(EnumEnforcer):
             'projection': projection,
         }
 
+        print(params)
+
         path = '/v1/instruments'
         return self.__get_request(path, params)
 
@@ -422,7 +424,7 @@ class Client(EnumEnforcer):
 
         :param markets: Market to return hours for. Iterable of
                         :class:`Markets`.
-        :param date: The date for which market hours information is requested. 
+        :param date: The date for which market hours information is requested.
                      Accepts ``datetime.date`` and ``datetime.datetime``.
         '''
         markets = self.convert_enum_iterable(markets, self.Markets)
@@ -444,7 +446,7 @@ class Client(EnumEnforcer):
 
         :param markets: Market to return hours for. Instance of
                         :class:`Markets`.
-        :param date: The date for which market hours information is requested. 
+        :param date: The date for which market hours information is requested.
                      Accepts ``datetime.date`` and ``datetime.datetime``.
         '''
         market = self.convert_enum(market, self.Markets)
@@ -632,10 +634,10 @@ class Client(EnumEnforcer):
             params['range'] = strike_range
         if strike_from_date is not None:
             params['fromDate'] = self.__format_date(
-                    'strike_from_date', strike_from_date)
+                'strike_from_date', strike_from_date)
         if strike_to_date is not None:
             params['toDate'] = self.__format_date(
-                    'strike_to_date', strike_to_date)
+                'strike_to_date', strike_to_date)
         if volatility is not None:
             params['volatility'] = volatility
         if underlying_price is not None:
@@ -759,10 +761,10 @@ class Client(EnumEnforcer):
             params['frequency'] = frequency
         if start_datetime is not None:
             params['startDate'] = self.__datetime_as_millis(
-                    'start_datetime', start_datetime)
+                'start_datetime', start_datetime)
         if end_datetime is not None:
             params['endDate'] = self.__datetime_as_millis(
-                    'end_datetime', end_datetime)
+                'end_datetime', end_datetime)
         if need_extended_hours_data is not None:
             params['needExtendedHoursData'] = need_extended_hours_data
 
@@ -773,19 +775,27 @@ class Client(EnumEnforcer):
     # Quotes
 
     def get_quote(self, symbol):
-        '''Get quote for a symbol.
+        '''
+        Get quote for a symbol. Note due to limitations in URL encoding, this
+        method is not recommended for instruments with symbols symbols
+        containing non-alphanumeric characters, for example as futures like
+        ``/ES``. To get quotes for those symbols, use :meth:`Client.get_quotes`.
+
         `Official documentation
         <https://developer.tdameritrade.com/quotes/apis/get/marketdata/
-        %7Bsymbol%7D/quotes>`__.'''
+        %7Bsymbol%7D/quotes>`__.
+        '''
         params = {
             'apikey': self.api_key,
         }
 
+        import urllib
         path = '/v1/marketdata/{}/quotes'.format(symbol)
         return self.__get_request(path, params)
 
     def get_quotes(self, symbols):
-        '''Get quote for a symbol.
+        '''Get quote for a symbol. This method supports all symbols, including
+        those containing non-alphanumeric characters like ``/ES``.
         `Official documentation
         <https://developer.tdameritrade.com/quotes/apis/get/marketdata/
         quotes>`__.'''

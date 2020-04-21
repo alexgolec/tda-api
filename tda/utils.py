@@ -66,17 +66,17 @@ class Utils(EnumEnforcer):
 
     def extract_order_id(self, place_order_response):
         '''Attempts to extract the order ID from a response object returned by
-        :meth:`Client.place_order() <tda.client.Client.place_order>`. Return 
+        :meth:`Client.place_order() <tda.client.Client.place_order>`. Return
         ``None`` if the order location is not contained in the response.
 
         :param place_order_response: Order response as returned by
-                                     :meth:`Client.place_order() 
-                                     <tda.client.Client.place_order>`. Note this 
-                                     method requires that the order was 
+                                     :meth:`Client.place_order()
+                                     <tda.client.Client.place_order>`. Note this
+                                     method requires that the order was
                                      successful.
 
-        :raise ValueError: if the order was not succesful or if the order's 
-                           account ID is not equal to the account ID set in this 
+        :raise ValueError: if the order was not succesful or if the order's
+                           account ID is not equal to the account ID set in this
                            ``Utils`` object.
 
         '''
