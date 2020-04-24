@@ -5,7 +5,7 @@ with open('README.rst', 'r') as fh:
 
 setuptools.setup(
     name='tda-api',
-    version='0.0.5',
+    version='0.1.0',
     author='Alex Golec',
     author_email='bottomless.septic.tank@gmail.com',
     description='An unofficial wrapper around the TD Ameritrade HTTP API.',

@@ -90,7 +90,7 @@ Why should I use ``tda-api``?
    only more easily.
 
 Why should I *not* use ``tda-api``?
------------------------------
+-----------------------------------
 
 Unfortunately, the TD Ameritrade API does not seem to expose any endpoints 
 around the `papermoney <https://tickertape.tdameritrade.com/tools/papermoney
