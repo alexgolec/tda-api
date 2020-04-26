@@ -110,3 +110,64 @@ The following is a convenient wrapper around these two methods, calling each
 when appropriate: 
 
 .. autofunction:: tda.auth.easy_client
+
+---------------
+Troubleshooting
+---------------
+
+As simple as it seems, this process is complex and mistakes are easy to make. 
+This section outlines some of the more common issues you might encounter. If you 
+find yourself dealing with something that isn't listed here, please file a 
+ticket on our `issues <https://github.com/alexgolec/tda-api/issues>`__ page.
+
++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+"A third-party application may be attempting to make unauthorized access to your account"
++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
+One attack on improperly implemented OAuth login flows involves tricking a user 
+into submitting their credentials for a real app and then redirecting to a 
+malicious web server (remember the ``GET`` request to the redirect URI contains
+all credentials required to access the user's account). This is especially 
+pernicious because from the user's perspective, they see a real login window and 
+probably never realize they've been sent to a malicious server, especially if 
+the landing page is designed to resemble the target API's landing page.
+
+TD Ameritrade correctly prevents this attack by refusing to allow a login if the
+redirect URI does not **exactly** match the redirect URI with which the app is
+configured. If you make *any* mistake in setting your API key or redirect URI,
+you'll see this instead of a login page:
+
+.. image:: _static/attempted-unauth-access.png
+  :width: 600
+  :alt: A third-party application may be attempting to make unauthorized access to your account
+  :align: center
+
+If this happens, you almost certainly copied your API key or redirect URI 
+incorrectly. Go back to your `application list
+<https://developer.tdameritrade.com/user/me/apps>`__ and copy-paste it again.
+
+++++++++++++++++++++++++++++++++++++++++
+``tda-api`` Hangs After Successful Login
+++++++++++++++++++++++++++++++++++++++++
+
+After opening the login window, ``tda-api`` loops and waits until the 
+webdriver's current URL starts with the given redirect URI:
+
+.. code-block:: python
+
+    callback_url = ''
+    while not callback_url.startswith(redirect_url):
+        callback_url = webdriver.current_url
+        time.sleep(redirect_wait_time_seconds)
+
+Usually, it would be impossible for a successful post-login callback to not 
+start with the callback URI, but there's one major exception: when the callback 
+URI starts with ``http``. Behavior varies by browser and app configuration, but
+a callback URI starting with ``http`` can sometimes be redirected to one
+starting with ``https``, in which case ``tda-api`` will never notice the
+redirect.
+
+If this is happening to you, consider changing your callback URI to use
+``https`` instead of ``http``. Not only will it make your life easier here, but 
+it is *extremely* bad practice to send credentials like this over an unencrypted 
+channel like that provided by ``http``.
