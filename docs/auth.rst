@@ -117,8 +117,9 @@ Troubleshooting
 
 As simple as it seems, this process is complex and mistakes are easy to make. 
 This section outlines some of the more common issues you might encounter. If you 
-find yourself dealing with something that isn't listed here, please file a 
-ticket on our `issues <https://github.com/alexgolec/tda-api/issues>`__ page.
+find yourself dealing with something that isn't listed here, or if you try the 
+suggested remedies and are still seeing issues, please file a ticket on our
+`issues <https://github.com/alexgolec/tda-api/issues>`__ page.
 
 +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 "A third-party application may be attempting to make unauthorized access to your account"
