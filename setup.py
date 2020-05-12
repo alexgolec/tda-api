@@ -1,11 +1,16 @@
 import setuptools
 
-with open('README.rst', 'r') as fh:
-    long_description = fh.read()
+with open('README.rst', 'r') as f:
+    long_description = f.read()
+
+with open('tda/version.py', 'r') as f:
+    '''Version looks like `version = '1.2.3'`'''
+    version = [s.strip() for s in f.read().strip().split('=')][1]
+    version = version[1:-1]
 
 setuptools.setup(
     name='tda-api',
-    version='0.1.0',
+    version=version,
     author='Alex Golec',
     author_email='bottomless.septic.tank@gmail.com',
     description='An unofficial wrapper around the TD Ameritrade HTTP API.',
