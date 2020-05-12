@@ -383,8 +383,6 @@ class Client(EnumEnforcer):
             'projection': projection,
         }
 
-        print(params)
-
         path = '/v1/instruments'
         return self.__get_request(path, params)
 
@@ -451,12 +449,10 @@ class Client(EnumEnforcer):
         '''
         market = self.convert_enum(market, self.Markets)
 
-        print(type(date))
         params = {
             'apikey': self.api_key,
             'date': self.__format_date('date', date),
         }
-        print(params)
 
         path = '/v1/marketdata/{}/hours'.format(market)
         return self.__get_request(path, params)
