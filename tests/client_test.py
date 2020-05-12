@@ -686,7 +686,7 @@ class TestClient(unittest.TestCase):
 
     def test_get_option_chain_exp_month(self):
         self.client.get_option_chain(
-                'AAPL', exp_month=Client.Options.ExpirationMonth.JANUARY)
+            'AAPL', exp_month=Client.Options.ExpirationMonth.JANUARY)
         self.mock_session.get.assert_called_once_with(
             self.make_url('/v1/marketdata/chains'), params={
                 'apikey': API_KEY,
