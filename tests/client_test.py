@@ -685,6 +685,16 @@ class TestClient(unittest.TestCase):
                 'daysToExpiration': 12})
 
     def test_get_option_chain_exp_month(self):
+        self.client.get_option_chain(
+                'AAPL', exp_month=Client.Options.ExpirationMonth.JANUARY)
+        self.mock_session.get.assert_called_once_with(
+            self.make_url('/v1/marketdata/chains'), params={
+                'apikey': API_KEY,
+                'symbol': 'AAPL',
+                'expMonth': 'JAN'})
+
+    def test_get_option_chain_exp_month_unchecked(self):
+        self.client.set_enforce_enums(False)
         self.client.get_option_chain('AAPL', exp_month='JAN')
         self.mock_session.get.assert_called_once_with(
             self.make_url('/v1/marketdata/chains'), params={

@@ -612,6 +612,7 @@ class Client(EnumEnforcer):
         strike_range = self.convert_enum(
             strike_range, self.Options.StrikeRange)
         option_type = self.convert_enum(option_type, self.Options.Type)
+        exp_month = self.convert_enum(exp_month, self.Options.ExpirationMonth)
 
         params = {
             'apikey': self.api_key,
