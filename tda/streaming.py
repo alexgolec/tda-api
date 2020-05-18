@@ -1,11 +1,15 @@
+from enum import Enum
+
 import asyncio
 import datetime
 import json
 import urllib.parse
 import websockets
 
+from .utils import EnumEnforcer
 
-class StreamClient:
+
+class StreamClient(EnumEnforcer):
 
     def __init__(self, client, *, account_id=None):
         self.client = client
@@ -82,6 +86,21 @@ class StreamClient:
         return request, request_id
 
 
+    async def __expect_success(self, request_id):
+        resp = await self.receive()
+
+        # Validate response
+        resp_request_id = int(resp['response'][0]['requestid'])
+        assert resp_request_id == request_id, \
+                'unexpected requestid: {}'.format(resp_request_id)
+
+        resp_code = resp['response'][0]['content']['code']
+        assert resp_code == 0, 'unexpected response code: {}'.format(resp_code)
+
+
+    ############################################################################
+    # Login
+
     async def login(self):
         # Fetch required data and initialize the client
 
@@ -91,7 +110,7 @@ class StreamClient:
             self.client.UserPrincipals.Fields.STREAMER_CONNECTION_INFO,
             self.client.UserPrincipals.Fields.STREAMER_SUBSCRIPTION_KEYS,
             self.client.UserPrincipals.Fields.SURROGATE_IDS])
-        assert r.ok
+        assert r.ok, r.raise_for_status()
         r = r.json()
 
         await self.__init_from_principals(r)
@@ -126,12 +145,26 @@ class StreamClient:
                 parameters=request_parameters)
 
         await self.send({'requests': [request]})
-        resp = await self.receive()
+        await self.__expect_success(request_id)
 
-        # Validate response
-        resp_request_id = int(resp['response'][0]['requestid'])
-        assert resp_request_id == request_id, \
-                'unexpected requestid: {}'.format(resp_request_id)
-        
-        resp_code = resp['response'][0]['content']['code']
-        assert resp_code == 0, 'unexpected response code: {}'.format(resp_code)
+    ############################################################################
+    # QOS
+
+    class QOSLevel(Enum):
+        EXPRESS = '0'
+        REAL_TIME = '1'
+        FAST = '2'
+        MODERATE = '3'
+        SLOW = '4'
+        DELAYED = '5'
+
+
+    async def quality_of_service(self, qos_level):
+        qos_level = self.convert_enum(qos_level, self.QOSLevel)
+
+        request, request_id = self.__make_request(
+                service='ADMIN', command='QOS',
+                parameters={'qoslevel': qos_level})
+
+        await self.send({'requests': [request]})
+        await self.__expect_success(request_id)
