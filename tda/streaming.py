@@ -14,17 +14,20 @@ class StreamClient:
         self.account_id = account_id
 
         # Set by the login() function
-        self.account = None
-        self.socket = None
-        self.source = None
+        self._account = None
+        self._socket = None
+        self._source = None
+
+        # Internal fields
+        self._request_id = 0
 
 
     async def send(self, obj):
-        await self.socket.send(json.dumps(obj))
+        await self._socket.send(json.dumps(obj))
 
 
     async def receive(self):
-        return json.loads(await self.socket.recv())
+        return json.loads(await self._socket.recv())
 
 
     async def __init_from_principals(self, principals):
@@ -43,38 +46,46 @@ class StreamClient:
 
         for account in accounts:
             if int(account['accountId']) == self.account_id:
-                self.account = account
+                self._account = account
 
-        if self.account is None:
+        if self._account is None:
             raise ValueError(
                     'no account found with account_id {}'.format(
                         self.account_id))
 
         if self.account_id is None:
-            self.account_id = self.account['accountId']
+            self.account_id = self._account['accountId']
 
 
         # Initialize socket
         wss_url = 'wss://{}/ws'.format(
                 principals['streamerInfo']['streamerSocketUrl'])
-        self.socket = await websockets.client.connect(wss_url)
+        self._socket = await websockets.client.connect(wss_url)
 
         # Initialize miscellaneous parameters
-        self.source = principals['streamerInfo']['appId']
+        self._source = principals['streamerInfo']['appId']
 
 
     def __make_request(self, *, service, command, parameters):
-        return {
-            "service": "ADMIN",
-            "requestid": "0",
-            "command": "LOGIN",
+        request_id = self._request_id
+        self._request_id += 1
+
+        request = {
+            "service": service,
+            "requestid": str(request_id),
+            "command": command,
             "account": self.account_id,
-            "source": self.source,
+            "source": self._source,
             "parameters": parameters
         }
 
+        return request, request_id
+
 
     async def login(self):
+        # Fetch required data and initialize the client
+
+        # TODO: Figure out which of these are actually needed
         r = self.client.get_user_principals(fields=[
             self.client.UserPrincipals.Fields.PREFERENCES,
             self.client.UserPrincipals.Fields.STREAMER_CONNECTION_INFO,
@@ -85,6 +96,7 @@ class StreamClient:
 
         await self.__init_from_principals(r)
 
+        # Build and send the request object
         token_ts = datetime.datetime.strptime(
                 r['streamerInfo']['tokenTimestamp'], "%Y-%m-%dT%H:%M:%S%z")
         token_ts = int(token_ts.timestamp()) * 1000
@@ -92,9 +104,9 @@ class StreamClient:
         credentials = {
             "userid": self.account_id,
             "token": r['streamerInfo']['token'],
-            "company": self.account['company'],
-            "segment": self.account['segment'],
-            "cddomain": self.account['accountCdDomainId'],
+            "company": self._account['company'],
+            "segment": self._account['segment'],
+            "cddomain": self._account['accountCdDomainId'],
             "usergroup": r['streamerInfo']['userGroup'],
             "accesslevel": r['streamerInfo']['accessLevel'],
             "authorized": "Y",
@@ -109,15 +121,17 @@ class StreamClient:
             "version": "1.0"
         }
 
-        request = {
-            "requests": [
-                self.__make_request(service='ADMIN', command='LOGIN', 
-                    parameters=request_parameters)
-            ]
-        }
+        request, request_id = self.__make_request(
+                service='ADMIN', command='LOGIN', 
+                parameters=request_parameters)
 
-        print(json.dumps(request, indent=4))
-        await self.send(request)
+        await self.send({'requests': [request]})
         resp = await self.receive()
-        print(json.dumps(resp, indent=4))
 
+        # Validate response
+        resp_request_id = int(resp['response'][0]['requestid'])
+        assert resp_request_id == request_id, \
+                'unexpected requestid: {}'.format(resp_request_id)
+        
+        resp_code = resp['response'][0]['content']['code']
+        assert resp_code == 0, 'unexpected response code: {}'.format(resp_code)
