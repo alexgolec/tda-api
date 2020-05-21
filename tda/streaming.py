@@ -703,7 +703,7 @@ class StreamClient(EnumEnforcer):
 
     def add_futures_options_book_handler(self, handler):
         self._handlers['FUTURES_OPTIONS_BOOK'].append(
-                Handler(handler, self.FuturesOptionsBookFields))
+            Handler(handler, self.FuturesOptionsBookFields))
 
     ##########################################################################
     # LISTED_BOOK
@@ -749,40 +749,3 @@ class StreamClient(EnumEnforcer):
     def add_options_book_handler(self, handler):
         self._handlers['OPTIONS_BOOK'].append(Handler(handler,
                                                       self.OptionsBookFields))
-
-
-def make_data_container(class_name, fields):
-    if len({type(f) for f in fields}) != 1:
-        raise ValueError('logic error: multiple types in fields')
-
-    class BaseDataContainer:
-        def __init__(self, content):
-            self._content = content
-
-    attrs = {}
-
-    # add getters
-    for field in fields:
-        attrs[field.name.lower()] = lambda self: self._content[str(field.value)]
-
-    # wire up properties
-    attrs.update((name, property(fget=attr))
-                 for name, attr in attrs.items())
-
-    # add __getattr__ that recommends what entries to initialize with
-    def custom_getattr(self, name):
-        fields_type = type(fields[0])
-
-        try:
-            desired_name = str(fields_type.__members__[name.upper()])
-            raise AttributeError(
-                ('\'{}\' object has no attribute \'{}\', ' +
-                 'initialize with {} to receive it').format(
-                    class_name, name, desired_name))
-        except KeyError:
-            raise AttributeError(
-                ('unrecognized field \'{}\', no corresponding field ' +
-                 'value in {}').format(name, fields_type))
-    attrs['__getattr__'] = custom_getattr
-
-    return type(class_name, (BaseDataContainer,), attrs)
