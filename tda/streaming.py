@@ -14,7 +14,26 @@ from .utils import EnumEnforcer
 class BaseFieldEnum(Enum):
     @classmethod
     def all_fields(cls):
-        return list(cls.__members__.values())
+        return list(cls)
+
+    @classmethod
+    def key_mapping(cls):
+        try:
+            return cls._key_mapping
+        except AttributeError:
+            cls._key_mapping = dict(
+                    (str(enum.value), name)
+                    for name, enum in cls.__members__.items())
+            return cls._key_mapping
+
+    @classmethod
+    def relabel_message(cls, old_msg, new_msg):
+        # Make a copy of the items so we can modify the dict during iteration
+        for old_key, value in list(old_msg.items()):
+            if old_key in cls.key_mapping():
+                new_key = cls.key_mapping()[old_key]
+                new_msg[new_key] = value
+                del new_msg[old_key]
 
 
 class UnexpectedResponse(Exception):
@@ -32,10 +51,7 @@ class UnexpectedResponseCode(Exception):
 class Handler:
     def __init__(self, func, field_enum_type):
         self._func = func
-
-        self._field_mapping = dict(
-            (str(enum.value), name) for name, enum in
-            field_enum_type.__members__.items())
+        self._field_enum_type = field_enum_type
 
     def __call__(self, *args, **kwargs):
         return self._func(*args, **kwargs)
@@ -44,12 +60,8 @@ class Handler:
         if 'content' in msg:
             new_msg = copy.deepcopy(msg)
             for idx in range(len(msg['content'])):
-                for old_key, value in msg['content'][idx].items():
-                    if old_key in self._field_mapping:
-                        new_key = self._field_mapping[old_key]
-                        c = new_msg['content'][idx]
-                        c[new_key] = value
-                        del c[old_key]
+                self._field_enum_type.relabel_message(msg['content'][idx],
+                        new_msg['content'][idx])
             return new_msg
         else:
             return msg
@@ -725,6 +737,62 @@ class StreamClient(EnumEnforcer):
 
     class NasdaqBookFields(BaseFieldEnum):
         SYMBOL = 0
+        BOOK_TIME = 1
+        BIDS = 2
+        ASKS = 3
+
+    class BidFields(BaseFieldEnum):
+        BID_PRICE = 0
+        TOTAL_VOLUME = 1
+        NUM_BIDS = 2
+        BIDS = 3
+
+    class PerExchangeBidFields(BaseFieldEnum):
+        EXCHANGE = 0
+        BID_VOLUME = 1
+        SEQUENCE = 2
+
+    class AskFields(BaseFieldEnum):
+        ASK_PRICE = 0
+        TOTAL_VOLUME = 1
+        NUM_ASKS = 2
+        ASKS = 3
+
+    class PerExchangeAskFields(BaseFieldEnum):
+        EXCHANGE = 0
+        ASK_VOLUME = 1
+        SEQUENCE = 2
+
+    class NasdaqBookHandler(Handler):
+        def label_message(self, msg):
+            # Relabel top-level fields
+            new_msg = super().label_message(msg)
+
+            # Relabel bids
+            for content in new_msg['content']:
+                if 'BIDS' in content:
+                    for bid in content['BIDS']:
+                        # Relabel top-level bids
+                        StreamClient.BidFields.relabel_message(bid, bid)
+
+                        # Relabel per-exchange bids
+                        for e_bid in bid['BIDS']:
+                            StreamClient.PerExchangeBidFields.relabel_message(
+                                    e_bid, e_bid)
+
+            # Relabel asks
+            for content in new_msg['content']:
+                if 'ASKS' in content:
+                    for ask in content['ASKS']:
+                        # Relabel top-level asks
+                        StreamClient.AskFields.relabel_message(ask, ask)
+
+                        # Relabel per-exchange bids
+                        for e_ask in ask['ASKS']:
+                            StreamClient.PerExchangeAskFields.relabel_message(
+                                    e_ask, e_ask)
+
+            return new_msg
 
     async def nasdaq_book_subs(self, symbols, *, fields=None):
         await self.__service_op(
@@ -732,8 +800,8 @@ class StreamClient(EnumEnforcer):
             self.NasdaqBookFields, fields=fields)
 
     def add_nasdaq_book_handler(self, handler):
-        self._handlers['NASDAQ_BOOK'].append(Handler(handler,
-                                                     self.NasdaqBookFields))
+        self._handlers['NASDAQ_BOOK'].append(
+                self.NasdaqBookHandler(handler, self.NasdaqBookFields))
 
     ##########################################################################
     # OPTIONS_BOOK
