@@ -15,6 +15,12 @@ class BaseFieldEnum(Enum):
         return list(cls.__members__.values())
 
 
+class UnexpectedResponseCode(Exception):
+    def __init__(self, response, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.response = response
+
+
 class StreamClient(EnumEnforcer):
 
     def __init__(self, client, *, account_id=None, enforce_enums=True):
@@ -104,8 +110,12 @@ class StreamClient(EnumEnforcer):
                 'unexpected requestid: {}'.format(resp_request_id)
 
             resp_code = resp['response'][0]['content']['code']
-            assert resp_code == 0, 'unexpected response code: {}'.format(
-                resp_code)
+            if resp_code != 0:
+                raise UnexpectedResponseCode(
+                    resp,
+                    'unexpected response code: {}, msg is \'{}\''.format(
+                        resp_code,
+                        resp['response'][0]['content']['msg']))
 
             return
 
@@ -436,7 +446,7 @@ class StreamClient(EnumEnforcer):
         NET_CHANGE = 16
         # Disabled because testing indicates the API returns some unparsable
         # characters
-        #PERCENT_CHANGE = 17
+        # PERCENT_CHANGE = 17
         EXCHANGE_NAME = 18
         DIGITS = 19
         SECURITY_STATUS = 20
@@ -529,6 +539,72 @@ class StreamClient(EnumEnforcer):
             symbols, 'TIMESALE_OPTIONS', 'SUBS',
             self.TimesaleFields, fields=fields)
 
+    ##########################################################################
+    # FUTURES_BOOK
+
+    class FuturesBookFields(BaseFieldEnum):
+        SYMBOL = 0
+
+    async def futures_book_subs(self, symbols, *, fields=None):
+        await self.__service_op(
+            symbols, 'FUTURES_BOOK', 'SUBS',
+            self.FuturesBookFields, fields=fields)
+
+    ##########################################################################
+    # FOREX_BOOK
+
+    class ForexBookFields(BaseFieldEnum):
+        SYMBOL = 0
+
+    async def forex_book_subs(self, symbols, *, fields=None):
+        await self.__service_op(
+            symbols, 'FOREX_BOOK', 'SUBS',
+            self.ForexBookFields, fields=fields)
+
+    ##########################################################################
+    # FUTURES_OPTIONS_BOOK
+
+    class FuturesOptionsBookFields(BaseFieldEnum):
+        SYMBOL = 0
+
+    async def futures_options_book_subs(self, symbols, *, fields=None):
+        await self.__service_op(
+            symbols, 'FUTURES_OPTIONS_BOOK', 'SUBS',
+            self.FuturesOptionsBookFields, fields=fields)
+
+    ##########################################################################
+    # LISTED_BOOK
+
+    class ListedBookFields(BaseFieldEnum):
+        SYMBOL = 0
+
+    async def listed_book_subs(self, symbols, *, fields=None):
+        await self.__service_op(
+            symbols, 'LISTED_BOOK', 'SUBS',
+            self.ListedBookFields, fields=fields)
+
+    ##########################################################################
+    # NASDAQ_BOOK
+
+    class NasdaqBookFields(BaseFieldEnum):
+        SYMBOL = 0
+
+    async def nasdaq_book_subs(self, symbols, *, fields=None):
+        await self.__service_op(
+            symbols, 'NASDAQ_BOOK', 'SUBS',
+            self.NasdaqBookFields, fields=fields)
+
+    ##########################################################################
+    # OPTIONS_BOOK
+
+    class OptionsBookFields(BaseFieldEnum):
+        SYMBOL = 0
+
+    async def options_book_subs(self, symbols, *, fields=None):
+        await self.__service_op(
+            symbols, 'OPTIONS_BOOK', 'SUBS',
+            self.OptionsBookFields, fields=fields)
+
 
 def make_data_container(class_name, fields):
     if len({type(f) for f in fields}) != 1:
@@ -542,8 +618,7 @@ def make_data_container(class_name, fields):
 
     # add getters
     for field in fields:
-        attrs[field.name.lower()] = \
-            lambda self: self._content[str(field.value)]
+        attrs[field.name.lower()] = lambda self: self._content[str(field.value)]
 
     # wire up properties
     attrs.update((name, property(fget=attr))
