@@ -2,6 +2,7 @@ from collections import defaultdict, deque
 from enum import Enum
 
 import asyncio
+import copy
 import datetime
 import json
 import urllib.parse
@@ -26,6 +27,32 @@ class UnexpectedResponseCode(Exception):
     def __init__(self, response, *args, **kwargs):
         super().__init__(*args, **kwargs)
         self.response = response
+
+
+class Handler:
+    def __init__(self, func, field_enum_type):
+        self._func = func
+
+        self._field_mapping = dict(
+            (str(enum.value), name) for name, enum in
+            field_enum_type.__members__.items())
+
+    def __call__(self, *args, **kwargs):
+        return self._func(*args, **kwargs)
+
+    def label_message(self, msg):
+        if 'content' in msg:
+            new_msg = copy.deepcopy(msg)
+            for idx in range(len(msg['content'])):
+                for old_key, value in msg['content'][idx].items():
+                    if old_key in self._field_mapping:
+                        new_key = self._field_mapping[old_key]
+                        c = new_msg['content'][idx]
+                        c[new_key] = value
+                        del c[old_key]
+            return new_msg
+        else:
+            return msg
 
 
 class StreamClient(EnumEnforcer):
@@ -180,7 +207,8 @@ class StreamClient(EnumEnforcer):
             for d in msg['data']:
                 if d['service'] in self._handlers:
                     for handler in self._handlers[d['service']]:
-                        handler(d)
+                        labeled_d = handler.label_message(d)
+                        handler(labeled_d)
 
         # notify
         if 'notify' in msg:
@@ -294,7 +322,8 @@ class StreamClient(EnumEnforcer):
             fields=fields)
 
     def add_chart_equity_handler(self, handler):
-        self._handlers['CHART_EQUITY'].append(handler)
+        self._handlers['CHART_EQUITY'].append(Handler(handler,
+                                                      self.ChartFields))
 
     ##########################################################################
     # CHART_FUTURES
@@ -321,7 +350,8 @@ class StreamClient(EnumEnforcer):
             fields=fields)
 
     def add_chart_futures_handler(self, handler):
-        self._handlers['CHART_FUTURES'].append(handler)
+        self._handlers['CHART_FUTURES'].append(Handler(handler,
+                                                       self.ChartFields))
 
     ##########################################################################
     # QUOTE
@@ -346,6 +376,9 @@ class StreamClient(EnumEnforcer):
         EXCHANGE_ID = 16
         MARGINABLE = 17
         SHORTABLE = 18
+        ISLAND_BID_DEPRECATED = 19
+        ISLAND_ASK_DEPRECATED = 20
+        ISLAND_VOLUME_DEPRECATED = 21
         QUOTE_DAY = 22
         TRADE_DAY = 23
         VOLATILITY = 24
@@ -382,7 +415,8 @@ class StreamClient(EnumEnforcer):
             fields=fields)
 
     def add_level_one_quote_handler(self, handler):
-        self._handlers['QUOTE'].append(handler)
+        self._handlers['QUOTE'].append(Handler(handler,
+                                               self.LevelOneQuoteFields))
 
     ##########################################################################
     # OPTION
@@ -437,7 +471,8 @@ class StreamClient(EnumEnforcer):
             fields=fields)
 
     def add_level_one_option_handler(self, handler):
-        self._handlers['OPTION'].append(handler)
+        self._handlers['OPTION'].append(Handler(handler,
+                                                self.LevelOneOptionFields))
 
     ##########################################################################
     # LEVELONE_FUTURES
@@ -486,7 +521,8 @@ class StreamClient(EnumEnforcer):
             fields=fields)
 
     def add_level_one_futures_handler(self, handler):
-        self._handlers['LEVELONE_FUTURES'].append(handler)
+        self._handlers['LEVELONE_FUTURES'].append(Handler(handler,
+                                                          self.LevelOneFuturesFields))
 
     ##########################################################################
     # LEVELONE_FOREX
@@ -534,7 +570,8 @@ class StreamClient(EnumEnforcer):
             fields=fields)
 
     def add_level_one_forex_handler(self, handler):
-        self._handlers['LEVELONE_FOREX'].append(handler)
+        self._handlers['LEVELONE_FOREX'].append(Hander(handler,
+                                                       self.LevelOneForexFields))
 
     ##########################################################################
     # LEVELONE_FUTURES_OPTIONS
@@ -583,7 +620,8 @@ class StreamClient(EnumEnforcer):
             self.LevelOneFuturesOptionsFields, fields=fields)
 
     def add_level_one_futures_options_handler(self, handler):
-        self._handlers['LEVELONE_FUTURES_OPTIONS'].append(handler)
+        self._handlers['LEVELONE_FUTURES_OPTIONS'].append(Handler(handler,
+                                                                  self.LevelOneFuturesOptionsFields))
 
     ##########################################################################
     # TIMESALE
@@ -601,7 +639,8 @@ class StreamClient(EnumEnforcer):
             self.TimesaleFields, fields=fields)
 
     def add_timesale_equity_handler(self, handler):
-        self._handlers['TIMESALE_EQUITY'].append(handler)
+        self._handlers['TIMESALE_EQUITY'].append(Handler(handler,
+                                                         self.TimesaleFields))
 
     async def timesale_futures_subs(self, symbols, *, fields=None):
         await self.__service_op(
@@ -609,7 +648,8 @@ class StreamClient(EnumEnforcer):
             self.TimesaleFields, fields=fields)
 
     def add_timesale_futures_handler(self, handler):
-        self._handlers['TIMESALE_FUTURES'].append(handler)
+        self._handlers['TIMESALE_FUTURES'].append(Handler(handler,
+                                                          self.TimesaleFields))
 
     async def timesale_options_subs(self, symbols, *, fields=None):
         await self.__service_op(
@@ -617,7 +657,8 @@ class StreamClient(EnumEnforcer):
             self.TimesaleFields, fields=fields)
 
     def add_timesale_options_handler(self, handler):
-        self._handlers['TIMESALE_OPTIONS'].append(handler)
+        self._handlers['TIMESALE_OPTIONS'].append(Handler(handler,
+                                                          self.TimesaleFields))
 
     ##########################################################################
     # FUTURES_BOOK
@@ -631,7 +672,8 @@ class StreamClient(EnumEnforcer):
             self.FuturesBookFields, fields=fields)
 
     def add_futures_book_handler(self, handler):
-        self._handlers['FUTURES_BOOK'].append(handler)
+        self._handlers['FUTURES_BOOK'].append(Handler(handler,
+                                                      self.FuturesBookFields))
 
     ##########################################################################
     # FOREX_BOOK
@@ -645,7 +687,8 @@ class StreamClient(EnumEnforcer):
             self.ForexBookFields, fields=fields)
 
     def add_forex_book_handler(self, handler):
-        self._handlers['FOREX_BOOK'].append(handler)
+        self._handlers['FOREX_BOOK'].append(Handler(handler,
+                                                    self.ForexBookFields))
 
     ##########################################################################
     # FUTURES_OPTIONS_BOOK
@@ -659,7 +702,8 @@ class StreamClient(EnumEnforcer):
             self.FuturesOptionsBookFields, fields=fields)
 
     def add_futures_options_book_handler(self, handler):
-        self._handlers['FUTURES_OPTIONS_BOOK'].append(handler)
+        self._handlers['FUTURES_OPTIONS_BOOK'].append(
+                Handler(handler, self.FuturesOptionsBookFields))
 
     ##########################################################################
     # LISTED_BOOK
@@ -673,7 +717,8 @@ class StreamClient(EnumEnforcer):
             self.ListedBookFields, fields=fields)
 
     def add_listed_book_handler(self, handler):
-        self._handlers['LISTED_BOOK'].append(handler)
+        self._handlers['LISTED_BOOK'].append(Handler(handler,
+                                                     self.ListedBookFields))
 
     ##########################################################################
     # NASDAQ_BOOK
@@ -687,7 +732,8 @@ class StreamClient(EnumEnforcer):
             self.NasdaqBookFields, fields=fields)
 
     def add_nasdaq_book_handler(self, handler):
-        self._handlers['NASDAQ_BOOK'].append(handler)
+        self._handlers['NASDAQ_BOOK'].append(Handler(handler,
+                                                     self.NasdaqBookFields))
 
     ##########################################################################
     # OPTIONS_BOOK
@@ -701,7 +747,8 @@ class StreamClient(EnumEnforcer):
             self.OptionsBookFields, fields=fields)
 
     def add_options_book_handler(self, handler):
-        self._handlers['OPTIONS_BOOK'].append(handler)
+        self._handlers['OPTIONS_BOOK'].append(Handler(handler,
+                                                      self.OptionsBookFields))
 
 
 def make_data_container(class_name, fields):
