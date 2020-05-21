@@ -22,8 +22,8 @@ class BaseFieldEnum(Enum):
             return cls._key_mapping
         except AttributeError:
             cls._key_mapping = dict(
-                    (str(enum.value), name)
-                    for name, enum in cls.__members__.items())
+                (str(enum.value), name)
+                for name, enum in cls.__members__.items())
             return cls._key_mapping
 
     @classmethod
@@ -32,8 +32,7 @@ class BaseFieldEnum(Enum):
         for old_key, value in list(old_msg.items()):
             if old_key in cls.key_mapping():
                 new_key = cls.key_mapping()[old_key]
-                new_msg[new_key] = value
-                del new_msg[old_key]
+                new_msg[new_key] = new_msg.pop(old_key)
 
 
 class UnexpectedResponse(Exception):
@@ -61,7 +60,7 @@ class Handler:
             new_msg = copy.deepcopy(msg)
             for idx in range(len(msg['content'])):
                 self._field_enum_type.relabel_message(msg['content'][idx],
-                        new_msg['content'][idx])
+                                                      new_msg['content'][idx])
             return new_msg
         else:
             return msg
@@ -733,9 +732,9 @@ class StreamClient(EnumEnforcer):
                                                      self.ListedBookFields))
 
     ##########################################################################
-    # NASDAQ_BOOK
+    # Common book utilities
 
-    class NasdaqBookFields(BaseFieldEnum):
+    class BookFields(BaseFieldEnum):
         SYMBOL = 0
         BOOK_TIME = 1
         BIDS = 2
@@ -763,7 +762,7 @@ class StreamClient(EnumEnforcer):
         ASK_VOLUME = 1
         SEQUENCE = 2
 
-    class NasdaqBookHandler(Handler):
+    class BookHandler(Handler):
         def label_message(self, msg):
             # Relabel top-level fields
             new_msg = super().label_message(msg)
@@ -778,7 +777,7 @@ class StreamClient(EnumEnforcer):
                         # Relabel per-exchange bids
                         for e_bid in bid['BIDS']:
                             StreamClient.PerExchangeBidFields.relabel_message(
-                                    e_bid, e_bid)
+                                e_bid, e_bid)
 
             # Relabel asks
             for content in new_msg['content']:
@@ -790,30 +789,28 @@ class StreamClient(EnumEnforcer):
                         # Relabel per-exchange bids
                         for e_ask in ask['ASKS']:
                             StreamClient.PerExchangeAskFields.relabel_message(
-                                    e_ask, e_ask)
+                                e_ask, e_ask)
 
             return new_msg
 
+    ##########################################################################
+    # NASDAQ_BOOK
+
     async def nasdaq_book_subs(self, symbols, *, fields=None):
-        await self.__service_op(
-            symbols, 'NASDAQ_BOOK', 'SUBS',
-            self.NasdaqBookFields, fields=fields)
+        await self.__service_op(symbols, 'NASDAQ_BOOK', 'SUBS',
+                                self.BookFields, fields=fields)
 
     def add_nasdaq_book_handler(self, handler):
         self._handlers['NASDAQ_BOOK'].append(
-                self.NasdaqBookHandler(handler, self.NasdaqBookFields))
+            self.BookHandler(handler, self.BookFields))
 
     ##########################################################################
     # OPTIONS_BOOK
 
-    class OptionsBookFields(BaseFieldEnum):
-        SYMBOL = 0
-
     async def options_book_subs(self, symbols, *, fields=None):
-        await self.__service_op(
-            symbols, 'OPTIONS_BOOK', 'SUBS',
-            self.OptionsBookFields, fields=fields)
+        await self.__service_op(symbols, 'OPTIONS_BOOK', 'SUBS',
+                                self.BookFields, fields=fields)
 
     def add_options_book_handler(self, handler):
-        self._handlers['OPTIONS_BOOK'].append(Handler(handler,
-                                                      self.OptionsBookFields))
+        self._handlers['OPTIONS_BOOK'].append(
+            self.BookHandler(handler, self.BookFields))
