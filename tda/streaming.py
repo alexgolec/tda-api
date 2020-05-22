@@ -102,6 +102,7 @@ class StreamClient(EnumEnforcer):
         else:
             raw = await self._socket.recv()
             ret = json.loads(raw)
+        print(json.dumps(ret, indent=4))
         return ret
 
     async def __init_from_principals(self, principals):
@@ -180,8 +181,9 @@ class StreamClient(EnumEnforcer):
                 # Validate response
                 resp_request_id = int(resp['response'][0]['requestid'])
                 if resp_request_id != request_id:
-                    raise UnexpectedResponse(resp,
-                            'unexpected requestid: {}'.format(resp_request_id))
+                    raise UnexpectedResponse(
+                        resp, 'unexpected requestid: {}'.format(
+                            resp_request_id))
 
                 resp_code = resp['response'][0]['content']['code']
                 if resp_code != 0:
@@ -309,28 +311,15 @@ class StreamClient(EnumEnforcer):
         CHART_TIME = 7
         CHART_DAY = 8
 
-    async def __chart_op(self, symbols, service, command):
-        # Testing indicates that passed fields are ignored and all fields are
-        # always returned
-        fields = self.ChartFields.all_fields()
-        request, request_id = self.__make_request(
-            service=service, command=command,
-            parameters={
-                'keys': ','.join(symbols),
-                'fields': ','.join(str(f) for f in fields)})
-
-        await self.__send({'requests': [request]})
-        await self.__await_response(request_id)
-
-    async def chart_equity_subs(self, symbols, *, fields=None):
+    async def chart_equity_subs(self, symbols):
         await self.__service_op(
             symbols, 'CHART_EQUITY', 'SUBS', self.ChartFields,
-            fields=fields)
+            fields=self.ChartFields.all_fields())
 
-    async def chart_equity_add(self, symbols, *, fields=None):
+    async def chart_equity_add(self, symbols):
         await self.__service_op(
             symbols, 'CHART_EQUITY', 'ADD', self.ChartFields,
-            fields=fields)
+            fields=self.ChartFields.all_fields())
 
     def add_chart_equity_handler(self, handler):
         self._handlers['CHART_EQUITY'].append(Handler(handler,

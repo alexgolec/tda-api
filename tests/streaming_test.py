@@ -34,6 +34,54 @@ class StreamClientTest(aiounittest.AsyncTestCase):
                 account[key] = value + '-' + str(account['accountId'])
         return account
 
+    def request_from_socket_mock(self, socket):
+        return json.loads(
+            socket.send.call_args_list[0].args[0])['requests'][0]
+
+    def success_response(self, request_id, service, command):
+        return {
+            'response': [
+                {
+                    'service': service,
+                    'requestid': str(request_id),
+                    'command': command,
+                    'timestamp': 1590116673258,
+                    'content': {
+                        'code': 0,
+                        'msg': 'success'
+                    }
+                }
+            ]
+        }
+
+    def streaming_entry(self, service, command):
+        return {
+                'data': [{
+                    'service': service,
+                    'command': command,
+                    'timestamp': 1590186642440
+                    }]
+            }
+
+    async def login_and_get_socket(self, ws_connect):
+        principals = account_principals()
+
+        self.http_client.get_user_principals.return_value = MockResponse(
+            principals, True)
+        socket = AsyncMock()
+        ws_connect.return_value = socket
+
+        socket.recv.side_effect = [json.dumps(self.success_response(
+            0, 'ADMIN', 'LOGIN'))]
+
+        await self.client.login()
+
+        socket.reset_mock()
+        return socket
+
+    ##########################################################################
+    # Login
+
     @patch('tda.streaming.websockets.client.connect', autospec=AsyncMock())
     async def test_login_single_account_success(self, ws_connect):
         principals = account_principals()
@@ -45,29 +93,13 @@ class StreamClientTest(aiounittest.AsyncTestCase):
         socket = AsyncMock()
         ws_connect.return_value = socket
 
-        # Use side_effect rather than return_value because otherwise we'll
-        # infinite loop looking for the response object
-        socket.recv.side_effect = [json.dumps(
-            {
-                'response': [
-                    {
-                        'service': 'ADMIN',
-                        'requestid': '0',
-                        'command': 'LOGIN',
-                        'timestamp': 1590116673258,
-                        'content': {
-                            'code': 0,
-                            'msg': '04-1'
-                        }
-                    }
-                ]
-            })]
+        socket.recv.side_effect = [json.dumps(self.success_response(
+            0, 'ADMIN', 'LOGIN'))]
 
         await self.client.login()
 
         socket.send.assert_awaited_once()
-        request = json.loads(
-            socket.send.call_args_list[0].args[0])['requests'][0]
+        request = self.request_from_socket_mock(socket)
         creds = urllib.parse.parse_qs(request['parameters']['credential'])
 
         self.assertEqual(creds['userid'], ['1001'])
@@ -103,7 +135,7 @@ class StreamClientTest(aiounittest.AsyncTestCase):
             principals, True)
 
         with self.assertRaisesRegex(ValueError,
-                '.*initialized with unspecified account_id.*'):
+                                    '.*initialized with unspecified account_id.*'):
             await self.client.login()
         ws_connect.assert_not_called()
 
@@ -119,30 +151,14 @@ class StreamClientTest(aiounittest.AsyncTestCase):
         socket = AsyncMock()
         ws_connect.return_value = socket
 
-        # Use side_effect rather than return_value because otherwise we'll
-        # infinite loop looking for the response object
-        socket.recv.side_effect = [json.dumps(
-            {
-                'response': [
-                    {
-                        'service': 'ADMIN',
-                        'requestid': '0',
-                        'command': 'LOGIN',
-                        'timestamp': 1590116673258,
-                        'content': {
-                            'code': 0,
-                            'msg': '04-1'
-                        }
-                    }
-                ]
-            })]
+        socket.recv.side_effect = [json.dumps(self.success_response(
+            0, 'ADMIN', 'LOGIN'))]
 
         self.client = StreamClient(self.http_client, account_id=1002)
         await self.client.login()
 
         socket.send.assert_awaited_once()
-        request = json.loads(
-            socket.send.call_args_list[0].args[0])['requests'][0]
+        request = self.request_from_socket_mock(socket)
         creds = urllib.parse.parse_qs(request['parameters']['credential'])
 
         self.assertEqual(creds['userid'], ['1002'])
@@ -165,7 +181,6 @@ class StreamClientTest(aiounittest.AsyncTestCase):
         self.assertEqual(request['service'], 'ADMIN')
         self.assertEqual(request['command'], 'LOGIN')
 
-
     @patch('tda.streaming.websockets.client.connect', autospec=AsyncMock())
     async def test_login_unrecognized_account_id(self, ws_connect):
         principals = account_principals()
@@ -179,7 +194,7 @@ class StreamClientTest(aiounittest.AsyncTestCase):
         self.client = StreamClient(self.http_client, account_id=999999)
 
         with self.assertRaisesRegex(ValueError,
-                '.*no account found with account_id 999999.*'):
+                                    '.*no account found with account_id 999999.*'):
             await self.client.login()
         ws_connect.assert_not_called()
 
@@ -194,23 +209,10 @@ class StreamClientTest(aiounittest.AsyncTestCase):
         socket = AsyncMock()
         ws_connect.return_value = socket
 
-        # Use side_effect rather than return_value because otherwise we'll
-        # infinite loop looking for the response object
-        socket.recv.side_effect = [json.dumps(
-            {
-                'response': [
-                    {
-                        'service': 'ADMIN',
-                        'requestid': '0',
-                        'command': 'LOGIN',
-                        'timestamp': 1590116673258,
-                        'content': {
-                            'code': 21,
-                            'msg': 'Failed for some reason'
-                        }
-                    }
-                ]
-            })]
+        response = self.success_response(0, 'ADMIN', 'LOGIN')
+        response['response'][0]['content']['code'] = 21
+        response['response'][0]['content']['msg'] = 'failed for some reason'
+        socket.recv.side_effect = [json.dumps(response)]
 
         with self.assertRaises(tda.streaming.UnexpectedResponseCode):
             await self.client.login()
@@ -226,24 +228,140 @@ class StreamClientTest(aiounittest.AsyncTestCase):
         socket = AsyncMock()
         ws_connect.return_value = socket
 
-        # Use side_effect rather than return_value because otherwise we'll
-        # infinite loop looking for the response object
-        socket.recv.side_effect = [json.dumps(
-            {
-                'response': [
-                    {
-                        'service': 'ADMIN',
-                        'requestid': '9999',
-                        'command': 'LOGIN',
-                        'timestamp': 1590116673258,
-                        'content': {
-                            'code': 0,
-                            'msg': '04-1'
-                        }
-                    }
-                ]
-            })]
+        response = self.success_response(0, 'ADMIN', 'LOGIN')
+        response['response'][0]['requestid'] = 9999
+        socket.recv.side_effect = [json.dumps(response)]
 
         with self.assertRaisesRegex(tda.streaming.UnexpectedResponse,
-                'unexpected requestid: 9999'):
+                                    'unexpected requestid: 9999'):
             await self.client.login()
+
+    ##########################################################################
+    # QOS
+
+    @patch('tda.streaming.websockets.client.connect', autospec=AsyncMock())
+    async def test_qos_success(self, ws_connect):
+        socket = await self.login_and_get_socket(ws_connect)
+
+        socket.recv.side_effect = [json.dumps(self.success_response(
+            1, 'ADMIN', 'QOS'))]
+
+        await self.client.quality_of_service(StreamClient.QOSLevel.EXPRESS)
+        socket.recv.assert_awaited_once()
+        request = self.request_from_socket_mock(socket)
+
+        self.assertEqual(request, {
+            'account': '1001',
+            'service': 'ADMIN',
+            'command': 'QOS',
+            'requestid': '1',
+            'source': 'streamerInfo-appId',
+            'parameters': {
+                'qoslevel': '0'
+            }
+        })
+
+    @patch('tda.streaming.websockets.client.connect', autospec=AsyncMock())
+    async def test_qos_failure(self, ws_connect):
+        socket = await self.login_and_get_socket(ws_connect)
+
+        response = self.success_response(1, 'ADMIN', 'QOS')
+        response['response'][0]['content']['code'] = 21
+        socket.recv.side_effect = [json.dumps(response)]
+
+        with self.assertRaises(tda.streaming.UnexpectedResponseCode):
+            await self.client.quality_of_service(StreamClient.QOSLevel.EXPRESS)
+        socket.recv.assert_awaited_once()
+
+    ############################################################################
+    # CHART_EQUITY
+
+    @patch('tda.streaming.websockets.client.connect', autospec=AsyncMock())
+    async def test_chart_equity_subs_and_add_success(self, ws_connect):
+        socket = await self.login_and_get_socket(ws_connect)
+
+        socket.recv.side_effect = [json.dumps(self.success_response(
+            1, 'CHART_EQUITY', 'SUBS'))]
+
+        await self.client.chart_equity_subs(['GOOG,MSFT'])
+        socket.recv.assert_awaited_once()
+        request = self.request_from_socket_mock(socket)
+
+        self.assertEqual(request, {
+            'account': '1001',
+            'service': 'CHART_EQUITY',
+            'command': 'SUBS',
+            'requestid': '1',
+            'source': 'streamerInfo-appId',
+            'parameters': {
+                'keys': 'GOOG,MSFT',
+                'fields': '0,1,2,3,4,5,6,7,8'
+            }
+        })
+
+        socket.reset_mock()
+
+        socket.recv.side_effect = [json.dumps(self.success_response(
+            2, 'CHART_EQUITY', 'ADD'))]
+
+        await self.client.chart_equity_add(['INTC'])
+        socket.recv.assert_awaited_once()
+        request = self.request_from_socket_mock(socket)
+
+        self.assertEqual(request, {
+            'account': '1001',
+            'service': 'CHART_EQUITY',
+            'command': 'ADD',
+            'requestid': '2',
+            'source': 'streamerInfo-appId',
+            'parameters': {
+                'keys': 'INTC',
+                'fields': '0,1,2,3,4,5,6,7,8'
+            }
+        })
+
+    @patch('tda.streaming.websockets.client.connect', autospec=AsyncMock())
+    async def test_chart_equity_subs_failure(self, ws_connect):
+        socket = await self.login_and_get_socket(ws_connect)
+
+        response = self.success_response(1, 'CHART_EQUITY', 'SUBS')
+        response['response'][0]['content']['code'] = 21
+        socket.recv.side_effect = [json.dumps(response)]
+
+        with self.assertRaises(tda.streaming.UnexpectedResponseCode):
+            await self.client.chart_equity_subs(['GOOG,MSFT'])
+
+    @patch('tda.streaming.websockets.client.connect', autospec=AsyncMock())
+    async def test_chart_equity_add_failure(self, ws_connect):
+        socket = await self.login_and_get_socket(ws_connect)
+
+        response_subs = self.success_response(1, 'CHART_EQUITY', 'SUBS')
+
+        response_add = self.success_response(2, 'CHART_EQUITY', 'ADD')
+        response_add['response'][0]['content']['code'] = 21
+        socket.recv.side_effect = [
+                json.dumps(response_subs),
+                json.dumps(response_add)]
+
+        await self.client.chart_equity_subs(['GOOG,MSFT'])
+
+        with self.assertRaises(tda.streaming.UnexpectedResponseCode):
+            await self.client.chart_equity_add(['INTC'])
+
+    @patch('tda.streaming.websockets.client.connect', autospec=AsyncMock())
+    async def test_chart_equity_handler(self, ws_connect):
+        socket = await self.login_and_get_socket(ws_connect)
+
+        stream_item = self.streaming_entry('CHART_EQUITY', 'SUBS')
+        stream_item['data'][0]['content'] = [{'fake': 'data'}]
+
+        socket.recv.side_effect = [
+                json.dumps(self.success_response(1, 'CHART_EQUITY', 'SUBS')),
+                json.dumps(stream_item)]
+        await self.client.chart_equity_subs(['GOOG,MSFT'])
+
+        handler = Mock()
+        self.client.add_chart_equity_handler(handler)
+        await self.client.handle_message()
+
+        handler.assert_called_once_with(stream_item['data'][0])
