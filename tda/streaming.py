@@ -11,7 +11,7 @@ import websockets
 from .utils import EnumEnforcer
 
 
-class BaseFieldEnum(Enum):
+class _BaseFieldEnum(Enum):
     @classmethod
     def all_fields(cls):
         return list(cls)
@@ -110,17 +110,18 @@ class StreamClient(EnumEnforcer):
         num_accounts = len(accounts)
         assert num_accounts > 0, 'zero accounts found'
 
+        # If there's only one account, use it. Otherwise require an account ID.
         if num_accounts == 1:
-            return accounts[0]
+            self._account = accounts[0]
+        else:
+            if self.account_id is None:
+                raise ValueError(
+                    'multiple accounts found and StreamClient was ' +
+                    'initialized with unspecified account_id')
 
-        if self.account_id is None:
-            raise ValueError(
-                'multiple accounts found StreamClient was initialized ' +
-                'with unspecified account_id')
-
-        for account in accounts:
-            if int(account['accountId']) == self.account_id:
-                self._account = account
+            for account in accounts:
+                if int(account['accountId']) == self.account_id:
+                    self._account = account
 
         if self._account is None:
             raise ValueError(
@@ -143,12 +144,12 @@ class StreamClient(EnumEnforcer):
         self._request_id += 1
 
         request = {
-            "service": service,
-            "requestid": str(request_id),
-            "command": command,
-            "account": self.account_id,
-            "source": self._source,
-            "parameters": parameters
+            'service': service,
+            'requestid': str(request_id),
+            'command': command,
+            'account': self.account_id,
+            'source': self._source,
+            'parameters': parameters
         }
 
         return request, request_id
@@ -178,8 +179,9 @@ class StreamClient(EnumEnforcer):
 
                 # Validate response
                 resp_request_id = int(resp['response'][0]['requestid'])
-                assert resp_request_id == request_id, \
-                    'unexpected requestid: {}'.format(resp_request_id)
+                if resp_request_id != request_id:
+                    raise UnexpectedResponse(resp,
+                            'unexpected requestid: {}'.format(resp_request_id))
 
                 resp_code = resp['response'][0]['content']['code']
                 if resp_code != 0:
@@ -233,10 +235,8 @@ class StreamClient(EnumEnforcer):
 
         # TODO: Figure out which of these are actually needed
         r = self.client.get_user_principals(fields=[
-            self.client.UserPrincipals.Fields.PREFERENCES,
             self.client.UserPrincipals.Fields.STREAMER_CONNECTION_INFO,
-            self.client.UserPrincipals.Fields.STREAMER_SUBSCRIPTION_KEYS,
-            self.client.UserPrincipals.Fields.SURROGATE_IDS])
+            self.client.UserPrincipals.Fields.STREAMER_SUBSCRIPTION_KEYS])
         assert r.ok, r.raise_for_status()
         r = r.json()
 
@@ -244,27 +244,27 @@ class StreamClient(EnumEnforcer):
 
         # Build and send the request object
         token_ts = datetime.datetime.strptime(
-            r['streamerInfo']['tokenTimestamp'], "%Y-%m-%dT%H:%M:%S%z")
+            r['streamerInfo']['tokenTimestamp'], '%Y-%m-%dT%H:%M:%S%z')
         token_ts = int(token_ts.timestamp()) * 1000
 
         credentials = {
-            "userid": self.account_id,
-            "token": r['streamerInfo']['token'],
-            "company": self._account['company'],
-            "segment": self._account['segment'],
-            "cddomain": self._account['accountCdDomainId'],
-            "usergroup": r['streamerInfo']['userGroup'],
-            "accesslevel": r['streamerInfo']['accessLevel'],
-            "authorized": "Y",
-            "timestamp": token_ts,
-            "appid": r['streamerInfo']['appId'],
-            "acl": r['streamerInfo']['acl']
+            'userid': self.account_id,
+            'token': r['streamerInfo']['token'],
+            'company': self._account['company'],
+            'segment': self._account['segment'],
+            'cddomain': self._account['accountCdDomainId'],
+            'usergroup': r['streamerInfo']['userGroup'],
+            'accesslevel': r['streamerInfo']['accessLevel'],
+            'authorized': 'Y',
+            'timestamp': token_ts,
+            'appid': r['streamerInfo']['appId'],
+            'acl': r['streamerInfo']['acl']
         }
 
         request_parameters = {
-            "credential": urllib.parse.urlencode(credentials),
-            "token": r['streamerInfo']['token'],
-            "version": "1.0"
+            'credential': urllib.parse.urlencode(credentials),
+            'token': r['streamerInfo']['token'],
+            'version': '1.0'
         }
 
         request, request_id = self.__make_request(
@@ -298,7 +298,7 @@ class StreamClient(EnumEnforcer):
     ##########################################################################
     # CHART_EQUITY
 
-    class ChartFields(BaseFieldEnum):
+    class ChartFields(_BaseFieldEnum):
         SYMBOL = 0
         OPEN_PRICE = 1
         HIGH_PRICE = 2
@@ -339,7 +339,7 @@ class StreamClient(EnumEnforcer):
     ##########################################################################
     # CHART_FUTURES
 
-    class ChartFields(BaseFieldEnum):
+    class ChartFields(_BaseFieldEnum):
         SYMBOL = 0
         OPEN_PRICE = 1
         HIGH_PRICE = 2
@@ -367,7 +367,7 @@ class StreamClient(EnumEnforcer):
     ##########################################################################
     # QUOTE
 
-    class LevelOneQuoteFields(BaseFieldEnum):
+    class LevelOneQuoteFields(_BaseFieldEnum):
         SYMBOL = 0
         BID_PRICE = 1
         ASK_PRICE = 2
@@ -432,7 +432,7 @@ class StreamClient(EnumEnforcer):
     ##########################################################################
     # OPTION
 
-    class LevelOneOptionFields(BaseFieldEnum):
+    class LevelOneOptionFields(_BaseFieldEnum):
         SYMBOL = 0
         DESCRIPTION = 1
         BID_PRICE = 2
@@ -488,7 +488,7 @@ class StreamClient(EnumEnforcer):
     ##########################################################################
     # LEVELONE_FUTURES
 
-    class LevelOneFuturesFields(BaseFieldEnum):
+    class LevelOneFuturesFields(_BaseFieldEnum):
         SYMBOL = 0
         BID_PRICE = 1
         ASK_PRICE = 2
@@ -532,13 +532,13 @@ class StreamClient(EnumEnforcer):
             fields=fields)
 
     def add_level_one_futures_handler(self, handler):
-        self._handlers['LEVELONE_FUTURES'].append(Handler(handler,
-                                                          self.LevelOneFuturesFields))
+        self._handlers['LEVELONE_FUTURES'].append(
+            Handler(handler, self.LevelOneFuturesFields))
 
     ##########################################################################
     # LEVELONE_FOREX
 
-    class LevelOneForexFields(BaseFieldEnum):
+    class LevelOneForexFields(_BaseFieldEnum):
         SYMBOL = 0
         BID_PRICE = 1
         ASK_PRICE = 2
@@ -587,7 +587,7 @@ class StreamClient(EnumEnforcer):
     ##########################################################################
     # LEVELONE_FUTURES_OPTIONS
 
-    class LevelOneFuturesOptionsFields(BaseFieldEnum):
+    class LevelOneFuturesOptionsFields(_BaseFieldEnum):
         SYMBOL = 0
         BID_PRICE = 1
         ASK_PRICE = 2
@@ -631,13 +631,13 @@ class StreamClient(EnumEnforcer):
             self.LevelOneFuturesOptionsFields, fields=fields)
 
     def add_level_one_futures_options_handler(self, handler):
-        self._handlers['LEVELONE_FUTURES_OPTIONS'].append(Handler(handler,
-                                                                  self.LevelOneFuturesOptionsFields))
+        self._handlers['LEVELONE_FUTURES_OPTIONS'].append(
+            Handler(handler, self.LevelOneFuturesOptionsFields))
 
     ##########################################################################
     # TIMESALE
 
-    class TimesaleFields(BaseFieldEnum):
+    class TimesaleFields(_BaseFieldEnum):
         SYMBOL = 0
         TRADE_TIME = 1
         LAST_PRICE = 2
@@ -674,7 +674,7 @@ class StreamClient(EnumEnforcer):
     ##########################################################################
     # FUTURES_BOOK
 
-    class FuturesBookFields(BaseFieldEnum):
+    class FuturesBookFields(_BaseFieldEnum):
         SYMBOL = 0
 
     async def futures_book_subs(self, symbols, *, fields=None):
@@ -689,7 +689,7 @@ class StreamClient(EnumEnforcer):
     ##########################################################################
     # FOREX_BOOK
 
-    class ForexBookFields(BaseFieldEnum):
+    class ForexBookFields(_BaseFieldEnum):
         SYMBOL = 0
 
     async def forex_book_subs(self, symbols, *, fields=None):
@@ -704,7 +704,7 @@ class StreamClient(EnumEnforcer):
     ##########################################################################
     # FUTURES_OPTIONS_BOOK
 
-    class FuturesOptionsBookFields(BaseFieldEnum):
+    class FuturesOptionsBookFields(_BaseFieldEnum):
         SYMBOL = 0
 
     async def futures_options_book_subs(self, symbols, *, fields=None):
@@ -719,7 +719,7 @@ class StreamClient(EnumEnforcer):
     ##########################################################################
     # LISTED_BOOK
 
-    class ListedBookFields(BaseFieldEnum):
+    class ListedBookFields(_BaseFieldEnum):
         SYMBOL = 0
 
     async def listed_book_subs(self, symbols, *, fields=None):
@@ -734,30 +734,30 @@ class StreamClient(EnumEnforcer):
     ##########################################################################
     # Common book utilities
 
-    class BookFields(BaseFieldEnum):
+    class BookFields(_BaseFieldEnum):
         SYMBOL = 0
         BOOK_TIME = 1
         BIDS = 2
         ASKS = 3
 
-    class BidFields(BaseFieldEnum):
+    class BidFields(_BaseFieldEnum):
         BID_PRICE = 0
         TOTAL_VOLUME = 1
         NUM_BIDS = 2
         BIDS = 3
 
-    class PerExchangeBidFields(BaseFieldEnum):
+    class PerExchangeBidFields(_BaseFieldEnum):
         EXCHANGE = 0
         BID_VOLUME = 1
         SEQUENCE = 2
 
-    class AskFields(BaseFieldEnum):
+    class AskFields(_BaseFieldEnum):
         ASK_PRICE = 0
         TOTAL_VOLUME = 1
         NUM_ASKS = 2
         ASKS = 3
 
-    class PerExchangeAskFields(BaseFieldEnum):
+    class PerExchangeAskFields(_BaseFieldEnum):
         EXCHANGE = 0
         ASK_VOLUME = 1
         SEQUENCE = 2

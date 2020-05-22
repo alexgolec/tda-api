@@ -1,3 +1,5 @@
+aiounittest
+asyncmock
 coverage
 nose
 requests_oauthlib

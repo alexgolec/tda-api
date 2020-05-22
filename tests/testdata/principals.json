@@ -1,0 +1,59 @@
+{
+    "authToken": "authToken",
+    "userId": "user",
+    "userCdDomainId": "userCdDomainId",
+    "primaryAccountId": "100000001",
+    "lastLoginTime": "2020-05-22T01:07:38+0000",
+    "tokenExpirationTime": "2020-05-22T02:27:37+0000",
+    "loginTime": "2020-05-22T01:57:37+0000",
+    "accessLevel": "CUS",
+    "stalePassword": false,
+    "streamerInfo": {
+        "streamerBinaryUrl": "streamer-bin.tdameritrade.com",
+        "streamerSocketUrl": "streamer-ws.tdameritrade.com",
+        "token": "streamerInfo-token",
+        "tokenTimestamp": "2020-05-22T02:12:48+0000",
+        "userGroup": "streamerInfo-userGroup",
+        "accessLevel": "streamerInfo-accessLevel",
+        "acl": "streamerInfo-acl",
+        "appId": "streamerInfo-appId"
+    },
+    "professionalStatus": "NON_PROFESSIONAL",
+    "quotes": {
+        "isNyseDelayed": false,
+        "isNasdaqDelayed": false,
+        "isOpraDelayed": false,
+        "isAmexDelayed": false,
+        "isCmeDelayed": false,
+        "isIceDelayed": false,
+        "isForexDelayed": false
+    },
+    "streamerSubscriptionKeys": {
+        "keys": [
+            {
+                "key": "streamerSubscriptionKeys-keys-key"
+            }
+        ]
+    },
+    "accounts": [
+        {
+            "accountId": "1001",
+            "displayName": "accounts-displayName",
+            "accountCdDomainId": "accounts-accountCdDomainId",
+            "company": "accounts-company",
+            "segment": "AMER",
+            "acl": "accounts-acl",
+            "authorizations": {
+                "apex": true,
+                "levelTwoQuotes": true,
+                "stockTrading": true,
+                "marginTrading": true,
+                "streamingNews": true,
+                "optionTradingLevel": "LEVEL_THREE",
+                "streamerAccess": true,
+                "advancedMargin": true,
+                "scottradeAccount": true
+            }
+        }
+    ]
+}
