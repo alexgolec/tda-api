@@ -1487,6 +1487,11 @@ class StreamClientTest(aiounittest.AsyncTestCase):
 
     # TODO
 
+    ##########################################################################
+    # LEVELONE_FUTURES_OPTIONS
+
+    # TODO
+
     ###########################################################################
     # Handler edge cases
     #
