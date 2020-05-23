@@ -101,4 +101,3 @@ def color_diff(diff):
         else:
             output.append(line)
     return output, has_diff
-

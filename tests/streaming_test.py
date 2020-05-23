@@ -72,7 +72,6 @@ class StreamClientTest(aiounittest.AsyncTestCase):
 
         self.assertFalse(has_diff(data, expected))
 
-
     async def login_and_get_socket(self, ws_connect):
         principals = account_principals()
 
@@ -1395,8 +1394,8 @@ class StreamClientTest(aiounittest.AsyncTestCase):
                 'PRODUCT': '/ES',
                 'FUTURE_PRICE_FORMAT': 'D,D',
                 'FUTURE_TRADING_HOURS': ('GLBX(de=1640;0=-1700151515301600;' +
-                       '1=r-17001515r15301600d-15551640;' +
-                       '7=d-16401555)'),
+                                         '1=r-17001515r15301600d-15551640;' +
+                                         '7=d-16401555)'),
                 'FUTURE_IS_TRADEABLE': True,
                 'FUTURE_MULTIPLIER': 50,
                 'FUTURE_IS_ACTIVE': True,
@@ -1435,7 +1434,7 @@ class StreamClientTest(aiounittest.AsyncTestCase):
                 'PRODUCT': '/CL',
                 'FUTURE_PRICE_FORMAT': 'D,D',
                 'FUTURE_TRADING_HOURS': ('GLBX(de=1640;0=-17001600;' +
-                       '1=-17001600d-15551640;7=d-16401555)'),
+                                         '1=-17001600d-15551640;7=d-16401555)'),
                 'FUTURE_IS_TRADEABLE': True,
                 'FUTURE_MULTIPLIER': 1000,
                 'FUTURE_IS_ACTIVE': True,
@@ -1559,14 +1558,14 @@ class StreamClientTest(aiounittest.AsyncTestCase):
         socket = await self.login_and_get_socket(ws_connect)
 
         socket.recv.side_effect = [
-                json.dumps(self.success_response(1, 'CHART_EQUITY', 'SUBS')),
-                '{"data":[{"service":"LEVELONE_FUTURES", '+
-                '"timestamp":1590248118165,"command":"SUBS",'+
-                '"content":[{"key":"/GOOG","delayed":false,'+
-                '"1":�,"2":�,"3":�,"6":"?","7":"?","12":�,"13":�,'+
-                '"14":�,"15":"?","16":"Symbol not found","17":"?",'+
-                '"18":�,"21":"unavailable","22":"Unknown","24":�,'
-                '"28":"D,D","33":�}]}]}']
+            json.dumps(self.success_response(1, 'CHART_EQUITY', 'SUBS')),
+            '{"data":[{"service":"LEVELONE_FUTURES", ' +
+            '"timestamp":1590248118165,"command":"SUBS",' +
+            '"content":[{"key":"/GOOG","delayed":false,' +
+            '"1":�,"2":�,"3":�,"6":"?","7":"?","12":�,"13":�,' +
+            '"14":�,"15":"?","16":"Symbol not found","17":"?",' +
+            '"18":�,"21":"unavailable","22":"Unknown","24":�,'
+            '"28":"D,D","33":�}]}]}']
 
         await self.client.chart_equity_subs(['GOOG,MSFT'])
 
