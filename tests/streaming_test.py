@@ -435,7 +435,7 @@ class StreamClientTest(aiounittest.AsyncTestCase):
             ]
         }
 
-        handler.assert_called_once_with(expected_item)
+        self.assert_handler_called_once_with(handler, expected_item)
 
     ##########################################################################
     # CHART_FUTURES
@@ -589,7 +589,7 @@ class StreamClientTest(aiounittest.AsyncTestCase):
             ]
         }
 
-        handler.assert_called_once_with(expected_item)
+        self.assert_handler_called_once_with(handler, expected_item)
 
     ##########################################################################
     # QUOTE
@@ -924,7 +924,7 @@ class StreamClientTest(aiounittest.AsyncTestCase):
             ]
         }
 
-        handler.assert_called_once_with(expected_item)
+        self.assert_handler_called_once_with(handler, expected_item)
 
     ##########################################################################
     # OPTION
@@ -1188,7 +1188,7 @@ class StreamClientTest(aiounittest.AsyncTestCase):
             }]
         }
 
-        handler.assert_called_once_with(expected_item)
+        self.assert_handler_called_once_with(handler, expected_item)
 
     ##########################################################################
     # LEVELONE_FUTURES
