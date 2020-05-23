@@ -786,7 +786,7 @@ class StreamClientTest(aiounittest.AsyncTestCase):
         socket.recv.side_effect = [
             json.dumps(self.success_response(1, 'QUOTE', 'SUBS')),
             json.dumps(stream_item)]
-        await self.client.chart_futures_subs(['GOOG', 'MSFT'])
+        await self.client.level_one_quote_subs(['GOOG', 'MSFT'])
 
         handler = Mock()
         self.client.add_level_one_quote_handler(handler)

@@ -155,7 +155,7 @@ class StreamClient(EnumEnforcer):
 
         return request, request_id
 
-    async def __await_response(self, request_id):
+    async def __await_response(self, request_id, service, command):
         deferred_messages = []
 
         # Context handler to ensure we always append the deferred messages,
@@ -178,13 +178,28 @@ class StreamClient(EnumEnforcer):
                     deferred_messages.append(resp)
                     continue
 
-                # Validate response
+                # Validate request ID
                 resp_request_id = int(resp['response'][0]['requestid'])
                 if resp_request_id != request_id:
                     raise UnexpectedResponse(
                         resp, 'unexpected requestid: {}'.format(
                             resp_request_id))
 
+                # Validate service
+                resp_service = resp['response'][0]['service']
+                if resp_service != service:
+                    raise UnexpectedResponse(
+                        resp, 'unexpected service: {}'.format(
+                            resp_service))
+
+                # Validate command
+                resp_command = resp['response'][0]['command']
+                if resp_command != command:
+                    raise UnexpectedResponse(
+                        resp, 'unexpected command: {}'.format(
+                            resp_command))
+
+                # Validate response code
                 resp_code = resp['response'][0]['content']['code']
                 if resp_code != 0:
                     raise UnexpectedResponseCode(
@@ -208,7 +223,7 @@ class StreamClient(EnumEnforcer):
                 'fields': ','.join(str(f) for f in fields)})
 
         await self.__send({'requests': [request]})
-        await self.__await_response(request_id)
+        await self.__await_response(request_id, service, command)
 
     async def handle_message(self):
         msg = await self.__receive()
@@ -274,7 +289,7 @@ class StreamClient(EnumEnforcer):
             parameters=request_parameters)
 
         await self.__send({'requests': [request]})
-        await self.__await_response(request_id)
+        await self.__await_response(request_id, 'ADMIN', 'LOGIN')
 
     ##########################################################################
     # QOS
@@ -295,7 +310,7 @@ class StreamClient(EnumEnforcer):
             parameters={'qoslevel': qos_level})
 
         await self.__send({'requests': [request]})
-        await self.__await_response(request_id)
+        await self.__await_response(request_id, 'ADMIN', 'QOS')
 
     ##########################################################################
     # CHART_EQUITY
