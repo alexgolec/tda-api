@@ -918,6 +918,270 @@ class StreamClientTest(aiounittest.AsyncTestCase):
 
         handler.assert_called_once_with(expected_item)
 
+    ##########################################################################
+    # OPTION
+
+    @patch('tda.streaming.websockets.client.connect', autospec=AsyncMock())
+    async def test_level_one_option_subs_success_all_fields(self, ws_connect):
+        socket = await self.login_and_get_socket(ws_connect)
+
+        socket.recv.side_effect = [json.dumps(self.success_response(
+            1, 'OPTION', 'SUBS'))]
+
+        await self.client.level_one_option_subs(
+            ['GOOG_052920C620', 'MSFT_052920C145'])
+        socket.recv.assert_awaited_once()
+        request = self.request_from_socket_mock(socket)
+
+        self.assertEqual(request, {
+            'account': '1001',
+            'service': 'OPTION',
+            'command': 'SUBS',
+            'requestid': '1',
+            'source': 'streamerInfo-appId',
+            'parameters': {
+                'keys': 'GOOG_052920C620,MSFT_052920C145',
+                'fields': ('0,1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,' +
+                           '20,21,22,23,24,25,26,27,28,29,30,31,32,33,34,35,' +
+                           '36,37,38,39,40,41')
+            }
+        })
+
+    @patch('tda.streaming.websockets.client.connect', autospec=AsyncMock())
+    async def test_level_one_option_subs_success_some_fields(self, ws_connect):
+        socket = await self.login_and_get_socket(ws_connect)
+
+        socket.recv.side_effect = [json.dumps(self.success_response(
+            1, 'OPTION', 'SUBS'))]
+
+        await self.client.level_one_option_subs(
+            ['GOOG_052920C620', 'MSFT_052920C145'], fields=[
+                StreamClient.LevelOneOptionFields.SYMBOL,
+                StreamClient.LevelOneOptionFields.BID_PRICE,
+                StreamClient.LevelOneOptionFields.ASK_PRICE,
+                StreamClient.LevelOneOptionFields.VOLATILITY,
+            ])
+        socket.recv.assert_awaited_once()
+        request = self.request_from_socket_mock(socket)
+
+        self.assertEqual(request, {
+            'account': '1001',
+            'service': 'OPTION',
+            'command': 'SUBS',
+            'requestid': '1',
+            'source': 'streamerInfo-appId',
+            'parameters': {
+                'keys': 'GOOG_052920C620,MSFT_052920C145',
+                'fields': '0,2,3,10'
+            }
+        })
+
+    @patch('tda.streaming.websockets.client.connect', autospec=AsyncMock())
+    async def test_level_one_option_subs_failure(self, ws_connect):
+        socket = await self.login_and_get_socket(ws_connect)
+
+        response = self.success_response(1, 'OPTION', 'SUBS')
+        response['response'][0]['content']['code'] = 21
+        socket.recv.side_effect = [json.dumps(response)]
+
+        with self.assertRaises(tda.streaming.UnexpectedResponseCode):
+            await self.client.level_one_option_subs(
+                ['GOOG_052920C620', 'MSFT_052920C145'])
+
+    @patch('tda.streaming.websockets.client.connect', autospec=AsyncMock())
+    async def test_level_one_option_handler(self, ws_connect):
+        socket = await self.login_and_get_socket(ws_connect)
+
+        stream_item = {
+            "data": [
+                {
+                    "service": "OPTION",
+                    "timestamp": 1590244265891,
+                    "command": "SUBS",
+                    "content": [{
+                        "key": "MSFT_052920C145",
+                        "delayed": False,
+                        "assetMainType": "OPTION",
+                        "cusip": "0MSFT.ET00145000",
+                        "1": "MSFT May 29 2020 145 Call (Weekly)",
+                        "2": 38.05,
+                        "3": 39.05,
+                        "4": 38.85,
+                        "5": 38.85,
+                        "6": 38.85,
+                        "7": 38.581,
+                        "8": 2,
+                        "9": 7,
+                        "10": 5,
+                        "11": 57599,
+                        "12": 53017,
+                        "13": 38.51,
+                        "14": 18404,
+                        "15": 18404,
+                        "16": 2020,
+                        "17": 100,
+                        "18": 2,
+                        "19": 38.85,
+                        "20": 6,
+                        "21": 116,
+                        "22": 1,
+                        "23": 0.3185,
+                        "24": 145,
+                        "25": "C",
+                        "26": "MSFT",
+                        "27": 5,
+                        "29": 0.34,
+                        "30": 29,
+                        "31": 6,
+                        "32": 1,
+                        "33": 0,
+                        "34": 0,
+                        "35": 0.1882,
+                        "37": "Normal",
+                        "38": 38.675,
+                        "39": 183.51,
+                        "40": "S",
+                        "41": 38.55
+                    }, {
+                        "key": "GOOG_052920C620",
+                        "delayed": False,
+                        "assetMainType": "OPTION",
+                        "cusip": "0GOOG.ET00620000",
+                        "1": "GOOG May 29 2020 620 Call (Weekly)",
+                        "2": 785.2,
+                        "3": 794,
+                        "7": 790.42,
+                        "10": 238.2373,
+                        "11": 57594,
+                        "12": 68400,
+                        "13": 790.42,
+                        "14": 18404,
+                        "16": 2020,
+                        "17": 100,
+                        "18": 2,
+                        "20": 1,
+                        "21": 6,
+                        "24": 620,
+                        "25": "C",
+                        "26": "GOOG",
+                        "27": 5,
+                        "29": -0.82,
+                        "30": 29,
+                        "31": 6,
+                        "32": 0.996,
+                        "33": 0,
+                        "34": -0.3931,
+                        "35": 0.023,
+                        "36": 0.1176,
+                        "37": "Normal",
+                        "38": 789.6,
+                        "39": 1410.42,
+                        "40": "S",
+                        "41": 789.6
+                    }]
+                }
+            ]
+        }
+
+        socket.recv.side_effect = [
+            json.dumps(self.success_response(1, 'OPTION', 'SUBS')),
+            json.dumps(stream_item)]
+        await self.client.level_one_option_subs(
+            ['GOOG_052920C620', 'MSFT_052920C145'])
+
+        handler = Mock()
+        self.client.add_level_one_option_handler(handler)
+        await self.client.handle_message()
+
+        expected_item = {
+            "service": "OPTION",
+            "timestamp": 1590244265891,
+            "command": "SUBS",
+            "content": [{
+                "key": "MSFT_052920C145",
+                "delayed": False,
+                "assetMainType": "OPTION",
+                "cusip": "0MSFT.ET00145000",
+                "DESCRIPTION": "MSFT May 29 2020 145 Call (Weekly)",
+                "BID_PRICE": 38.05,
+                "ASK_PRICE": 39.05,
+                "LAST_PRICE": 38.85,
+                "HIGH_PRICE": 38.85,
+                "LOW_PRICE": 38.85,
+                "CLOSE_PRICE": 38.581,
+                "TOTAL_VOLUME": 2,
+                "OPEN_INTEREST": 7,
+                "VOLATILITY": 5,
+                "QUOTE_TIME": 57599,
+                "TRADE_TIME": 53017,
+                "MONEY_INTRINSIC_VALUE": 38.51,
+                "QUOTE_DAY": 18404,
+                "TRADE_DAY": 18404,
+                "EXPIRATION_YEAR": 2020,
+                "MULTIPLIER": 100,
+                "DIGITS": 2,
+                "OPEN_PRICE": 38.85,
+                "BID_SIZE": 6,
+                "ASK_SIZE": 116,
+                "LAST_SIZE": 1,
+                "NET_CHANGE": 0.3185,
+                "STRIKE_PRICE": 145,
+                "CONTRACT_TYPE": "C",
+                "UNDERLYING": "MSFT",
+                "EXPIRATION_MONTH": 5,
+                "TIME_VALUE": 0.34,
+                "EXPIRATION_DAY": 29,
+                "DAYS_TO_EXPIRATION": 6,
+                "DELTA": 1,
+                "GAMMA": 0,
+                "THETA": 0,
+                "VEGA": 0.1882,
+                "SECURITY_STATUS": "Normal",
+                "THEORETICAL_OPTION_VALUE": 38.675,
+                "UNDERLYING_PRICE": 183.51,
+                "UV_EXPIRATION_TYPE": "S",
+                "MARK": 38.55
+            }, {
+                "key": "GOOG_052920C620",
+                "delayed": False,
+                "assetMainType": "OPTION",
+                "cusip": "0GOOG.ET00620000",
+                "DESCRIPTION": "GOOG May 29 2020 620 Call (Weekly)",
+                "BID_PRICE": 785.2,
+                "ASK_PRICE": 794,
+                "CLOSE_PRICE": 790.42,
+                "VOLATILITY": 238.2373,
+                "QUOTE_TIME": 57594,
+                "TRADE_TIME": 68400,
+                "MONEY_INTRINSIC_VALUE": 790.42,
+                "QUOTE_DAY": 18404,
+                "EXPIRATION_YEAR": 2020,
+                "MULTIPLIER": 100,
+                "DIGITS": 2,
+                "BID_SIZE": 1,
+                "ASK_SIZE": 6,
+                "STRIKE_PRICE": 620,
+                "CONTRACT_TYPE": "C",
+                "UNDERLYING": "GOOG",
+                "EXPIRATION_MONTH": 5,
+                "TIME_VALUE": -0.82,
+                "EXPIRATION_DAY": 29,
+                "DAYS_TO_EXPIRATION": 6,
+                "DELTA": 0.996,
+                "GAMMA": 0,
+                "THETA": -0.3931,
+                "VEGA": 0.023,
+                "RHO": 0.1176,
+                "SECURITY_STATUS": "Normal",
+                "THEORETICAL_OPTION_VALUE": 789.6,
+                "UNDERLYING_PRICE": 1410.42,
+                "UV_EXPIRATION_TYPE": "S",
+                "MARK": 789.6
+            }]
+        }
+
+        handler.assert_called_once_with(expected_item)
+
     ###########################################################################
     # Handler edge cases
     #
