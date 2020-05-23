@@ -283,7 +283,7 @@ class StreamClientTest(aiounittest.AsyncTestCase):
         socket.recv.side_effect = [json.dumps(self.success_response(
             1, 'CHART_EQUITY', 'SUBS'))]
 
-        await self.client.chart_equity_subs(['GOOG,MSFT'])
+        await self.client.chart_equity_subs(['GOOG', 'MSFT'])
         socket.recv.assert_awaited_once()
         request = self.request_from_socket_mock(socket)
 
@@ -329,7 +329,7 @@ class StreamClientTest(aiounittest.AsyncTestCase):
         socket.recv.side_effect = [json.dumps(response)]
 
         with self.assertRaises(tda.streaming.UnexpectedResponseCode):
-            await self.client.chart_equity_subs(['GOOG,MSFT'])
+            await self.client.chart_equity_subs(['GOOG', 'MSFT'])
 
     @patch('tda.streaming.websockets.client.connect', autospec=AsyncMock())
     async def test_chart_equity_add_failure(self, ws_connect):
@@ -343,7 +343,7 @@ class StreamClientTest(aiounittest.AsyncTestCase):
             json.dumps(response_subs),
             json.dumps(response_add)]
 
-        await self.client.chart_equity_subs(['GOOG,MSFT'])
+        await self.client.chart_equity_subs(['GOOG', 'MSFT'])
 
         with self.assertRaises(tda.streaming.UnexpectedResponseCode):
             await self.client.chart_equity_add(['INTC'])
@@ -389,7 +389,7 @@ class StreamClientTest(aiounittest.AsyncTestCase):
         socket.recv.side_effect = [
             json.dumps(self.success_response(1, 'CHART_EQUITY', 'SUBS')),
             json.dumps(stream_item)]
-        await self.client.chart_equity_subs(['GOOG,MSFT'])
+        await self.client.chart_equity_subs(['GOOG', 'MSFT'])
 
         handler = Mock()
         self.client.add_chart_equity_handler(handler)
@@ -413,6 +413,160 @@ class StreamClientTest(aiounittest.AsyncTestCase):
                         },
                 {
                             'key': 'GOOG',
+                            'OPEN_PRICE': 2000,
+                            'HIGH_PRICE': 3000,
+                            'LOW_PRICE': 1000,
+                            'CLOSE_PRICE': 2000,
+                            'VOLUME': 1234567890,
+                            'SEQUENCE': 9010,
+                            'CHART_TIME': 1590187260000,
+                            'CHART_DAY': 18404,
+                        }
+            ]
+        }
+
+        handler.assert_called_once_with(expected_item)
+
+    ##########################################################################
+    # CHART_FUTURES
+
+    @patch('tda.streaming.websockets.client.connect', autospec=AsyncMock())
+    async def test_chart_futures_subs_and_add_success(self, ws_connect):
+        socket = await self.login_and_get_socket(ws_connect)
+
+        socket.recv.side_effect = [json.dumps(self.success_response(
+            1, 'CHART_FUTURES', 'SUBS'))]
+
+        await self.client.chart_futures_subs(['/ES', '/CL'])
+        socket.recv.assert_awaited_once()
+        request = self.request_from_socket_mock(socket)
+
+        self.assertEqual(request, {
+            'account': '1001',
+            'service': 'CHART_FUTURES',
+            'command': 'SUBS',
+            'requestid': '1',
+            'source': 'streamerInfo-appId',
+            'parameters': {
+                'keys': '/ES,/CL',
+                'fields': '0,1,2,3,4,5,6,7,8'
+            }
+        })
+
+        socket.reset_mock()
+
+        socket.recv.side_effect = [json.dumps(self.success_response(
+            2, 'CHART_FUTURES', 'ADD'))]
+
+        await self.client.chart_futures_add(['/ZC'])
+        socket.recv.assert_awaited_once()
+        request = self.request_from_socket_mock(socket)
+
+        self.assertEqual(request, {
+            'account': '1001',
+            'service': 'CHART_FUTURES',
+            'command': 'ADD',
+            'requestid': '2',
+            'source': 'streamerInfo-appId',
+            'parameters': {
+                'keys': '/ZC',
+                'fields': '0,1,2,3,4,5,6,7,8'
+            }
+        })
+
+    @patch('tda.streaming.websockets.client.connect', autospec=AsyncMock())
+    async def test_chart_futures_subs_failure(self, ws_connect):
+        socket = await self.login_and_get_socket(ws_connect)
+
+        response = self.success_response(1, 'CHART_FUTURES', 'SUBS')
+        response['response'][0]['content']['code'] = 21
+        socket.recv.side_effect = [json.dumps(response)]
+
+        with self.assertRaises(tda.streaming.UnexpectedResponseCode):
+            await self.client.chart_futures_subs(['/ES', '/CL'])
+
+    @patch('tda.streaming.websockets.client.connect', autospec=AsyncMock())
+    async def test_chart_futures_add_failure(self, ws_connect):
+        socket = await self.login_and_get_socket(ws_connect)
+
+        response_subs = self.success_response(1, 'CHART_FUTURES', 'SUBS')
+
+        response_add = self.success_response(2, 'CHART_FUTURES', 'ADD')
+        response_add['response'][0]['content']['code'] = 21
+        socket.recv.side_effect = [
+            json.dumps(response_subs),
+            json.dumps(response_add)]
+
+        await self.client.chart_futures_subs(['/ES', '/CL'])
+
+        with self.assertRaises(tda.streaming.UnexpectedResponseCode):
+            await self.client.chart_futures_add(['/ZC'])
+
+    @patch('tda.streaming.websockets.client.connect', autospec=AsyncMock())
+    async def test_chart_futures_handler(self, ws_connect):
+        socket = await self.login_and_get_socket(ws_connect)
+
+        stream_item = {
+            'data': [
+                {
+                    'service': 'CHART_FUTURES',
+                    'command': 'SUBS',
+                    'timestamp': 1590186642440,
+                    'content': [
+                        {
+                            'key': '/ES',
+                            '1': 200,
+                            '2': 300,
+                            '3': 100,
+                            '4': 200,
+                            '5': 123456789,
+                            '6': 901,
+                            '7': 1590187260000,
+                            '8': 18404,
+                        },
+                        {
+                            'key': '/CL',
+                            '1': 2000,
+                            '2': 3000,
+                            '3': 1000,
+                            '4': 2000,
+                            '5': 1234567890,
+                            '6': 9010,
+                            '7': 1590187260000,
+                            '8': 18404,
+                        }
+                    ]
+                }
+            ]
+        }
+
+        socket.recv.side_effect = [
+            json.dumps(self.success_response(1, 'CHART_FUTURES', 'SUBS')),
+            json.dumps(stream_item)]
+        await self.client.chart_futures_subs(['/ES', '/CL'])
+
+        handler = Mock()
+        self.client.add_chart_futures_handler(handler)
+        await self.client.handle_message()
+
+        expected_item = {
+            'service': 'CHART_FUTURES',
+            'command': 'SUBS',
+            'timestamp': 1590186642440,
+            'content': [
+                        {
+                            'key': '/ES',
+                            'OPEN_PRICE': 200,
+                            'HIGH_PRICE': 300,
+                            'LOW_PRICE': 100,
+                            'CLOSE_PRICE': 200,
+                            'VOLUME': 123456789,
+                            'SEQUENCE': 901,
+                            'CHART_TIME': 1590187260000,
+                            'CHART_DAY': 18404,
+                        },
+                {
+                            'key': '/CL',
                             'OPEN_PRICE': 2000,
                             'HIGH_PRICE': 3000,
                             'LOW_PRICE': 1000,
