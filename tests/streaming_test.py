@@ -352,30 +352,39 @@ class StreamClientTest(aiounittest.AsyncTestCase):
     async def test_chart_equity_handler(self, ws_connect):
         socket = await self.login_and_get_socket(ws_connect)
 
-        stream_item = self.streaming_entry('CHART_EQUITY', 'SUBS')
-        stream_item['data'][0]['content'] = [
-        {
-            'key': 'MSFT',
-            '1': 200,
-            '2': 300,
-            '3': 100,
-            '4': 200,
-            '5': 123456789,
-            '6': 901,
-            '7': 1590187260000,
-            '8': 18404,
-        },
-        {
-            'key': 'GOOG',
-            '1': 2000,
-            '2': 3000,
-            '3': 1000,
-            '4': 2000,
-            '5': 1234567890,
-            '6': 9010,
-            '7': 1590187260000,
-            '8': 18404,
-        }]
+        stream_item = {
+            'data': [
+                {
+                    'service': 'CHART_EQUITY',
+                    'command': 'SUBS',
+                    'timestamp': 1590186642440,
+                    'content': [
+                        {
+                            'key': 'MSFT',
+                            '1': 200,
+                            '2': 300,
+                            '3': 100,
+                            '4': 200,
+                            '5': 123456789,
+                            '6': 901,
+                            '7': 1590187260000,
+                            '8': 18404,
+                        },
+                        {
+                            'key': 'GOOG',
+                            '1': 2000,
+                            '2': 3000,
+                            '3': 1000,
+                            '4': 2000,
+                            '5': 1234567890,
+                            '6': 9010,
+                            '7': 1590187260000,
+                            '8': 18404,
+                        }
+                    ]
+                }
+            ]
+        }
 
         socket.recv.side_effect = [
             json.dumps(self.success_response(1, 'CHART_EQUITY', 'SUBS')),
@@ -386,30 +395,140 @@ class StreamClientTest(aiounittest.AsyncTestCase):
         self.client.add_chart_equity_handler(handler)
         await self.client.handle_message()
 
-        expected_item = self.streaming_entry('CHART_EQUITY', 'SUBS')
-        expected_item['data'][0]['content'] = [
-        {
-            'key': 'MSFT',
-            'OPEN_PRICE': 200,
-            'HIGH_PRICE': 300,
-            'LOW_PRICE': 100,
-            'CLOSE_PRICE': 200,
-            'VOLUME': 123456789,
-            'SEQUENCE': 901,
-            'CHART_TIME': 1590187260000,
-            'CHART_DAY': 18404,
-        },
-        {
-            'key': 'GOOG',
-            'OPEN_PRICE': 2000,
-            'HIGH_PRICE': 3000,
-            'LOW_PRICE': 1000,
-            'CLOSE_PRICE': 2000,
-            'VOLUME': 1234567890,
-            'SEQUENCE': 9010,
-            'CHART_TIME': 1590187260000,
-            'CHART_DAY': 18404,
-        }]
+        expected_item = {
+            'service': 'CHART_EQUITY',
+            'command': 'SUBS',
+            'timestamp': 1590186642440,
+            'content': [
+                        {
+                            'key': 'MSFT',
+                            'OPEN_PRICE': 200,
+                            'HIGH_PRICE': 300,
+                            'LOW_PRICE': 100,
+                            'CLOSE_PRICE': 200,
+                            'VOLUME': 123456789,
+                            'SEQUENCE': 901,
+                            'CHART_TIME': 1590187260000,
+                            'CHART_DAY': 18404,
+                        },
+                {
+                            'key': 'GOOG',
+                            'OPEN_PRICE': 2000,
+                            'HIGH_PRICE': 3000,
+                            'LOW_PRICE': 1000,
+                            'CLOSE_PRICE': 2000,
+                            'VOLUME': 1234567890,
+                            'SEQUENCE': 9010,
+                            'CHART_TIME': 1590187260000,
+                            'CHART_DAY': 18404,
+                        }
+            ]
+        }
 
-        handler.assert_called_once_with(expected_item['data'][0])
+        handler.assert_called_once_with(expected_item)
 
+    ###########################################################################
+    # Handler edge cases
+    #
+    # Note: We use CHART_EQUITY as a test case, which leaks the implementation
+    # detail that the handler dispatching is implemented by a common component.
+    # If this were to ever change, these tests will have to be revisited.
+
+    @patch('tda.streaming.websockets.client.connect', autospec=AsyncMock())
+    async def test_messages_received_while_awaiting_response(self, ws_connect):
+        socket = await self.login_and_get_socket(ws_connect)
+
+        stream_item = self.streaming_entry('CHART_EQUITY', 'SUBS')
+
+        socket.recv.side_effect = [
+            json.dumps(self.success_response(1, 'CHART_EQUITY', 'SUBS')),
+            json.dumps(stream_item),
+            json.dumps(self.success_response(2, 'CHART_EQUITY', 'ADD'))]
+
+        await self.client.chart_equity_subs(['GOOG,MSFT'])
+        await self.client.chart_equity_add(['INTC'])
+
+        handler = Mock()
+        self.client.add_chart_equity_handler(handler)
+        await self.client.handle_message()
+        handler.assert_called_once_with(stream_item['data'][0])
+
+    @patch('tda.streaming.websockets.client.connect', autospec=AsyncMock())
+    async def test_messages_received_while_awaiting_failed_response_bad_code(
+            self, ws_connect):
+        socket = await self.login_and_get_socket(ws_connect)
+
+        stream_item = self.streaming_entry('CHART_EQUITY', 'SUBS')
+
+        failed_add_response = self.success_response(2, 'CHART_EQUITY', 'ADD')
+        failed_add_response['response'][0]['content']['code'] = 21
+
+        socket.recv.side_effect = [
+            json.dumps(self.success_response(1, 'CHART_EQUITY', 'SUBS')),
+            json.dumps(stream_item),
+            json.dumps(failed_add_response)]
+
+        await self.client.chart_equity_subs(['GOOG,MSFT'])
+        with self.assertRaises(tda.streaming.UnexpectedResponseCode):
+            await self.client.chart_equity_add(['INTC'])
+
+        handler = Mock()
+        self.client.add_chart_equity_handler(handler)
+        await self.client.handle_message()
+        handler.assert_called_once_with(stream_item['data'][0])
+
+    @patch('tda.streaming.websockets.client.connect', autospec=AsyncMock())
+    async def test_messages_received_while_receiving_unexpected_response(
+            self, ws_connect):
+        socket = await self.login_and_get_socket(ws_connect)
+
+        stream_item = self.streaming_entry('CHART_EQUITY', 'SUBS')
+
+        failed_add_response = self.success_response(999, 'CHART_EQUITY', 'ADD')
+        failed_add_response['response'][0]['content']['code'] = 21
+
+        socket.recv.side_effect = [
+            json.dumps(self.success_response(1, 'CHART_EQUITY', 'SUBS')),
+            json.dumps(stream_item),
+            json.dumps(failed_add_response)]
+
+        await self.client.chart_equity_subs(['GOOG,MSFT'])
+        with self.assertRaises(tda.streaming.UnexpectedResponse):
+            await self.client.chart_equity_add(['INTC'])
+
+        handler = Mock()
+        self.client.add_chart_equity_handler(handler)
+        await self.client.handle_message()
+        handler.assert_called_once_with(stream_item['data'][0])
+
+    @patch('tda.streaming.websockets.client.connect', autospec=AsyncMock())
+    async def test_notify_messages_ignored(self, ws_connect):
+        socket = await self.login_and_get_socket(ws_connect)
+
+        stream_item = self.streaming_entry('CHART_EQUITY', 'SUBS')
+
+        socket.recv.side_effect = [
+            json.dumps(self.success_response(1, 'CHART_EQUITY', 'SUBS')),
+            json.dumps({'notify': {'doesnt': 'matter'}})]
+
+        await self.client.chart_equity_subs(['GOOG,MSFT'])
+
+        handler = Mock()
+        self.client.add_chart_equity_handler(handler)
+        await self.client.handle_message()
+        handler.assert_not_called()
+
+    @patch('tda.streaming.websockets.client.connect', autospec=AsyncMock())
+    async def test_handle_message_unexpected_response(self, ws_connect):
+        socket = await self.login_and_get_socket(ws_connect)
+
+        stream_item = self.streaming_entry('CHART_EQUITY', 'SUBS')
+
+        socket.recv.side_effect = [
+            json.dumps(self.success_response(1, 'CHART_EQUITY', 'SUBS')),
+            json.dumps(self.success_response(2, 'CHART_EQUITY', 'SUBS'))]
+
+        await self.client.chart_equity_subs(['GOOG,MSFT'])
+
+        with self.assertRaises(tda.streaming.UnexpectedResponse):
+            await self.client.handle_message()
