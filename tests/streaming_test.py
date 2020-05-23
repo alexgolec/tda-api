@@ -1557,3 +1557,24 @@ class StreamClientTest(aiounittest.AsyncTestCase):
 
         with self.assertRaises(tda.streaming.UnexpectedResponse):
             await self.client.handle_message()
+
+    @patch('tda.streaming.websockets.client.connect', autospec=AsyncMock())
+    async def test_handle_message_unparsable_message(self, ws_connect):
+        socket = await self.login_and_get_socket(ws_connect)
+
+        stream_item = self.streaming_entry('CHART_EQUITY', 'SUBS')
+
+        socket.recv.side_effect = [
+                json.dumps(self.success_response(1, 'CHART_EQUITY', 'SUBS')),
+                '{"data":[{"service":"LEVELONE_FUTURES", '+
+                '"timestamp":1590248118165,"command":"SUBS",'+
+                '"content":[{"key":"/GOOG","delayed":false,'+
+                '"1":�,"2":�,"3":�,"6":"?","7":"?","12":�,"13":�,'+
+                '"14":�,"15":"?","16":"Symbol not found","17":"?",'+
+                '"18":�,"21":"unavailable","22":"Unknown","24":�,'
+                '"28":"D,D","33":�}]}]}']
+
+        await self.client.chart_equity_subs(['GOOG,MSFT'])
+
+        with self.assertRaises(tda.streaming.UnparsableMessage):
+            await self.client.handle_message()

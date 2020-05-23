@@ -47,6 +47,13 @@ class UnexpectedResponseCode(Exception):
         self.response = response
 
 
+class UnparsableMessage(Exception):
+    def __init__(self, raw_msg, json_parse_exception, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.raw_msg = raw_msg
+        self.json_parse_exception = json_parse_exception
+
+
 class Handler:
     def __init__(self, func, field_enum_type):
         self._func = func
@@ -101,7 +108,13 @@ class StreamClient(EnumEnforcer):
             ret = self._overflow_items.pop()
         else:
             raw = await self._socket.recv()
-            ret = json.loads(raw)
+            try:
+                ret = json.loads(raw)
+            except json.decoder.JSONDecodeError as e:
+                msg = ('Failed to parse message. This often happens with ' +
+                       'unknown symbols or other error conditions. Full ' +
+                       'message text: ' + raw)
+                raise UnparsableMessage(raw, e, msg)
         return ret
 
     async def __init_from_principals(self, principals):
