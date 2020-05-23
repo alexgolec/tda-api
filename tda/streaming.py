@@ -102,6 +102,7 @@ class StreamClient(EnumEnforcer):
         else:
             raw = await self._socket.recv()
             ret = json.loads(raw)
+        print(json.dumps(ret, indent=4))
         return ret
 
     async def __init_from_principals(self, principals):
@@ -391,6 +392,8 @@ class StreamClient(EnumEnforcer):
         PE_RATIO = 32
         DIVIDEND_AMOUNT = 33
         DIVIDEND_YIELD = 34
+        ISLAND_BID_SIZE_DEPRECATED = 35
+        ISLAND_ASK_SIZE_DEPRECATED = 36
         NAV = 37
         FUND_PRICE = 38
         EXCHANGE_NAME = 39
