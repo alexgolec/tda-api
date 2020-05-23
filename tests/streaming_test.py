@@ -1530,8 +1530,6 @@ class StreamClientTest(aiounittest.AsyncTestCase):
     async def test_notify_messages_ignored(self, ws_connect):
         socket = await self.login_and_get_socket(ws_connect)
 
-        stream_item = self.streaming_entry('CHART_EQUITY', 'SUBS')
-
         socket.recv.side_effect = [
             json.dumps(self.success_response(1, 'CHART_EQUITY', 'SUBS')),
             json.dumps({'notify': {'doesnt': 'matter'}})]
@@ -1547,8 +1545,6 @@ class StreamClientTest(aiounittest.AsyncTestCase):
     async def test_handle_message_unexpected_response(self, ws_connect):
         socket = await self.login_and_get_socket(ws_connect)
 
-        stream_item = self.streaming_entry('CHART_EQUITY', 'SUBS')
-
         socket.recv.side_effect = [
             json.dumps(self.success_response(1, 'CHART_EQUITY', 'SUBS')),
             json.dumps(self.success_response(2, 'CHART_EQUITY', 'SUBS'))]
@@ -1561,8 +1557,6 @@ class StreamClientTest(aiounittest.AsyncTestCase):
     @patch('tda.streaming.websockets.client.connect', autospec=AsyncMock())
     async def test_handle_message_unparsable_message(self, ws_connect):
         socket = await self.login_and_get_socket(ws_connect)
-
-        stream_item = self.streaming_entry('CHART_EQUITY', 'SUBS')
 
         socket.recv.side_effect = [
                 json.dumps(self.success_response(1, 'CHART_EQUITY', 'SUBS')),
