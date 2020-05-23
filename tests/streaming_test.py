@@ -245,6 +245,42 @@ class StreamClientTest(aiounittest.AsyncTestCase):
                                     'unexpected requestid: 9999'):
             await self.client.login()
 
+    @patch('tda.streaming.websockets.client.connect', autospec=AsyncMock())
+    async def test_login_unexpected_service(self, ws_connect):
+        principals = account_principals()
+        principals['accounts'].clear()
+        principals['accounts'].append(self.account(1))
+
+        self.http_client.get_user_principals.return_value = MockResponse(
+            principals, True)
+        socket = AsyncMock()
+        ws_connect.return_value = socket
+
+        response = self.success_response(0, 'NOT_ADMIN', 'LOGIN')
+        socket.recv.side_effect = [json.dumps(response)]
+
+        with self.assertRaisesRegex(tda.streaming.UnexpectedResponse,
+                'unexpected service: NOT_ADMIN'):
+            await self.client.login()
+
+    @patch('tda.streaming.websockets.client.connect', autospec=AsyncMock())
+    async def test_login_unexpected_command(self, ws_connect):
+        principals = account_principals()
+        principals['accounts'].clear()
+        principals['accounts'].append(self.account(1))
+
+        self.http_client.get_user_principals.return_value = MockResponse(
+            principals, True)
+        socket = AsyncMock()
+        ws_connect.return_value = socket
+
+        response = self.success_response(0, 'ADMIN', 'NOT_LOGIN')
+        socket.recv.side_effect = [json.dumps(response)]
+
+        with self.assertRaisesRegex(tda.streaming.UnexpectedResponse,
+                'unexpected command: NOT_LOGIN'):
+            await self.client.login()
+
     ##########################################################################
     # QOS
 
