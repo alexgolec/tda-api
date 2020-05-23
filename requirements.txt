@@ -1,5 +1,6 @@
 aiounittest
 asyncmock
+colorama
 coverage
 nose
 requests_oauthlib

@@ -102,7 +102,6 @@ class StreamClient(EnumEnforcer):
         else:
             raw = await self._socket.recv()
             ret = json.loads(raw)
-        print(json.dumps(ret, indent=4))
         return ret
 
     async def __init_from_principals(self, principals):
