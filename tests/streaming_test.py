@@ -1447,6 +1447,11 @@ class StreamClientTest(aiounittest.AsyncTestCase):
 
         self.assert_handler_called_once_with(handler, expected_item)
 
+    ##########################################################################
+    # LEVELONE_FOREX
+
+    # TODO
+
     ###########################################################################
     # Handler edge cases
     #
