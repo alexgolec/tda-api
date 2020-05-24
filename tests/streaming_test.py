@@ -1485,7 +1485,235 @@ class StreamClientTest(aiounittest.AsyncTestCase):
     ##########################################################################
     # LEVELONE_FOREX
 
-    # TODO
+    @patch('tda.streaming.websockets.client.connect', autospec=AsyncMock())
+    async def test_level_one_forex_subs_success_all_fields(self, ws_connect):
+        socket = await self.login_and_get_socket(ws_connect)
+
+        socket.recv.side_effect = [json.dumps(self.success_response(
+            1, 'LEVELONE_FOREX', 'SUBS'))]
+
+        await self.client.level_one_forex_subs(['EUR/USD', 'EUR/GBP'])
+        socket.recv.assert_awaited_once()
+        request = self.request_from_socket_mock(socket)
+
+        self.assertEqual(request, {
+            'account': '1001',
+            'service': 'LEVELONE_FOREX',
+            'command': 'SUBS',
+            'requestid': '1',
+            'source': 'streamerInfo-appId',
+            'parameters': {
+                'keys': 'EUR/USD,EUR/GBP',
+                'fields': ('0,1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,18,19,' +
+                           '20,21,22,23,24,25,26,27,28,29')
+            }
+        })
+
+    @patch('tda.streaming.websockets.client.connect', autospec=AsyncMock())
+    async def test_level_one_forex_subs_success_some_fields(self, ws_connect):
+        socket = await self.login_and_get_socket(ws_connect)
+
+        socket.recv.side_effect = [json.dumps(self.success_response(
+            1, 'LEVELONE_FOREX', 'SUBS'))]
+
+        await self.client.level_one_forex_subs(['EUR/USD', 'EUR/GBP'], fields=[
+            StreamClient.LevelOneForexFields.SYMBOL,
+            StreamClient.LevelOneForexFields.HIGH_PRICE,
+            StreamClient.LevelOneForexFields.LOW_PRICE,
+            StreamClient.LevelOneForexFields.MARKET_MAKER,
+        ])
+        socket.recv.assert_awaited_once()
+        request = self.request_from_socket_mock(socket)
+
+        self.assertEqual(request, {
+            'account': '1001',
+            'service': 'LEVELONE_FOREX',
+            'command': 'SUBS',
+            'requestid': '1',
+            'source': 'streamerInfo-appId',
+            'parameters': {
+                'keys': 'EUR/USD,EUR/GBP',
+                'fields': '0,10,11,26'
+            }
+        })
+
+    @patch('tda.streaming.websockets.client.connect', autospec=AsyncMock())
+    async def test_level_one_forex_subs_failure(self, ws_connect):
+        socket = await self.login_and_get_socket(ws_connect)
+
+        response = self.success_response(1, 'LEVELONE_FOREX', 'SUBS')
+        response['response'][0]['content']['code'] = 21
+        socket.recv.side_effect = [json.dumps(response)]
+
+        with self.assertRaises(tda.streaming.UnexpectedResponseCode):
+            await self.client.level_one_forex_subs(['EUR/USD', 'EUR/GBP'])
+
+    @patch('tda.streaming.websockets.client.connect', autospec=AsyncMock())
+    async def test_level_one_forex_handler(self, ws_connect):
+        socket = await self.login_and_get_socket(ws_connect)
+
+        stream_item = {
+            'data': [{
+                'service': 'LEVELONE_FOREX',
+                'timestamp': 1590245129396,
+                'command': 'SUBS',
+                'content': [{
+                    'key': 'EUR/USD',
+                    'delayed': False,
+                    'assetMainType': 'FOREX',
+                    '1': 2956,
+                    '2': 2956.5,
+                    '3': 2956.4,
+                    '4': 3,
+                    '5': 2,
+                    '6': '99',
+                    '7': '5',
+                    '8': 1590181200064,
+                    '9': 1590181199726,
+                    '10': 2956.6,
+                    '11': 2956.3,
+                    '12': 2956.25,
+                    '13': '?',
+                    '14': 'Euro/Dollar',
+                    '15': '2956.5',
+                    '16': ' ',
+                    '18': 'E',
+                    '19': 4,
+                    '20': 'Unknown',
+                    '21': 0.1,
+                    '22': 0.1,
+                    '23': 'EUR/USD',
+                    '24': ('GLBX(de=1640;0=-1700151515301600;' +
+                           '1=r-17001515r15301600d-15551640;' +
+                           '7=d-16401555)'),
+                    '25': True,
+                    '26': False,
+                    '27': 3000,
+                    '28': 2000,
+                    '29': 2500,
+                }, {
+                    'key': 'EUR/GBP',
+                    'delayed': False,
+                    'assetMainType': 'FOREX',
+                    '1': 2957,
+                    '2': 2957.5,
+                    '3': 2957.4,
+                    '4': 4,
+                    '5': 3,
+                    '6': '100',
+                    '7': '6',
+                    '8': 1590181200065,
+                    '9': 1590181199727,
+                    '10': 2956.7,
+                    '11': 2956.4,
+                    '12': 2956.26,
+                    '13': '?',
+                    '14': 'Euro/Pound',
+                    '15': '2957.5',
+                    '16': ' ',
+                    '18': 'F',
+                    '19': 5,
+                    '20': 'Unknown',
+                    '21': 1.1,
+                    '22': 1.1,
+                    '23': 'EUR/USD',
+                    '24': ('GLBX(de=1640;0=-1700151515301596;' +
+                           '1=r-17001515r15301600d-15551640;' +
+                           '7=d-16401555)'),
+                    '25': True,
+                    '26': False,
+                    '27': 3001,
+                    '28': 2001,
+                    '29': 2501,
+                }]
+            }]
+        }
+
+        socket.recv.side_effect = [
+            json.dumps(self.success_response(1, 'LEVELONE_FOREX', 'SUBS')),
+            json.dumps(stream_item)]
+        await self.client.level_one_forex_subs(['EUR/USD', 'EUR/GBP'])
+
+        handler = Mock()
+        self.client.add_level_one_forex_handler(handler)
+        await self.client.handle_message()
+
+        expected_item = {
+            'service': 'LEVELONE_FOREX',
+            'timestamp': 1590245129396,
+            'command': 'SUBS',
+            'content': [{
+                'key': 'EUR/USD',
+                'delayed': False,
+                'assetMainType': 'FOREX',
+                'BID_PRICE': 2956,
+                'ASK_PRICE': 2956.5,
+                'LAST_PRICE': 2956.4,
+                'BID_SIZE': 3,
+                'ASK_SIZE': 2,
+                'TOTAL_VOLUME': '99',
+                'LAST_SIZE': '5',
+                'QUOTE_TIME': 1590181200064,
+                'TRADE_TIME': 1590181199726,
+                'HIGH_PRICE': 2956.6,
+                'LOW_PRICE': 2956.3,
+                'CLOSE_PRICE': 2956.25,
+                'EXCHANGE_ID': '?',
+                'DESCRIPTION': 'Euro/Dollar',
+                'OPEN_PRICE': '2956.5',
+                'NET_CHANGE': ' ',
+                'EXCHANGE_NAME': 'E',
+                'DIGITS': 4,
+                'SECURITY_STATUS': 'Unknown',
+                'TICK': 0.1,
+                'TICK_AMOUNT': 0.1,
+                'PRODUCT': 'EUR/USD',
+                'TRADING_HOURS': ('GLBX(de=1640;0=-1700151515301600;' +
+                                  '1=r-17001515r15301600d-15551640;' +
+                                  '7=d-16401555)'),
+                'IS_TRADABLE': True,
+                'MARKET_MAKER': False,
+                'HIGH_52_WEEK': 3000,
+                'LOW_52_WEEK': 2000,
+                'MARK': 2500,
+            }, {
+                'key': 'EUR/GBP',
+                'delayed': False,
+                'assetMainType': 'FOREX',
+                'BID_PRICE': 2957,
+                'ASK_PRICE': 2957.5,
+                'LAST_PRICE': 2957.4,
+                'BID_SIZE': 4,
+                'ASK_SIZE': 3,
+                'TOTAL_VOLUME': '100',
+                'LAST_SIZE': '6',
+                'QUOTE_TIME': 1590181200065,
+                'TRADE_TIME': 1590181199727,
+                'HIGH_PRICE': 2956.7,
+                'LOW_PRICE': 2956.4,
+                'CLOSE_PRICE': 2956.26,
+                'EXCHANGE_ID': '?',
+                'DESCRIPTION': 'Euro/Pound',
+                'OPEN_PRICE': '2957.5',
+                'NET_CHANGE': ' ',
+                'EXCHANGE_NAME': 'F',
+                'DIGITS': 5,
+                'SECURITY_STATUS': 'Unknown',
+                'TICK': 1.1,
+                'TICK_AMOUNT': 1.1,
+                'PRODUCT': 'EUR/USD',
+                'TRADING_HOURS': ('GLBX(de=1640;0=-1700151515301596;' +
+                                  '1=r-17001515r15301600d-15551640;' +
+                                  '7=d-16401555)'),
+                'IS_TRADABLE': True,
+                'MARKET_MAKER': False,
+                'HIGH_52_WEEK': 3001,
+                'LOW_52_WEEK': 2001,
+                'MARK': 2501,
+            }]
+        }
+
+        self.assert_handler_called_once_with(handler, expected_item)
 
     ##########################################################################
     # LEVELONE_FUTURES_OPTIONS

@@ -599,8 +599,8 @@ class StreamClient(EnumEnforcer):
             fields=fields)
 
     def add_level_one_forex_handler(self, handler):
-        self._handlers['LEVELONE_FOREX'].append(Hander(handler,
-                                                       self.LevelOneForexFields))
+        self._handlers['LEVELONE_FOREX'].append(Handler(handler,
+                                                        self.LevelOneForexFields))
 
     ##########################################################################
     # LEVELONE_FUTURES_OPTIONS
