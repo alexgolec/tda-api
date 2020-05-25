@@ -1718,7 +1718,270 @@ class StreamClientTest(aiounittest.AsyncTestCase):
     ##########################################################################
     # LEVELONE_FUTURES_OPTIONS
 
-    # TODO
+    @patch('tda.streaming.websockets.client.connect', autospec=AsyncMock())
+    async def test_level_one_futures_options_subs_success_all_fields(
+            self, ws_connect):
+        socket = await self.login_and_get_socket(ws_connect)
+
+        socket.recv.side_effect = [json.dumps(self.success_response(
+            1, 'LEVELONE_FUTURES_OPTIONS', 'SUBS'))]
+
+        await self.client.level_one_futures_options_subs(
+            ['NQU20_C6500', 'NQU20_P6500'])
+        socket.recv.assert_awaited_once()
+        request = self.request_from_socket_mock(socket)
+
+        self.assertEqual(request, {
+            'account': '1001',
+            'service': 'LEVELONE_FUTURES_OPTIONS',
+            'command': 'SUBS',
+            'requestid': '1',
+            'source': 'streamerInfo-appId',
+            'parameters': {
+                'keys': 'NQU20_C6500,NQU20_P6500',
+                'fields': ('0,1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,' +
+                           '19,20,21,22,23,24,25,26,27,28,29,30,31,32,33,34,35')
+            }
+        })
+
+    @patch('tda.streaming.websockets.client.connect', autospec=AsyncMock())
+    async def test_level_one_futures_options_subs_success_some_fields(
+            self, ws_connect):
+        socket = await self.login_and_get_socket(ws_connect)
+
+        socket.recv.side_effect = [json.dumps(self.success_response(
+            1, 'LEVELONE_FUTURES_OPTIONS', 'SUBS'))]
+
+        await self.client.level_one_futures_options_subs(
+            ['NQU20_C6500', 'NQU20_P6500'], fields=[
+                StreamClient.LevelOneFuturesOptionsFields.SYMBOL,
+                StreamClient.LevelOneFuturesOptionsFields.BID_SIZE,
+                StreamClient.LevelOneFuturesOptionsFields.ASK_SIZE,
+                StreamClient.LevelOneFuturesOptionsFields.FUTURE_PRICE_FORMAT,
+            ])
+        socket.recv.assert_awaited_once()
+        request = self.request_from_socket_mock(socket)
+
+        self.assertEqual(request, {
+            'account': '1001',
+            'service': 'LEVELONE_FUTURES_OPTIONS',
+            'command': 'SUBS',
+            'requestid': '1',
+            'source': 'streamerInfo-appId',
+            'parameters': {
+                'keys': 'NQU20_C6500,NQU20_P6500',
+                'fields': '0,4,5,28'
+            }
+        })
+
+    @patch('tda.streaming.websockets.client.connect', autospec=AsyncMock())
+    async def test_level_one_futures_options_subs_failure(self, ws_connect):
+        socket = await self.login_and_get_socket(ws_connect)
+
+        response = self.success_response(1, 'LEVELONE_FUTURES_OPTIONS', 'SUBS')
+        response['response'][0]['content']['code'] = 21
+        socket.recv.side_effect = [json.dumps(response)]
+
+        with self.assertRaises(tda.streaming.UnexpectedResponseCode):
+            await self.client.level_one_futures_options_subs(
+                ['NQU20_C6500', 'NQU20_P6500'])
+
+    @patch('tda.streaming.websockets.client.connect', autospec=AsyncMock())
+    async def test_level_one_futures_options_handler(self, ws_connect):
+        socket = await self.login_and_get_socket(ws_connect)
+
+        stream_item = {
+            'data': [{
+                'service': 'LEVELONE_FUTURES_OPTIONS',
+                'timestamp': 1590245129396,
+                'command': 'SUBS',
+                'content': [{
+                    'key': 'NQU20_C6500',
+                    'delayed': False,
+                    'assetMainType': 'FUTURES_OPTION',
+                    '1': 2956,
+                    '2': 2956.5,
+                    '3': 2956.4,
+                    '4': 3,
+                    '5': 2,
+                    '6': 'E',
+                    '7': 'T',
+                    '8': 1293,
+                    '9': 6,
+                    '10': 1590181200064,
+                    '11': 1590181199726,
+                    '12': 2956.6,
+                    '13': 2956.3,
+                    '14': 2956.25,
+                    '15': '?',
+                    '16': 'NASDAQ Call',
+                    '17': '?',
+                    '18': 2956.0,
+                    '19': 0.1,
+                    '20': 1.2,
+                    '21': 'EXCH',
+                    '22': 'Unknown',
+                    '23': 19,
+                    '24': 2955.9,
+                    '25': 0.1,
+                    '26': 100,
+                    '27': 'NQU',
+                    '28': '0.01',
+                    '29': ('GLBX(de=1640;0=-1700151515301596;' +
+                           '1=r-17001515r15301600d-15551640;' +
+                           '7=d-16401555)'),
+                    '30': True,
+                    '31': 100,
+                    '32': True,
+                    '33': 17.9,
+                    '33': 'NQU',
+                    '34': '2020-03-01'
+                }, {
+                    'key': 'NQU20_C6500',
+                    'delayed': False,
+                    'assetMainType': 'FUTURES_OPTION',
+                    '1': 2957,
+                    '2': 2958.5,
+                    '3': 2957.4,
+                    '4': 4,
+                    '5': 3,
+                    '6': 'Q',
+                    '7': 'V',
+                    '8': 1294,
+                    '9': 7,
+                    '10': 1590181200065,
+                    '11': 1590181199727,
+                    '12': 2956.7,
+                    '13': 2956.4,
+                    '14': 2956.26,
+                    '15': '?',
+                    '16': 'NASDAQ Put',
+                    '17': '?',
+                    '18': 2956.1,
+                    '19': 0.2,
+                    '20': 1.3,
+                    '21': 'EXCH',
+                    '22': 'Unknown',
+                    '23': 20,
+                    '24': 2956.9,
+                    '25': 0.2,
+                    '26': 101,
+                    '27': 'NQU',
+                    '28': '0.02',
+                    '29': ('GLBX(de=1641;0=-1700151515301596;' +
+                           '1=r-17001515r15301600d-15551640;' +
+                           '7=d-16401555)'),
+                    '30': True,
+                    '31': 101,
+                    '32': True,
+                    '33': 17.10,
+                    '33': 'NQU',
+                    '34': '2021-03-01'
+                }]
+            }]
+        }
+
+        socket.recv.side_effect = [
+            json.dumps(self.success_response(
+                1, 'LEVELONE_FUTURES_OPTIONS', 'SUBS')),
+            json.dumps(stream_item)]
+        await self.client.level_one_futures_options_subs(
+            ['NQU20_C6500', 'NQU20_P6500'])
+
+        handler = Mock()
+        self.client.add_level_one_futures_options_handler(handler)
+        await self.client.handle_message()
+
+        expected_item = {
+            'service': 'LEVELONE_FUTURES_OPTIONS',
+            'timestamp': 1590245129396,
+            'command': 'SUBS',
+            'content': [{
+                'key': 'NQU20_C6500',
+                'delayed': False,
+                'assetMainType': 'FUTURES_OPTION',
+                'BID_PRICE': 2956,
+                'ASK_PRICE': 2956.5,
+                'LAST_PRICE': 2956.4,
+                'BID_SIZE': 3,
+                'ASK_SIZE': 2,
+                'ASK_ID': 'E',
+                'BID_ID': 'T',
+                'TOTAL_VOLUME': 1293,
+                'LAST_SIZE': 6,
+                'QUOTE_TIME': 1590181200064,
+                'TRADE_TIME': 1590181199726,
+                'HIGH_PRICE': 2956.6,
+                'LOW_PRICE': 2956.3,
+                'CLOSE_PRICE': 2956.25,
+                'EXCHANGE_ID': '?',
+                'DESCRIPTION': 'NASDAQ Call',
+                'LAST_ID': '?',
+                'OPEN_PRICE': 2956.0,
+                'NET_CHANGE': 0.1,
+                'FUTURE_PERCENT_CHANGE': 1.2,
+                'EXCHANGE_NAME': 'EXCH',
+                'SECURITY_STATUS': 'Unknown',
+                'OPEN_INTEREST': 19,
+                'MARK': 2955.9,
+                'TICK': 0.1,
+                'TICK_AMOUNT': 100,
+                'PRODUCT': 'NQU',
+                'FUTURE_PRICE_FORMAT': '0.01',
+                'FUTURE_TRADING_HOURS': ('GLBX(de=1640;0=-1700151515301596;' +
+                                         '1=r-17001515r15301600d-15551640;' +
+                                         '7=d-16401555)'),
+                'FUTURE_IS_TRADEABLE': True,
+                'FUTURE_MULTIPLIER': 100,
+                'FUTURE_IS_ACTIVE': True,
+                'FUTURE_SETTLEMENT_PRICE': 17.9,
+                'FUTURE_SETTLEMENT_PRICE': 'NQU',
+                'FUTURE_ACTIVE_SYMBOL': '2020-03-01'
+            }, {
+                'key': 'NQU20_C6500',
+                'delayed': False,
+                'assetMainType': 'FUTURES_OPTION',
+                'BID_PRICE': 2957,
+                'ASK_PRICE': 2958.5,
+                'LAST_PRICE': 2957.4,
+                'BID_SIZE': 4,
+                'ASK_SIZE': 3,
+                'ASK_ID': 'Q',
+                'BID_ID': 'V',
+                'TOTAL_VOLUME': 1294,
+                'LAST_SIZE': 7,
+                'QUOTE_TIME': 1590181200065,
+                'TRADE_TIME': 1590181199727,
+                'HIGH_PRICE': 2956.7,
+                'LOW_PRICE': 2956.4,
+                'CLOSE_PRICE': 2956.26,
+                'EXCHANGE_ID': '?',
+                'DESCRIPTION': 'NASDAQ Put',
+                'LAST_ID': '?',
+                'OPEN_PRICE': 2956.1,
+                'NET_CHANGE': 0.2,
+                'FUTURE_PERCENT_CHANGE': 1.3,
+                'EXCHANGE_NAME': 'EXCH',
+                'SECURITY_STATUS': 'Unknown',
+                'OPEN_INTEREST': 20,
+                'MARK': 2956.9,
+                'TICK': 0.2,
+                'TICK_AMOUNT': 101,
+                'PRODUCT': 'NQU',
+                'FUTURE_PRICE_FORMAT': '0.02',
+                'FUTURE_TRADING_HOURS': ('GLBX(de=1641;0=-1700151515301596;' +
+                                         '1=r-17001515r15301600d-15551640;' +
+                                         '7=d-16401555)'),
+                'FUTURE_IS_TRADEABLE': True,
+                'FUTURE_MULTIPLIER': 101,
+                'FUTURE_IS_ACTIVE': True,
+                'FUTURE_SETTLEMENT_PRICE': 17.10,
+                'FUTURE_SETTLEMENT_PRICE': 'NQU',
+                'FUTURE_ACTIVE_SYMBOL': '2021-03-01'
+            }]
+        }
+
+        self.assert_handler_called_once_with(handler, expected_item)
 
     ##########################################################################
     # TIMESALE_EQUITY
