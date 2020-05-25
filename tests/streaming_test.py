@@ -2106,6 +2106,255 @@ class StreamClientTest(aiounittest.AsyncTestCase):
 
         self.assert_handler_called_once_with(handler, expected_item)
 
+    ##########################################################################
+    # TIMESALE_FUTURES
+
+    @patch('tda.streaming.websockets.client.connect', autospec=AsyncMock())
+    async def test_timesale_futures_subs_success_all_fields(self, ws_connect):
+        socket = await self.login_and_get_socket(ws_connect)
+
+        socket.recv.side_effect = [json.dumps(self.success_response(
+            1, 'TIMESALE_FUTURES', 'SUBS'))]
+
+        await self.client.timesale_futures_subs(['/ES', '/CL'])
+        socket.recv.assert_awaited_once()
+        request = self.request_from_socket_mock(socket)
+
+        self.assertEqual(request, {
+            'account': '1001',
+            'service': 'TIMESALE_FUTURES',
+            'command': 'SUBS',
+            'requestid': '1',
+            'source': 'streamerInfo-appId',
+            'parameters': {
+                'keys': '/ES,/CL',
+                'fields': ('0,1,2,3,4')
+            }
+        })
+
+    @patch('tda.streaming.websockets.client.connect', autospec=AsyncMock())
+    async def test_timesale_futures_subs_success_some_fields(self, ws_connect):
+        socket = await self.login_and_get_socket(ws_connect)
+
+        socket.recv.side_effect = [json.dumps(self.success_response(
+            1, 'TIMESALE_FUTURES', 'SUBS'))]
+
+        await self.client.timesale_futures_subs(['/ES', '/CL'], fields=[
+            StreamClient.TimesaleFields.SYMBOL,
+            StreamClient.TimesaleFields.TRADE_TIME,
+            StreamClient.TimesaleFields.LAST_SIZE,
+        ])
+        socket.recv.assert_awaited_once()
+        request = self.request_from_socket_mock(socket)
+
+        self.assertEqual(request, {
+            'account': '1001',
+            'service': 'TIMESALE_FUTURES',
+            'command': 'SUBS',
+            'requestid': '1',
+            'source': 'streamerInfo-appId',
+            'parameters': {
+                'keys': '/ES,/CL',
+                'fields': '0,1,3'
+            }
+        })
+
+    @patch('tda.streaming.websockets.client.connect', autospec=AsyncMock())
+    async def test_timesale_futures_subs_failure(self, ws_connect):
+        socket = await self.login_and_get_socket(ws_connect)
+
+        response = self.success_response(1, 'TIMESALE_FUTURES', 'SUBS')
+        response['response'][0]['content']['code'] = 21
+        socket.recv.side_effect = [json.dumps(response)]
+
+        with self.assertRaises(tda.streaming.UnexpectedResponseCode):
+            await self.client.timesale_futures_subs(['/ES', '/CL'])
+
+    @patch('tda.streaming.websockets.client.connect', autospec=AsyncMock())
+    async def test_timesale_futures_handler(self, ws_connect):
+        socket = await self.login_and_get_socket(ws_connect)
+
+        stream_item = {
+            'data': [{
+                'service': 'TIMESALE_FUTURES',
+                'timestamp': 1590245129396,
+                'command': 'SUBS',
+                'content': [{
+                    'key': '/ES',
+                    'delayed': False,
+                    '1': 1590181199726,
+                    '2': 1000,
+                    '3': 100,
+                    '4': 9990
+                }, {
+                    'key': '/CL',
+                    'delayed': False,
+                    '1': 1590181199727,
+                    '2': 1100,
+                    '3': 110,
+                    '4': 9991
+                }]
+            }]
+        }
+
+        socket.recv.side_effect = [
+            json.dumps(self.success_response(1, 'TIMESALE_FUTURES', 'SUBS')),
+            json.dumps(stream_item)]
+        await self.client.timesale_futures_subs(['/ES', '/CL'])
+
+        handler = Mock()
+        self.client.add_timesale_futures_handler(handler)
+        await self.client.handle_message()
+
+        expected_item = {
+            'service': 'TIMESALE_FUTURES',
+            'timestamp': 1590245129396,
+            'command': 'SUBS',
+            'content': [{
+                'key': '/ES',
+                'delayed': False,
+                'TRADE_TIME': 1590181199726,
+                'LAST_PRICE': 1000,
+                'LAST_SIZE': 100,
+                'LAST_SEQUENCE': 9990
+            }, {
+                'key': '/CL',
+                'delayed': False,
+                'TRADE_TIME': 1590181199727,
+                'LAST_PRICE': 1100,
+                'LAST_SIZE': 110,
+                'LAST_SEQUENCE': 9991
+            }]
+        }
+
+        self.assert_handler_called_once_with(handler, expected_item)
+
+    ##########################################################################
+    # TIMESALE_OPTIONS
+
+    @patch('tda.streaming.websockets.client.connect', autospec=AsyncMock())
+    async def test_timesale_optioos_subs_success_all_fields(self, ws_connect):
+        socket = await self.login_and_get_socket(ws_connect)
+
+        socket.recv.side_effect = [json.dumps(self.success_response(
+            1, 'TIMESALE_OPTIONS', 'SUBS'))]
+
+        await self.client.timesale_options_subs(['/ES', '/CL'])
+        socket.recv.assert_awaited_once()
+        request = self.request_from_socket_mock(socket)
+
+        self.assertEqual(request, {
+            'account': '1001',
+            'service': 'TIMESALE_OPTIONS',
+            'command': 'SUBS',
+            'requestid': '1',
+            'source': 'streamerInfo-appId',
+            'parameters': {
+                'keys': '/ES,/CL',
+                'fields': ('0,1,2,3,4')
+            }
+        })
+
+    @patch('tda.streaming.websockets.client.connect', autospec=AsyncMock())
+    async def test_timesale_options_subs_success_some_fields(self, ws_connect):
+        socket = await self.login_and_get_socket(ws_connect)
+
+        socket.recv.side_effect = [json.dumps(self.success_response(
+            1, 'TIMESALE_OPTIONS', 'SUBS'))]
+
+        await self.client.timesale_options_subs(
+                ['GOOG_052920C620', 'MSFT_052920C145'], fields=[
+            StreamClient.TimesaleFields.SYMBOL,
+            StreamClient.TimesaleFields.TRADE_TIME,
+            StreamClient.TimesaleFields.LAST_SIZE,
+        ])
+        socket.recv.assert_awaited_once()
+        request = self.request_from_socket_mock(socket)
+
+        self.assertEqual(request, {
+            'account': '1001',
+            'service': 'TIMESALE_OPTIONS',
+            'command': 'SUBS',
+            'requestid': '1',
+            'source': 'streamerInfo-appId',
+            'parameters': {
+                'keys': 'GOOG_052920C620,MSFT_052920C145',
+                'fields': '0,1,3'
+            }
+        })
+
+    @patch('tda.streaming.websockets.client.connect', autospec=AsyncMock())
+    async def test_timesale_options_subs_failure(self, ws_connect):
+        socket = await self.login_and_get_socket(ws_connect)
+
+        response = self.success_response(1, 'TIMESALE_OPTIONS', 'SUBS')
+        response['response'][0]['content']['code'] = 21
+        socket.recv.side_effect = [json.dumps(response)]
+
+        with self.assertRaises(tda.streaming.UnexpectedResponseCode):
+            await self.client.timesale_options_subs(
+                    ['GOOG_052920C620', 'MSFT_052920C145'])
+
+    @patch('tda.streaming.websockets.client.connect', autospec=AsyncMock())
+    async def test_timesale_options_handler(self, ws_connect):
+        socket = await self.login_and_get_socket(ws_connect)
+
+        stream_item = {
+            'data': [{
+                'service': 'TIMESALE_OPTIONS',
+                'timestamp': 1590245129396,
+                'command': 'SUBS',
+                'content': [{
+                    'key': 'GOOG_052920C620',
+                    'delayed': False,
+                    '1': 1590181199726,
+                    '2': 1000,
+                    '3': 100,
+                    '4': 9990
+                }, {
+                    'key': 'MSFT_052920C145',
+                    'delayed': False,
+                    '1': 1590181199727,
+                    '2': 1100,
+                    '3': 110,
+                    '4': 9991
+                }]
+            }]
+        }
+
+        socket.recv.side_effect = [
+            json.dumps(self.success_response(1, 'TIMESALE_OPTIONS', 'SUBS')),
+            json.dumps(stream_item)]
+        await self.client.timesale_options_subs(
+                ['GOOG_052920C620', 'MSFT_052920C145'])
+
+        handler = Mock()
+        self.client.add_timesale_options_handler(handler)
+        await self.client.handle_message()
+
+        expected_item = {
+            'service': 'TIMESALE_OPTIONS',
+            'timestamp': 1590245129396,
+            'command': 'SUBS',
+            'content': [{
+                'key': 'GOOG_052920C620',
+                'delayed': False,
+                'TRADE_TIME': 1590181199726,
+                'LAST_PRICE': 1000,
+                'LAST_SIZE': 100,
+                'LAST_SEQUENCE': 9990
+            }, {
+                'key': 'MSFT_052920C145',
+                'delayed': False,
+                'TRADE_TIME': 1590181199727,
+                'LAST_PRICE': 1100,
+                'LAST_SIZE': 110,
+                'LAST_SEQUENCE': 9991
+            }]
+        }
+
+        self.assert_handler_called_once_with(handler, expected_item)
+
     ###########################################################################
     # Handler edge cases
     #
