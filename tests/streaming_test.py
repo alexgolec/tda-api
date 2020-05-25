@@ -393,6 +393,7 @@ class StreamClientTest(aiounittest.AsyncTestCase):
         with self.assertRaises(tda.streaming.UnexpectedResponseCode):
             await self.client.chart_equity_add(['INTC'])
 
+    # TODO: Replace this with real messages
     @patch('tda.streaming.websockets.client.connect', autospec=AsyncMock())
     async def test_chart_equity_handler(self, ws_connect):
         socket = await self.login_and_get_socket(ws_connect)
@@ -547,6 +548,7 @@ class StreamClientTest(aiounittest.AsyncTestCase):
         with self.assertRaises(tda.streaming.UnexpectedResponseCode):
             await self.client.chart_futures_add(['/ZC'])
 
+    # TODO: Replace this with real messages
     @patch('tda.streaming.websockets.client.connect', autospec=AsyncMock())
     async def test_chart_futures_handler(self, ws_connect):
         socket = await self.login_and_get_socket(ws_connect)
@@ -1291,6 +1293,7 @@ class StreamClientTest(aiounittest.AsyncTestCase):
         with self.assertRaises(tda.streaming.UnexpectedResponseCode):
             await self.client.level_one_futures_subs(['/ES', '/CL'])
 
+    # TODO: Replace this with real messages
     @patch('tda.streaming.websockets.client.connect', autospec=AsyncMock())
     async def test_level_one_futures_handler(self, ws_connect):
         socket = await self.login_and_get_socket(ws_connect)
@@ -1548,6 +1551,7 @@ class StreamClientTest(aiounittest.AsyncTestCase):
         with self.assertRaises(tda.streaming.UnexpectedResponseCode):
             await self.client.level_one_forex_subs(['EUR/USD', 'EUR/GBP'])
 
+    # TODO: Replace this with real messages
     @patch('tda.streaming.websockets.client.connect', autospec=AsyncMock())
     async def test_level_one_forex_handler(self, ws_connect):
         socket = await self.login_and_get_socket(ws_connect)
@@ -1786,6 +1790,7 @@ class StreamClientTest(aiounittest.AsyncTestCase):
             await self.client.level_one_futures_options_subs(
                 ['NQU20_C6500', 'NQU20_P6500'])
 
+    # TODO: Replace this with real messages
     @patch('tda.streaming.websockets.client.connect', autospec=AsyncMock())
     async def test_level_one_futures_options_handler(self, ws_connect):
         socket = await self.login_and_get_socket(ws_connect)
@@ -2047,6 +2052,7 @@ class StreamClientTest(aiounittest.AsyncTestCase):
         with self.assertRaises(tda.streaming.UnexpectedResponseCode):
             await self.client.timesale_equity_subs(['GOOG', 'MSFT'])
 
+    # TODO: Replace this with real messages
     @patch('tda.streaming.websockets.client.connect', autospec=AsyncMock())
     async def test_timesale_equity_handler(self, ws_connect):
         socket = await self.login_and_get_socket(ws_connect)
@@ -2170,6 +2176,7 @@ class StreamClientTest(aiounittest.AsyncTestCase):
         with self.assertRaises(tda.streaming.UnexpectedResponseCode):
             await self.client.timesale_futures_subs(['/ES', '/CL'])
 
+    # TODO: Replace this with real messages
     @patch('tda.streaming.websockets.client.connect', autospec=AsyncMock())
     async def test_timesale_futures_handler(self, ws_connect):
         socket = await self.login_and_get_socket(ws_connect)
@@ -2295,6 +2302,7 @@ class StreamClientTest(aiounittest.AsyncTestCase):
             await self.client.timesale_options_subs(
                     ['GOOG_052920C620', 'MSFT_052920C145'])
 
+    # TODO: Replace this with real messages
     @patch('tda.streaming.websockets.client.connect', autospec=AsyncMock())
     async def test_timesale_options_handler(self, ws_connect):
         socket = await self.login_and_get_socket(ws_connect)
