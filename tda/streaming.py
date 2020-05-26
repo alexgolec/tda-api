@@ -115,6 +115,7 @@ class StreamClient(EnumEnforcer):
                        'unknown symbols or other error conditions. Full ' +
                        'message text: ' + raw)
                 raise UnparsableMessage(raw, e, msg)
+        print(json.dumps(ret, indent=4))
         return ret
 
     async def __init_from_principals(self, principals):
@@ -814,9 +815,10 @@ class StreamClient(EnumEnforcer):
     ##########################################################################
     # NASDAQ_BOOK
 
-    async def nasdaq_book_subs(self, symbols, *, fields=None):
+    async def nasdaq_book_subs(self, symbols):
         await self.__service_op(symbols, 'NASDAQ_BOOK', 'SUBS',
-                                self.BookFields, fields=fields)
+                                self.BookFields,
+                                fields=self.BookFields.all_fields())
 
     def add_nasdaq_book_handler(self, handler):
         self._handlers['NASDAQ_BOOK'].append(
@@ -827,7 +829,8 @@ class StreamClient(EnumEnforcer):
 
     async def options_book_subs(self, symbols, *, fields=None):
         await self.__service_op(symbols, 'OPTIONS_BOOK', 'SUBS',
-                                self.BookFields, fields=fields)
+                                self.BookFields,
+                                fields=self.BookFields.all_fields())
 
     def add_options_book_handler(self, handler):
         self._handlers['OPTIONS_BOOK'].append(

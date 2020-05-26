@@ -2240,7 +2240,7 @@ class StreamClientTest(aiounittest.AsyncTestCase):
     # TIMESALE_OPTIONS
 
     @patch('tda.streaming.websockets.client.connect', autospec=AsyncMock())
-    async def test_timesale_optioos_subs_success_all_fields(self, ws_connect):
+    async def test_timesale_options_subs_success_all_fields(self, ws_connect):
         socket = await self.login_and_get_socket(ws_connect)
 
         socket.recv.side_effect = [json.dumps(self.success_response(
@@ -2270,11 +2270,11 @@ class StreamClientTest(aiounittest.AsyncTestCase):
             1, 'TIMESALE_OPTIONS', 'SUBS'))]
 
         await self.client.timesale_options_subs(
-                ['GOOG_052920C620', 'MSFT_052920C145'], fields=[
-            StreamClient.TimesaleFields.SYMBOL,
-            StreamClient.TimesaleFields.TRADE_TIME,
-            StreamClient.TimesaleFields.LAST_SIZE,
-        ])
+            ['GOOG_052920C620', 'MSFT_052920C145'], fields=[
+                StreamClient.TimesaleFields.SYMBOL,
+                StreamClient.TimesaleFields.TRADE_TIME,
+                StreamClient.TimesaleFields.LAST_SIZE,
+            ])
         socket.recv.assert_awaited_once()
         request = self.request_from_socket_mock(socket)
 
@@ -2300,7 +2300,7 @@ class StreamClientTest(aiounittest.AsyncTestCase):
 
         with self.assertRaises(tda.streaming.UnexpectedResponseCode):
             await self.client.timesale_options_subs(
-                    ['GOOG_052920C620', 'MSFT_052920C145'])
+                ['GOOG_052920C620', 'MSFT_052920C145'])
 
     # TODO: Replace this with real messages
     @patch('tda.streaming.websockets.client.connect', autospec=AsyncMock())
@@ -2334,7 +2334,7 @@ class StreamClientTest(aiounittest.AsyncTestCase):
             json.dumps(self.success_response(1, 'TIMESALE_OPTIONS', 'SUBS')),
             json.dumps(stream_item)]
         await self.client.timesale_options_subs(
-                ['GOOG_052920C620', 'MSFT_052920C145'])
+            ['GOOG_052920C620', 'MSFT_052920C145'])
 
         handler = Mock()
         self.client.add_timesale_options_handler(handler)
@@ -2360,6 +2360,446 @@ class StreamClientTest(aiounittest.AsyncTestCase):
                 'LAST_SEQUENCE': 9991
             }]
         }
+
+        self.assert_handler_called_once_with(handler, expected_item)
+
+    ##########################################################################
+    # NASDAQ_BOOK
+
+    @patch('tda.streaming.websockets.client.connect', autospec=AsyncMock())
+    async def test_nasdaq_book_subs_success_all_fields(self, ws_connect):
+        socket = await self.login_and_get_socket(ws_connect)
+
+        socket.recv.side_effect = [json.dumps(self.success_response(
+            1, 'NASDAQ_BOOK', 'SUBS'))]
+
+        await self.client.nasdaq_book_subs(['GOOG', 'MSFT'])
+        socket.recv.assert_awaited_once()
+        request = self.request_from_socket_mock(socket)
+
+        self.assertEqual(request, {
+            'account': '1001',
+            'service': 'NASDAQ_BOOK',
+            'command': 'SUBS',
+            'requestid': '1',
+            'source': 'streamerInfo-appId',
+            'parameters': {
+                'keys': 'GOOG,MSFT',
+                'fields': ('0,1,2,3')
+            }
+        })
+
+    @patch('tda.streaming.websockets.client.connect', autospec=AsyncMock())
+    async def test_timesale_options_subs_failure(self, ws_connect):
+        socket = await self.login_and_get_socket(ws_connect)
+
+        response = self.success_response(1, 'TIMESALE_OPTIONS', 'SUBS')
+        response['response'][0]['content']['code'] = 21
+        socket.recv.side_effect = [json.dumps(response)]
+
+        with self.assertRaises(tda.streaming.UnexpectedResponseCode):
+            await self.client.timesale_options_subs(
+                ['GOOG_052920C620', 'MSFT_052920C145'])
+
+    ##########################################################################
+    # Common book handler functionality
+
+    @patch('tda.streaming.websockets.client.connect', autospec=AsyncMock())
+    async def test_nasdaq_book_handler(self, ws_connect):
+        socket = await self.login_and_get_socket(ws_connect)
+
+        stream_item = {
+            'data': [
+                {
+                    'service': 'NASDAQ_BOOK',
+                    'timestamp': 1590532470149,
+                    'command': 'SUBS',
+                    'content': [
+                        {
+                            'key': 'MSFT',
+                            '1': 1590532442608,
+                            '2': [
+                                {
+                                    '0': 181.77,
+                                    '1': 100,
+                                    '2': 1,
+                                    '3': [
+                                        {
+                                            '0': 'edgx',
+                                            '1': 100,
+                                            '2': 63150257
+                                        }
+                                    ]
+                                },
+                                {
+                                    '0': 181.75,
+                                    '1': 545,
+                                    '2': 2,
+                                    '3': [
+                                        {
+                                            '0': 'NSDQ',
+                                            '1': 345,
+                                            '2': 62685730
+                                        },
+                                        {
+                                            '0': 'arcx',
+                                            '1': 200,
+                                            '2': 63242588
+                                        }
+                                    ]
+                                },
+                                {
+                                    '0': 157.0,
+                                    '1': 100,
+                                    '2': 1,
+                                    '3': [
+                                        {
+                                            '0': 'batx',
+                                            '1': 100,
+                                            '2': 63082708
+                                        }
+                                    ]
+                                }
+                            ],
+                            '3': [
+                                {
+                                    '0': 181.95,
+                                    '1': 100,
+                                    '2': 1,
+                                    '3': [
+                                        {
+                                            '0': 'arcx',
+                                            '1': 100,
+                                            '2': 63006734
+                                        }
+                                    ]
+                                },
+                                {
+                                    '0': 181.98,
+                                    '1': 48,
+                                    '2': 1,
+                                    '3': [
+                                        {
+                                            '0': 'NSDQ',
+                                            '1': 48,
+                                            '2': 62327464
+                                        }
+                                    ]
+                                },
+                                {
+                                    '0': 182.3,
+                                    '1': 100,
+                                    '2': 1,
+                                    '3': [
+                                        {
+                                            '0': 'edgx',
+                                            '1': 100,
+                                            '2': 63192542
+                                        }
+                                    ]
+                                },
+                                {
+                                    '0': 186.8,
+                                    '1': 700,
+                                    '2': 1,
+                                    '3': [
+                                        {
+                                            '0': 'batx',
+                                            '1': 700,
+                                            '2': 60412822
+                                        }
+                                    ]
+                                }
+                            ]
+                        },
+                        {
+                            'key': 'GOOG',
+                            '1': 1590532323728,
+                            '2': [
+                                {
+                                    '0': 1418.0,
+                                    '1': 1,
+                                    '2': 1,
+                                    '3': [
+                                        {
+                                            '0': 'NSDQ',
+                                            '1': 1,
+                                            '2': 54335011
+                                        }
+                                    ]
+                                },
+                                {
+                                    '0': 1417.26,
+                                    '1': 100,
+                                    '2': 1,
+                                    '3': [
+                                        {
+                                            '0': 'batx',
+                                            '1': 100,
+                                            '2': 62782324
+                                        }
+                                    ]
+                                },
+                                {
+                                    '0': 1417.25,
+                                    '1': 100,
+                                    '2': 1,
+                                    '3': [
+                                        {
+                                            '0': 'arcx',
+                                            '1': 100,
+                                            '2': 62767878
+                                        }
+                                    ]
+                                },
+                                {
+                                    '0': 1400.88,
+                                    '1': 100,
+                                    '2': 1,
+                                    '3': [
+                                        {
+                                            '0': 'edgx',
+                                            '1': 100,
+                                            '2': 54000952
+                                        }
+                                    ]
+                                }
+                            ],
+                            '3': [
+                                {
+                                    '0': 1421.0,
+                                    '1': 300,
+                                    '2': 2,
+                                    '3': [
+                                        {
+                                            '0': 'edgx',
+                                            '1': 200,
+                                            '2': 56723908
+                                        },
+                                        {
+                                            '0': 'arcx',
+                                            '1': 100,
+                                            '2': 62709059
+                                        }
+                                    ]
+                                },
+                                {
+                                    '0': 1421.73,
+                                    '1': 10,
+                                    '2': 1,
+                                    '3': [
+                                        {
+                                            '0': 'NSDQ',
+                                            '1': 10,
+                                            '2': 62737731
+                                        }
+                                    ]
+                                }
+                            ]
+                        }
+                    ]
+                }
+            ]
+        }
+
+        socket.recv.side_effect = [
+            json.dumps(self.success_response(1, 'NASDAQ_BOOK', 'SUBS')),
+            json.dumps(stream_item)]
+        await self.client.nasdaq_book_subs(['GOOG', 'MSFT'])
+
+        handler = Mock()
+        self.client.add_nasdaq_book_handler(handler)
+        await self.client.handle_message()
+
+        expected_item = {
+            'service': 'NASDAQ_BOOK',
+            'timestamp': 1590532470149,
+            'command': 'SUBS',
+            'content': [
+                        {
+                            'key': 'MSFT',
+                            'BOOK_TIME': 1590532442608,
+                            'BIDS': [
+                                {
+                                    'BID_PRICE': 181.77,
+                                    'TOTAL_VOLUME': 100,
+                                    'NUM_BIDS': 1,
+                                    'BIDS': [
+                                        {
+                                            'EXCHANGE': 'edgx',
+                                            'BID_VOLUME': 100,
+                                            'SEQUENCE': 63150257
+                                        }
+                                    ]
+                                },
+                                {
+                                    'BID_PRICE': 181.75,
+                                    'TOTAL_VOLUME': 545,
+                                    'NUM_BIDS': 2,
+                                    'BIDS': [
+                                        {
+                                            'EXCHANGE': 'NSDQ',
+                                            'BID_VOLUME': 345,
+                                            'SEQUENCE': 62685730
+                                        },
+                                        {
+                                            'EXCHANGE': 'arcx',
+                                            'BID_VOLUME': 200,
+                                            'SEQUENCE': 63242588
+                                        }
+                                    ]
+                                },
+                                {
+                                    'BID_PRICE': 157.0,
+                                    'TOTAL_VOLUME': 100,
+                                    'NUM_BIDS': 1,
+                                    'BIDS': [
+                                        {
+                                            'EXCHANGE': 'batx',
+                                            'BID_VOLUME': 100,
+                                            'SEQUENCE': 63082708
+                                        }
+                                    ]
+                                }
+                            ],
+                            'ASKS': [
+                                {
+                                    'ASK_PRICE': 181.95,
+                                    'TOTAL_VOLUME': 100,
+                                    'NUM_ASKS': 1,
+                                    'ASKS': [
+                                        {
+                                            'EXCHANGE': 'arcx',
+                                            'ASK_VOLUME': 100,
+                                            'SEQUENCE': 63006734
+                                        }
+                                    ]
+                                },
+                                {
+                                    'ASK_PRICE': 181.98,
+                                    'TOTAL_VOLUME': 48,
+                                    'NUM_ASKS': 1,
+                                    'ASKS': [
+                                        {
+                                            'EXCHANGE': 'NSDQ',
+                                            'ASK_VOLUME': 48,
+                                            'SEQUENCE': 62327464
+                                        }
+                                    ]
+                                },
+                                {
+                                    'ASK_PRICE': 182.3,
+                                    'TOTAL_VOLUME': 100,
+                                    'NUM_ASKS': 1,
+                                    'ASKS': [
+                                        {
+                                            'EXCHANGE': 'edgx',
+                                            'ASK_VOLUME': 100,
+                                            'SEQUENCE': 63192542
+                                        }
+                                    ]
+                                },
+                                {
+                                    'ASK_PRICE': 186.8,
+                                    'TOTAL_VOLUME': 700,
+                                    'NUM_ASKS': 1,
+                                    'ASKS': [
+                                        {
+                                            'EXCHANGE': 'batx',
+                                            'ASK_VOLUME': 700,
+                                            'SEQUENCE': 60412822
+                                        }
+                                    ]
+                                }
+                            ]
+                        },
+                        {
+                            'key': 'GOOG',
+                            'BOOK_TIME': 1590532323728,
+                            'BIDS': [
+                                {
+                                    'BID_PRICE': 1418.0,
+                                    'TOTAL_VOLUME': 1,
+                                    'NUM_BIDS': 1,
+                                    'BIDS': [
+                                        {
+                                            'EXCHANGE': 'NSDQ',
+                                            'BID_VOLUME': 1,
+                                            'SEQUENCE': 54335011
+                                        }
+                                    ]
+                                },
+                                {
+                                    'BID_PRICE': 1417.26,
+                                    'TOTAL_VOLUME': 100,
+                                    'NUM_BIDS': 1,
+                                    'BIDS': [
+                                        {
+                                            'EXCHANGE': 'batx',
+                                            'BID_VOLUME': 100,
+                                            'SEQUENCE': 62782324
+                                        }
+                                    ]
+                                },
+                                {
+                                    'BID_PRICE': 1417.25,
+                                    'TOTAL_VOLUME': 100,
+                                    'NUM_BIDS': 1,
+                                    'BIDS': [
+                                        {
+                                            'EXCHANGE': 'arcx',
+                                            'BID_VOLUME': 100,
+                                            'SEQUENCE': 62767878
+                                        }
+                                    ]
+                                },
+                                {
+                                    'BID_PRICE': 1400.88,
+                                    'TOTAL_VOLUME': 100,
+                                    'NUM_BIDS': 1,
+                                    'BIDS': [
+                                        {
+                                            'EXCHANGE': 'edgx',
+                                            'BID_VOLUME': 100,
+                                            'SEQUENCE': 54000952
+                                        }
+                                    ]
+                                }
+                            ],
+                            'ASKS': [
+                                {
+                                    'ASK_PRICE': 1421.0,
+                                    'TOTAL_VOLUME': 300,
+                                    'NUM_ASKS': 2,
+                                    'ASKS': [
+                                        {
+                                            'EXCHANGE': 'edgx',
+                                            'ASK_VOLUME': 200,
+                                            'SEQUENCE': 56723908
+                                        },
+                                        {
+                                            'EXCHANGE': 'arcx',
+                                            'ASK_VOLUME': 100,
+                                            'SEQUENCE': 62709059
+                                        }
+                                    ]
+                                },
+                                {
+                                    'ASK_PRICE': 1421.73,
+                                    'TOTAL_VOLUME': 10,
+                                    'NUM_ASKS': 1,
+                                    'ASKS': [
+                                        {
+                                            'EXCHANGE': 'NSDQ',
+                                            'ASK_VOLUME': 10,
+                                            'SEQUENCE': 62737731
+                                        }
+                                    ]
+                                }
+                            ]
+                        }
+                    ]
+                }
 
         self.assert_handler_called_once_with(handler, expected_item)
 
