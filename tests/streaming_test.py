@@ -2406,12 +2406,21 @@ class StreamClientTest(aiounittest.AsyncTestCase):
 
     @patch('tda.streaming.websockets.client.connect', autospec=AsyncMock())
     async def test_nasdaq_book_handler(self, ws_connect):
+        def register_handler():
+            handler = Mock()
+            self.client.add_nasdaq_book_handler(handler)
+            return handler
+
+        return await self.do_test_book_handler(
+                ws_connect, 'NASDAQ_BOOK', register_handler)
+
+    async def do_test_book_handler(self, ws_connect, service, register_handler):
         socket = await self.login_and_get_socket(ws_connect)
 
         stream_item = {
             'data': [
                 {
-                    'service': 'NASDAQ_BOOK',
+                    'service': service,
                     'timestamp': 1590532470149,
                     'command': 'SUBS',
                     'content': [
@@ -2603,16 +2612,15 @@ class StreamClientTest(aiounittest.AsyncTestCase):
         }
 
         socket.recv.side_effect = [
-            json.dumps(self.success_response(1, 'NASDAQ_BOOK', 'SUBS')),
+            json.dumps(self.success_response(1, service, 'SUBS')),
             json.dumps(stream_item)]
         await self.client.nasdaq_book_subs(['GOOG', 'MSFT'])
 
-        handler = Mock()
-        self.client.add_nasdaq_book_handler(handler)
+        handler = register_handler()
         await self.client.handle_message()
 
         expected_item = {
-            'service': 'NASDAQ_BOOK',
+            'service': service,
             'timestamp': 1590532470149,
             'command': 'SUBS',
             'content': [
