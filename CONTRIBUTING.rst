@@ -22,7 +22,7 @@ don't pollute your system installation directories:
 
   pip install virtualenv
   virtualenv -v virtualenv
-  source virtualenv/build/activate
+  source virtualenv/bin/activate
 
 Next, install project requirements:
 
