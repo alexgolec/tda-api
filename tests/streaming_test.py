@@ -2364,6 +2364,43 @@ class StreamClientTest(aiounittest.AsyncTestCase):
         self.assert_handler_called_once_with(handler, expected_item)
 
     ##########################################################################
+    # LISTED_BOOK
+
+    @patch('tda.streaming.websockets.client.connect', autospec=AsyncMock())
+    async def test_listed_book_subs_success_all_fields(self, ws_connect):
+        socket = await self.login_and_get_socket(ws_connect)
+
+        socket.recv.side_effect = [json.dumps(self.success_response(
+            1, 'LISTED_BOOK', 'SUBS'))]
+
+        await self.client.listed_book_subs(['GOOG', 'MSFT'])
+        socket.recv.assert_awaited_once()
+        request = self.request_from_socket_mock(socket)
+
+        self.assertEqual(request, {
+            'account': '1001',
+            'service': 'LISTED_BOOK',
+            'command': 'SUBS',
+            'requestid': '1',
+            'source': 'streamerInfo-appId',
+            'parameters': {
+                'keys': 'GOOG,MSFT',
+                'fields': ('0,1,2,3')
+            }
+        })
+
+    @patch('tda.streaming.websockets.client.connect', autospec=AsyncMock())
+    async def test_listed_book_subs_failure(self, ws_connect):
+        socket = await self.login_and_get_socket(ws_connect)
+
+        response = self.success_response(1, 'LISTED_BOOK', 'SUBS')
+        response['response'][0]['content']['code'] = 21
+        socket.recv.side_effect = [json.dumps(response)]
+
+        with self.assertRaises(tda.streaming.UnexpectedResponseCode):
+            await self.client.listed_book_subs(['GOOG', 'MSFT'])
+
+    ##########################################################################
     # NASDAQ_BOOK
 
     @patch('tda.streaming.websockets.client.connect', autospec=AsyncMock())
@@ -2390,16 +2427,54 @@ class StreamClientTest(aiounittest.AsyncTestCase):
         })
 
     @patch('tda.streaming.websockets.client.connect', autospec=AsyncMock())
-    async def test_timesale_options_subs_failure(self, ws_connect):
+    async def test_nasdaq_book_subs_failure(self, ws_connect):
         socket = await self.login_and_get_socket(ws_connect)
 
-        response = self.success_response(1, 'TIMESALE_OPTIONS', 'SUBS')
+        response = self.success_response(1, 'NASDAQ_BOOK', 'SUBS')
         response['response'][0]['content']['code'] = 21
         socket.recv.side_effect = [json.dumps(response)]
 
         with self.assertRaises(tda.streaming.UnexpectedResponseCode):
-            await self.client.timesale_options_subs(
+            await self.client.nasdaq_book_subs(['GOOG', 'MSFT'])
+
+    ##########################################################################
+    # OPTIONS_BOOK
+
+    @patch('tda.streaming.websockets.client.connect', autospec=AsyncMock())
+    async def test_options_book_subs_success_all_fields(self, ws_connect):
+        socket = await self.login_and_get_socket(ws_connect)
+
+        socket.recv.side_effect = [json.dumps(self.success_response(
+            1, 'OPTIONS_BOOK', 'SUBS'))]
+
+        await self.client.options_book_subs(
                 ['GOOG_052920C620', 'MSFT_052920C145'])
+        socket.recv.assert_awaited_once()
+        request = self.request_from_socket_mock(socket)
+
+        self.assertEqual(request, {
+            'account': '1001',
+            'service': 'OPTIONS_BOOK',
+            'command': 'SUBS',
+            'requestid': '1',
+            'source': 'streamerInfo-appId',
+            'parameters': {
+                'keys': 'GOOG_052920C620,MSFT_052920C145',
+                'fields': ('0,1,2,3')
+            }
+        })
+
+    @patch('tda.streaming.websockets.client.connect', autospec=AsyncMock())
+    async def test_options_book_subs_failure(self, ws_connect):
+        socket = await self.login_and_get_socket(ws_connect)
+
+        response = self.success_response(1, 'OPTIONS_BOOK', 'SUBS')
+        response['response'][0]['content']['code'] = 21
+        socket.recv.side_effect = [json.dumps(response)]
+
+        with self.assertRaises(tda.streaming.UnexpectedResponseCode):
+            await self.client.options_book_subs(
+                    ['GOOG_052920C620', 'MSFT_052920C145'])
 
     ##########################################################################
     # Common book handler functionality
