@@ -691,66 +691,6 @@ class StreamClient(EnumEnforcer):
                                                           self.TimesaleFields))
 
     ##########################################################################
-    # FUTURES_BOOK
-
-    class FuturesBookFields(_BaseFieldEnum):
-        SYMBOL = 0
-
-    async def futures_book_subs(self, symbols, *, fields=None):
-        await self.__service_op(
-            symbols, 'FUTURES_BOOK', 'SUBS',
-            self.FuturesBookFields, fields=fields)
-
-    def add_futures_book_handler(self, handler):
-        self._handlers['FUTURES_BOOK'].append(Handler(handler,
-                                                      self.FuturesBookFields))
-
-    ##########################################################################
-    # FOREX_BOOK
-
-    class ForexBookFields(_BaseFieldEnum):
-        SYMBOL = 0
-
-    async def forex_book_subs(self, symbols, *, fields=None):
-        await self.__service_op(
-            symbols, 'FOREX_BOOK', 'SUBS',
-            self.ForexBookFields, fields=fields)
-
-    def add_forex_book_handler(self, handler):
-        self._handlers['FOREX_BOOK'].append(Handler(handler,
-                                                    self.ForexBookFields))
-
-    ##########################################################################
-    # FUTURES_OPTIONS_BOOK
-
-    class FuturesOptionsBookFields(_BaseFieldEnum):
-        SYMBOL = 0
-
-    async def futures_options_book_subs(self, symbols, *, fields=None):
-        await self.__service_op(
-            symbols, 'FUTURES_OPTIONS_BOOK', 'SUBS',
-            self.FuturesOptionsBookFields, fields=fields)
-
-    def add_futures_options_book_handler(self, handler):
-        self._handlers['FUTURES_OPTIONS_BOOK'].append(
-            Handler(handler, self.FuturesOptionsBookFields))
-
-    ##########################################################################
-    # LISTED_BOOK
-
-    class ListedBookFields(_BaseFieldEnum):
-        SYMBOL = 0
-
-    async def listed_book_subs(self, symbols, *, fields=None):
-        await self.__service_op(
-            symbols, 'LISTED_BOOK', 'SUBS',
-            self.ListedBookFields, fields=fields)
-
-    def add_listed_book_handler(self, handler):
-        self._handlers['LISTED_BOOK'].append(Handler(handler,
-                                                     self.ListedBookFields))
-
-    ##########################################################################
     # Common book utilities
 
     class BookFields(_BaseFieldEnum):
@@ -811,6 +751,18 @@ class StreamClient(EnumEnforcer):
                                 e_ask, e_ask)
 
             return new_msg
+
+    ##########################################################################
+    # LISTED_BOOK
+
+    async def listed_book_subs(self, symbols, *, fields=None):
+        await self.__service_op(
+            symbols, 'LISTED_BOOK', 'SUBS',
+            self.BookFields, fields=fields)
+
+    def add_listed_book_handler(self, handler):
+        self._handlers['LISTED_BOOK'].append(
+                self.BookHandler(handler, self.BookFields))
 
     ##########################################################################
     # NASDAQ_BOOK

@@ -2405,16 +2405,46 @@ class StreamClientTest(aiounittest.AsyncTestCase):
     # Common book handler functionality
 
     @patch('tda.streaming.websockets.client.connect', autospec=AsyncMock())
+    async def test_listed_book_handler(self, ws_connect):
+        async def subs():
+            await self.client.listed_book_subs(['GOOG', 'MSFT'])
+
+        def register_handler():
+            handler = Mock()
+            self.client.add_listed_book_handler(handler)
+            return handler
+
+        return await self.__test_book_handler(
+                ws_connect, 'LISTED_BOOK', subs, register_handler)
+
+    @patch('tda.streaming.websockets.client.connect', autospec=AsyncMock())
     async def test_nasdaq_book_handler(self, ws_connect):
+        async def subs():
+            await self.client.nasdaq_book_subs(['GOOG', 'MSFT'])
+
         def register_handler():
             handler = Mock()
             self.client.add_nasdaq_book_handler(handler)
             return handler
 
-        return await self.do_test_book_handler(
-                ws_connect, 'NASDAQ_BOOK', register_handler)
+        return await self.__test_book_handler(
+                ws_connect, 'NASDAQ_BOOK', subs, register_handler)
 
-    async def do_test_book_handler(self, ws_connect, service, register_handler):
+    @patch('tda.streaming.websockets.client.connect', autospec=AsyncMock())
+    async def test_options_book_handler(self, ws_connect):
+        async def subs():
+            await self.client.options_book_subs(['GOOG', 'MSFT'])
+
+        def register_handler():
+            handler = Mock()
+            self.client.add_options_book_handler(handler)
+            return handler
+
+        return await self.__test_book_handler(
+                ws_connect, 'OPTIONS_BOOK', subs, register_handler)
+
+    async def __test_book_handler(
+            self, ws_connect, service, subs, register_handler):
         socket = await self.login_and_get_socket(ws_connect)
 
         stream_item = {
@@ -2614,7 +2644,7 @@ class StreamClientTest(aiounittest.AsyncTestCase):
         socket.recv.side_effect = [
             json.dumps(self.success_response(1, service, 'SUBS')),
             json.dumps(stream_item)]
-        await self.client.nasdaq_book_subs(['GOOG', 'MSFT'])
+        await subs()
 
         handler = register_handler()
         await self.client.handle_message()
