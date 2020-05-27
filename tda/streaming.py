@@ -328,7 +328,7 @@ class StreamClient(EnumEnforcer):
     ##########################################################################
     # CHART_EQUITY
 
-    class ChartFields(_BaseFieldEnum):
+    class ChartEquityFields(_BaseFieldEnum):
         SYMBOL = 0
         OPEN_PRICE = 1
         HIGH_PRICE = 2
@@ -341,45 +341,43 @@ class StreamClient(EnumEnforcer):
 
     async def chart_equity_subs(self, symbols):
         await self.__service_op(
-            symbols, 'CHART_EQUITY', 'SUBS', self.ChartFields,
-            fields=self.ChartFields.all_fields())
+            symbols, 'CHART_EQUITY', 'SUBS', self.ChartEquityFields,
+            fields=self.ChartEquityFields.all_fields())
 
     async def chart_equity_add(self, symbols):
         await self.__service_op(
-            symbols, 'CHART_EQUITY', 'ADD', self.ChartFields,
-            fields=self.ChartFields.all_fields())
+            symbols, 'CHART_EQUITY', 'ADD', self.ChartEquityFields,
+            fields=self.ChartEquityFields.all_fields())
 
     def add_chart_equity_handler(self, handler):
         self._handlers['CHART_EQUITY'].append(Handler(handler,
-                                                      self.ChartFields))
+                                                      self.ChartEquityFields))
 
     ##########################################################################
     # CHART_FUTURES
 
-    class ChartFields(_BaseFieldEnum):
+    class ChartFuturesFields(_BaseFieldEnum):
         SYMBOL = 0
-        OPEN_PRICE = 1
-        HIGH_PRICE = 2
-        LOW_PRICE = 3
-        CLOSE_PRICE = 4
-        VOLUME = 5
-        SEQUENCE = 6
-        CHART_TIME = 7
-        CHART_DAY = 8
+        CHART_TIME = 1
+        OPEN_PRICE = 2
+        HIGH_PRICE = 3
+        LOW_PRICE = 4
+        CLOSE_PRICE = 5
+        VOLUME = 6
 
     async def chart_futures_subs(self, symbols, *, fields=None):
         await self.__service_op(
-            symbols, 'CHART_FUTURES', 'SUBS', self.ChartFields,
+            symbols, 'CHART_FUTURES', 'SUBS', self.ChartFuturesFields,
             fields=fields)
 
     async def chart_futures_add(self, symbols, *, fields=None):
         await self.__service_op(
-            symbols, 'CHART_FUTURES', 'ADD', self.ChartFields,
+            symbols, 'CHART_FUTURES', 'ADD', self.ChartFuturesFields,
             fields=fields)
 
     def add_chart_futures_handler(self, handler):
         self._handlers['CHART_FUTURES'].append(Handler(handler,
-                                                       self.ChartFields))
+                                                       self.ChartFuturesFields))
 
     ##########################################################################
     # QUOTE
@@ -762,7 +760,7 @@ class StreamClient(EnumEnforcer):
 
     def add_listed_book_handler(self, handler):
         self._handlers['LISTED_BOOK'].append(
-                self.BookHandler(handler, self.BookFields))
+            self.BookHandler(handler, self.BookFields))
 
     ##########################################################################
     # NASDAQ_BOOK
