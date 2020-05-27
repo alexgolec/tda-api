@@ -1,5 +1,5 @@
 from tests.test_utils import account_principals, has_diff, MockResponse
-from unittest.mock import ANY, AsyncMock, MagicMock, Mock, patch
+from unittest.mock import ANY, AsyncMock, call, MagicMock, Mock, patch
 from tda.streaming import StreamClient
 
 import aiounittest
@@ -3019,15 +3019,11 @@ class StreamClientTest(aiounittest.AsyncTestCase):
     async def test_handle_message_multiple_handlers(self, ws_connect):
         socket = await self.login_and_get_socket(ws_connect)
 
-        stream_item_1 = self.streaming_entry(
-                'CHART_EQUITY', 'SUBS', [{'msg': 1}])
-        stream_item_2 = self.streaming_entry(
-                'CHART_EQUITY', 'SUBS', [{'msg': 2}])
+        stream_item_1 = self.streaming_entry('CHART_EQUITY', 'SUBS')
 
         socket.recv.side_effect = [
             json.dumps(self.success_response(1, 'CHART_EQUITY', 'SUBS')),
-            json.dumps(stream_item_1),
-            json.dumps(stream_item_2)]
+            json.dumps(stream_item_1)]
 
         await self.client.chart_equity_subs(['GOOG,MSFT'])
 
@@ -3040,10 +3036,26 @@ class StreamClientTest(aiounittest.AsyncTestCase):
         handler_1.assert_called_once_with(stream_item_1['data'][0])
         handler_2.assert_called_once_with(stream_item_1['data'][0])
 
-        handler_1.reset_mock()
-        handler_2.reset_mock()
+    @patch('tda.streaming.websockets.client.connect', autospec=AsyncMock())
+    async def test_multiple_data_per_message(self, ws_connect):
+        socket = await self.login_and_get_socket(ws_connect)
+
+        stream_item = self.streaming_entry(
+            'CHART_EQUITY', 'SUBS', [{'msg': 1}])
+        stream_item['data'].append(self.streaming_entry(
+            'CHART_EQUITY', 'SUBS', [{'msg': 2}])['data'][0])
+
+        socket.recv.side_effect = [
+            json.dumps(self.success_response(1, 'CHART_EQUITY', 'SUBS')),
+            json.dumps(stream_item)]
+
+        await self.client.chart_equity_subs(['GOOG,MSFT'])
+
+        handler_1 = Mock()
+        handler_2 = Mock()
+        self.client.add_chart_equity_handler(handler_1)
+        self.client.add_chart_equity_handler(handler_2)
 
         await self.client.handle_message()
-        handler_1.assert_called_once_with(stream_item_2['data'][0])
-        handler_2.assert_called_once_with(stream_item_2['data'][0])
-
+        handler_1.assert_has_calls(
+            [call(stream_item['data'][0]), call(stream_item['data'][1])])
