@@ -101,9 +101,14 @@ class StreamClient(EnumEnforcer):
         self._overflow_items = deque()
 
     async def _send(self, obj):
+        if self._socket is None:
+            raise ValueError('Socket not open. Did you forget to call login()?')
         await self._socket.send(json.dumps(obj))
 
     async def _receive(self):
+        if self._socket is None:
+            raise ValueError('Socket not open. Did you forget to call login()?')
+
         if len(self._overflow_items) > 0:
             ret = self._overflow_items.pop()
         else:
@@ -147,7 +152,7 @@ class StreamClient(EnumEnforcer):
         # Initialize socket
         wss_url = 'wss://{}/ws'.format(
             principals['streamerInfo']['streamerSocketUrl'])
-        self._socket = await websockets._client.connect(wss_url)
+        self._socket = await websockets.client.connect(wss_url)
 
         # Initialize miscellaneous parameters
         self._source = principals['streamerInfo']['appId']
