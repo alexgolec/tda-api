@@ -54,7 +54,7 @@ class UnparsableMessage(Exception):
         self.json_parse_exception = json_parse_exception
 
 
-class Handler:
+class _Handler:
     def __init__(self, func, field_enum_type):
         self._func = func
         self._field_enum_type = field_enum_type
@@ -78,10 +78,10 @@ class StreamClient(EnumEnforcer):
     def __init__(self, client, *, account_id=None, enforce_enums=True):
         super().__init__(enforce_enums)
 
-        self.client = client
+        self._client = client
 
         # If None, will be set by the login() function
-        self.account_id = account_id
+        self._account_id = account_id
 
         # Set by the login() function
         self._account = None
@@ -100,10 +100,10 @@ class StreamClient(EnumEnforcer):
         # list before they are read from the stream.
         self._overflow_items = deque()
 
-    async def __send(self, obj):
+    async def _send(self, obj):
         await self._socket.send(json.dumps(obj))
 
-    async def __receive(self):
+    async def _receive(self):
         if len(self._overflow_items) > 0:
             ret = self._overflow_items.pop()
         else:
@@ -117,7 +117,7 @@ class StreamClient(EnumEnforcer):
                 raise UnparsableMessage(raw, e, msg)
         return ret
 
-    async def __init_from_principals(self, principals):
+    async def _init_from_principals(self, principals):
         # Initialize accounts
         accounts = principals['accounts']
         num_accounts = len(accounts)
@@ -127,32 +127,32 @@ class StreamClient(EnumEnforcer):
         if num_accounts == 1:
             self._account = accounts[0]
         else:
-            if self.account_id is None:
+            if self._account_id is None:
                 raise ValueError(
                     'multiple accounts found and StreamClient was ' +
                     'initialized with unspecified account_id')
 
             for account in accounts:
-                if int(account['accountId']) == self.account_id:
+                if int(account['accountId']) == self._account_id:
                     self._account = account
 
         if self._account is None:
             raise ValueError(
                 'no account found with account_id {}'.format(
-                    self.account_id))
+                    self._account_id))
 
-        if self.account_id is None:
-            self.account_id = self._account['accountId']
+        if self._account_id is None:
+            self._account_id = self._account['accountId']
 
         # Initialize socket
         wss_url = 'wss://{}/ws'.format(
             principals['streamerInfo']['streamerSocketUrl'])
-        self._socket = await websockets.client.connect(wss_url)
+        self._socket = await websockets._client.connect(wss_url)
 
         # Initialize miscellaneous parameters
         self._source = principals['streamerInfo']['appId']
 
-    def __make_request(self, *, service, command, parameters):
+    def _make_request(self, *, service, command, parameters):
         request_id = self._request_id
         self._request_id += 1
 
@@ -160,14 +160,14 @@ class StreamClient(EnumEnforcer):
             'service': service,
             'requestid': str(request_id),
             'command': command,
-            'account': self.account_id,
+            'account': self._account_id,
             'source': self._source,
             'parameters': parameters
         }
 
         return request, request_id
 
-    async def __await_response(self, request_id, service, command):
+    async def _await_response(self, request_id, service, command):
         deferred_messages = []
 
         # Context handler to ensure we always append the deferred messages,
@@ -184,7 +184,7 @@ class StreamClient(EnumEnforcer):
 
         with WriteDeferredMessages(self):
             while True:
-                resp = await self.__receive()
+                resp = await self._receive()
 
                 if 'response' not in resp:
                     deferred_messages.append(resp)
@@ -222,23 +222,23 @@ class StreamClient(EnumEnforcer):
 
                 break
 
-    async def __service_op(self, symbols, service, command, field_type,
-                           *, fields=None):
+    async def _service_op(self, symbols, service, command, field_type,
+                          *, fields=None):
         if fields is None:
             fields = field_type.all_fields()
         fields = sorted(self.convert_enum_iterable(fields, field_type))
 
-        request, request_id = self.__make_request(
+        request, request_id = self._make_request(
             service=service, command=command,
             parameters={
                 'keys': ','.join(symbols),
                 'fields': ','.join(str(f) for f in fields)})
 
-        await self.__send({'requests': [request]})
-        await self.__await_response(request_id, service, command)
+        await self._send({'requests': [request]})
+        await self._await_response(request_id, service, command)
 
     async def handle_message(self):
-        msg = await self.__receive()
+        msg = await self._receive()
 
         # response
         if 'response' in msg:
@@ -263,13 +263,13 @@ class StreamClient(EnumEnforcer):
         # Fetch required data and initialize the client
 
         # TODO: Figure out which of these are actually needed
-        r = self.client.get_user_principals(fields=[
-            self.client.UserPrincipals.Fields.STREAMER_CONNECTION_INFO,
-            self.client.UserPrincipals.Fields.STREAMER_SUBSCRIPTION_KEYS])
+        r = self._client.get_user_principals(fields=[
+            self._client.UserPrincipals.Fields.STREAMER_CONNECTION_INFO,
+            self._client.UserPrincipals.Fields.STREAMER_SUBSCRIPTION_KEYS])
         assert r.ok, r.raise_for_status()
         r = r.json()
 
-        await self.__init_from_principals(r)
+        await self._init_from_principals(r)
 
         # Build and send the request object
         token_ts = datetime.datetime.strptime(
@@ -277,7 +277,7 @@ class StreamClient(EnumEnforcer):
         token_ts = int(token_ts.timestamp()) * 1000
 
         credentials = {
-            'userid': self.account_id,
+            'userid': self._account_id,
             'token': r['streamerInfo']['token'],
             'company': self._account['company'],
             'segment': self._account['segment'],
@@ -296,12 +296,12 @@ class StreamClient(EnumEnforcer):
             'version': '1.0'
         }
 
-        request, request_id = self.__make_request(
+        request, request_id = self._make_request(
             service='ADMIN', command='LOGIN',
             parameters=request_parameters)
 
-        await self.__send({'requests': [request]})
-        await self.__await_response(request_id, 'ADMIN', 'LOGIN')
+        await self._send({'requests': [request]})
+        await self._await_response(request_id, 'ADMIN', 'LOGIN')
 
     ##########################################################################
     # QOS
@@ -317,12 +317,12 @@ class StreamClient(EnumEnforcer):
     async def quality_of_service(self, qos_level):
         qos_level = self.convert_enum(qos_level, self.QOSLevel)
 
-        request, request_id = self.__make_request(
+        request, request_id = self._make_request(
             service='ADMIN', command='QOS',
             parameters={'qoslevel': qos_level})
 
-        await self.__send({'requests': [request]})
-        await self.__await_response(request_id, 'ADMIN', 'QOS')
+        await self._send({'requests': [request]})
+        await self._await_response(request_id, 'ADMIN', 'QOS')
 
     ##########################################################################
     # CHART_EQUITY
@@ -339,18 +339,18 @@ class StreamClient(EnumEnforcer):
         CHART_DAY = 8
 
     async def chart_equity_subs(self, symbols):
-        await self.__service_op(
+        await self._service_op(
             symbols, 'CHART_EQUITY', 'SUBS', self.ChartEquityFields,
             fields=self.ChartEquityFields.all_fields())
 
     async def chart_equity_add(self, symbols):
-        await self.__service_op(
+        await self._service_op(
             symbols, 'CHART_EQUITY', 'ADD', self.ChartEquityFields,
             fields=self.ChartEquityFields.all_fields())
 
     def add_chart_equity_handler(self, handler):
-        self._handlers['CHART_EQUITY'].append(Handler(handler,
-                                                      self.ChartEquityFields))
+        self._handlers['CHART_EQUITY'].append(_Handler(handler,
+                                                       self.ChartEquityFields))
 
     ##########################################################################
     # CHART_FUTURES
@@ -365,18 +365,18 @@ class StreamClient(EnumEnforcer):
         VOLUME = 6
 
     async def chart_futures_subs(self, symbols, *, fields=None):
-        await self.__service_op(
+        await self._service_op(
             symbols, 'CHART_FUTURES', 'SUBS', self.ChartFuturesFields,
             fields=fields)
 
     async def chart_futures_add(self, symbols, *, fields=None):
-        await self.__service_op(
+        await self._service_op(
             symbols, 'CHART_FUTURES', 'ADD', self.ChartFuturesFields,
             fields=fields)
 
     def add_chart_futures_handler(self, handler):
-        self._handlers['CHART_FUTURES'].append(Handler(handler,
-                                                       self.ChartFuturesFields))
+        self._handlers['CHART_FUTURES'].append(_Handler(handler,
+                                                        self.ChartFuturesFields))
 
     ##########################################################################
     # QUOTE
@@ -437,13 +437,13 @@ class StreamClient(EnumEnforcer):
         REGULAR_MARKET_TRADE_TIME_IN_LONG = 52
 
     async def level_one_quote_subs(self, symbols, *, fields=None):
-        await self.__service_op(
+        await self._service_op(
             symbols, 'QUOTE', 'SUBS', self.LevelOneQuoteFields,
             fields=fields)
 
     def add_level_one_quote_handler(self, handler):
-        self._handlers['QUOTE'].append(Handler(handler,
-                                               self.LevelOneQuoteFields))
+        self._handlers['QUOTE'].append(_Handler(handler,
+                                                self.LevelOneQuoteFields))
 
     ##########################################################################
     # OPTION
@@ -493,13 +493,13 @@ class StreamClient(EnumEnforcer):
         MARK = 41
 
     async def level_one_option_subs(self, symbols, *, fields=None):
-        await self.__service_op(
+        await self._service_op(
             symbols, 'OPTION', 'SUBS', self.LevelOneOptionFields,
             fields=fields)
 
     def add_level_one_option_handler(self, handler):
-        self._handlers['OPTION'].append(Handler(handler,
-                                                self.LevelOneOptionFields))
+        self._handlers['OPTION'].append(_Handler(handler,
+                                                 self.LevelOneOptionFields))
 
     ##########################################################################
     # LEVELONE_FUTURES
@@ -543,13 +543,13 @@ class StreamClient(EnumEnforcer):
         FUTURE_EXPIRATION_DATE = 35
 
     async def level_one_futures_subs(self, symbols, *, fields=None):
-        await self.__service_op(
+        await self._service_op(
             symbols, 'LEVELONE_FUTURES', 'SUBS', self.LevelOneFuturesFields,
             fields=fields)
 
     def add_level_one_futures_handler(self, handler):
         self._handlers['LEVELONE_FUTURES'].append(
-            Handler(handler, self.LevelOneFuturesFields))
+            _Handler(handler, self.LevelOneFuturesFields))
 
     ##########################################################################
     # LEVELONE_FOREX
@@ -592,13 +592,13 @@ class StreamClient(EnumEnforcer):
         MARK = 29
 
     async def level_one_forex_subs(self, symbols, *, fields=None):
-        await self.__service_op(
+        await self._service_op(
             symbols, 'LEVELONE_FOREX', 'SUBS', self.LevelOneForexFields,
             fields=fields)
 
     def add_level_one_forex_handler(self, handler):
-        self._handlers['LEVELONE_FOREX'].append(Handler(handler,
-                                                        self.LevelOneForexFields))
+        self._handlers['LEVELONE_FOREX'].append(_Handler(handler,
+                                                         self.LevelOneForexFields))
 
     ##########################################################################
     # LEVELONE_FUTURES_OPTIONS
@@ -642,13 +642,13 @@ class StreamClient(EnumEnforcer):
         FUTURE_EXPIRATION_DATE = 35
 
     async def level_one_futures_options_subs(self, symbols, *, fields=None):
-        await self.__service_op(
+        await self._service_op(
             symbols, 'LEVELONE_FUTURES_OPTIONS', 'SUBS',
             self.LevelOneFuturesOptionsFields, fields=fields)
 
     def add_level_one_futures_options_handler(self, handler):
         self._handlers['LEVELONE_FUTURES_OPTIONS'].append(
-            Handler(handler, self.LevelOneFuturesOptionsFields))
+            _Handler(handler, self.LevelOneFuturesOptionsFields))
 
     ##########################################################################
     # TIMESALE
@@ -661,31 +661,31 @@ class StreamClient(EnumEnforcer):
         LAST_SEQUENCE = 4
 
     async def timesale_equity_subs(self, symbols, *, fields=None):
-        await self.__service_op(
+        await self._service_op(
             symbols, 'TIMESALE_EQUITY', 'SUBS',
             self.TimesaleFields, fields=fields)
 
     def add_timesale_equity_handler(self, handler):
-        self._handlers['TIMESALE_EQUITY'].append(Handler(handler,
-                                                         self.TimesaleFields))
+        self._handlers['TIMESALE_EQUITY'].append(_Handler(handler,
+                                                          self.TimesaleFields))
 
     async def timesale_futures_subs(self, symbols, *, fields=None):
-        await self.__service_op(
+        await self._service_op(
             symbols, 'TIMESALE_FUTURES', 'SUBS',
             self.TimesaleFields, fields=fields)
 
     def add_timesale_futures_handler(self, handler):
-        self._handlers['TIMESALE_FUTURES'].append(Handler(handler,
-                                                          self.TimesaleFields))
+        self._handlers['TIMESALE_FUTURES'].append(_Handler(handler,
+                                                           self.TimesaleFields))
 
     async def timesale_options_subs(self, symbols, *, fields=None):
-        await self.__service_op(
+        await self._service_op(
             symbols, 'TIMESALE_OPTIONS', 'SUBS',
             self.TimesaleFields, fields=fields)
 
     def add_timesale_options_handler(self, handler):
-        self._handlers['TIMESALE_OPTIONS'].append(Handler(handler,
-                                                          self.TimesaleFields))
+        self._handlers['TIMESALE_OPTIONS'].append(_Handler(handler,
+                                                           self.TimesaleFields))
 
     ##########################################################################
     # Common book utilities
@@ -718,7 +718,7 @@ class StreamClient(EnumEnforcer):
         ASK_VOLUME = 1
         SEQUENCE = 2
 
-    class BookHandler(Handler):
+    class _BookHandler(_Handler):
         def label_message(self, msg):
             # Relabel top-level fields
             new_msg = super().label_message(msg)
@@ -753,34 +753,34 @@ class StreamClient(EnumEnforcer):
     # LISTED_BOOK
 
     async def listed_book_subs(self, symbols, *, fields=None):
-        await self.__service_op(
+        await self._service_op(
             symbols, 'LISTED_BOOK', 'SUBS',
             self.BookFields, fields=fields)
 
     def add_listed_book_handler(self, handler):
         self._handlers['LISTED_BOOK'].append(
-            self.BookHandler(handler, self.BookFields))
+            self._BookHandler(handler, self.BookFields))
 
     ##########################################################################
     # NASDAQ_BOOK
 
     async def nasdaq_book_subs(self, symbols):
-        await self.__service_op(symbols, 'NASDAQ_BOOK', 'SUBS',
-                                self.BookFields,
-                                fields=self.BookFields.all_fields())
+        await self._service_op(symbols, 'NASDAQ_BOOK', 'SUBS',
+                               self.BookFields,
+                               fields=self.BookFields.all_fields())
 
     def add_nasdaq_book_handler(self, handler):
         self._handlers['NASDAQ_BOOK'].append(
-            self.BookHandler(handler, self.BookFields))
+            self._BookHandler(handler, self.BookFields))
 
     ##########################################################################
     # OPTIONS_BOOK
 
     async def options_book_subs(self, symbols, *, fields=None):
-        await self.__service_op(symbols, 'OPTIONS_BOOK', 'SUBS',
-                                self.BookFields,
-                                fields=self.BookFields.all_fields())
+        await self._service_op(symbols, 'OPTIONS_BOOK', 'SUBS',
+                               self.BookFields,
+                               fields=self.BookFields.all_fields())
 
     def add_options_book_handler(self, handler):
         self._handlers['OPTIONS_BOOK'].append(
-            self.BookHandler(handler, self.BookFields))
+            self._BookHandler(handler, self.BookFields))
