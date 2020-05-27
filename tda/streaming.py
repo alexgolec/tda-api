@@ -115,7 +115,6 @@ class StreamClient(EnumEnforcer):
                        'unknown symbols or other error conditions. Full ' +
                        'message text: ' + raw)
                 raise UnparsableMessage(raw, e, msg)
-        print(json.dumps(ret, indent=4))
         return ret
 
     async def __init_from_principals(self, principals):

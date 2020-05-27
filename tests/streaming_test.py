@@ -56,14 +56,19 @@ class StreamClientTest(aiounittest.AsyncTestCase):
             ]
         }
 
-    def streaming_entry(self, service, command):
-        return {
+    def streaming_entry(self, service, command, content=None):
+        d = {
             'data': [{
                 'service': service,
                 'command': command,
                 'timestamp': 1590186642440
             }]
         }
+
+        if content:
+            d['data'][0]['content'] = content
+
+        return d
 
     def assert_handler_called_once_with(self, handler, expected):
         handler.assert_called_once()
@@ -3009,3 +3014,36 @@ class StreamClientTest(aiounittest.AsyncTestCase):
 
         with self.assertRaises(tda.streaming.UnparsableMessage):
             await self.client.handle_message()
+
+    @patch('tda.streaming.websockets.client.connect', autospec=AsyncMock())
+    async def test_handle_message_multiple_handlers(self, ws_connect):
+        socket = await self.login_and_get_socket(ws_connect)
+
+        stream_item_1 = self.streaming_entry(
+                'CHART_EQUITY', 'SUBS', [{'msg': 1}])
+        stream_item_2 = self.streaming_entry(
+                'CHART_EQUITY', 'SUBS', [{'msg': 2}])
+
+        socket.recv.side_effect = [
+            json.dumps(self.success_response(1, 'CHART_EQUITY', 'SUBS')),
+            json.dumps(stream_item_1),
+            json.dumps(stream_item_2)]
+
+        await self.client.chart_equity_subs(['GOOG,MSFT'])
+
+        handler_1 = Mock()
+        handler_2 = Mock()
+        self.client.add_chart_equity_handler(handler_1)
+        self.client.add_chart_equity_handler(handler_2)
+
+        await self.client.handle_message()
+        handler_1.assert_called_once_with(stream_item_1['data'][0])
+        handler_2.assert_called_once_with(stream_item_1['data'][0])
+
+        handler_1.reset_mock()
+        handler_2.reset_mock()
+
+        await self.client.handle_message()
+        handler_1.assert_called_once_with(stream_item_2['data'][0])
+        handler_2.assert_called_once_with(stream_item_2['data'][0])
+
