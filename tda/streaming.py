@@ -328,28 +328,31 @@ class StreamClient(EnumEnforcer):
     class QOSLevel(Enum):
         '''Quality of service levels'''
 
-        #: 500ms (fastest possible)
+        #: 500ms between updates. Fastest available
         EXPRESS = '0'
 
-        #: 750ms
+        #: 750ms between updates
         REAL_TIME = '1'
 
-        #: 1000ms
+        #: 1000ms between updates. Default value.
         FAST = '2'
 
-        #: 1500ms
+        #: 1500ms between updates
         MODERATE = '3'
 
-        #: 3000ms
+        #: 3000ms between updates
         SLOW = '4'
 
-        #: 5000ms
+        #: 5000ms between updates
         DELAYED = '5'
 
     async def quality_of_service(self, qos_level):
         '''
         `Official Documentation <https://developer.tdameritrade.com/content/
         streaming-data#_Toc504640578>`__
+
+        Specifies the frequency with which updated data should be sent to the 
+        client. If not called, the frequency will default to every second.
 
         :param qos_level: Quality of service level to request. See
                           :class:`QOSLevel` for options.
@@ -368,27 +371,54 @@ class StreamClient(EnumEnforcer):
     # CHART_EQUITY
 
     class ChartEquityFields(_BaseFieldEnum):
+        '''
+        `Official documentation <https://developer.tdameritrade.com/content/
+        streaming-data#_Toc504640589>`__
+
+        Data fields for equity OHLCV data. Primarily an implementation detail 
+        and not used in client code. Provided here as documentation for key
+        values stored returned in the stream messages.'''
+
+        #: Ticker symbol in upper case. Represented in the stream as the
+        #: ``key`` field.
         SYMBOL = 0
+        #: Opening price for the minute
         OPEN_PRICE = 1
+        #: Highest price for the minute
         HIGH_PRICE = 2
+        #: Chart’s lowest price for the minute
         LOW_PRICE = 3
+        #: Closing price for the minute
         CLOSE_PRICE = 4
+        #: Total volume for the minute
         VOLUME = 5
+        #: Identifies the candle minute
         SEQUENCE = 6
+        #: Milliseconds since Epoch
         CHART_TIME = 7
+        #: Documented as not useful, included for completeness
         CHART_DAY = 8
 
     async def chart_equity_subs(self, symbols):
+        '''Subscribe to equity charts. Behavior is undefined if called multiple 
+        times.
+
+        :param symbols: Equity symbols to subscribe to.'''
         await self._service_op(
             symbols, 'CHART_EQUITY', 'SUBS', self.ChartEquityFields,
             fields=self.ChartEquityFields.all_fields())
 
     async def chart_equity_add(self, symbols):
+        '''Add a symbol to the equity charts subscription. Behavior is undefined
+        if called before :meth:`chart_equity_subs`.
+
+        :param symbols: Equity symbols to add to the subscription.'''
         await self._service_op(
             symbols, 'CHART_EQUITY', 'ADD', self.ChartEquityFields,
             fields=self.ChartEquityFields.all_fields())
 
     def add_chart_equity_handler(self, handler):
+        '''Adds a handler to the equity chart subscription.'''
         self._handlers['CHART_EQUITY'].append(_Handler(handler,
                                                        self.ChartEquityFields))
 
@@ -396,25 +426,50 @@ class StreamClient(EnumEnforcer):
     # CHART_FUTURES
 
     class ChartFuturesFields(_BaseFieldEnum):
+        '''
+        `Official documentation <https://developer.tdameritrade.com/content/
+        streaming-data#_Toc504640592>`__
+
+        Data fields for equity OHLCV data. Primarily an implementation detail 
+        and not used in client code. Provided here as documentation for key
+        values stored returned in the stream messages.'''
+
+        #: Ticker symbol in upper case. Represented in the stream as the
+        #: ``key`` field.
         SYMBOL = 0
+        #: Milliseconds since Epoch
         CHART_TIME = 1
+        #: Opening price for the minute
         OPEN_PRICE = 2
+        #: Highest price for the minute
         HIGH_PRICE = 3
+        #: Chart’s lowest price for the minute
         LOW_PRICE = 4
+        #: Closing price for the minute
         CLOSE_PRICE = 5
+        #: Total volume for the minute
         VOLUME = 6
 
     async def chart_futures_subs(self, symbols, *, fields=None):
+        '''Subscribe to futures charts. Behavior is undefined if called multiple 
+        times.
+
+        :param symbols: Equity symbols to subscribe to.'''
         await self._service_op(
             symbols, 'CHART_FUTURES', 'SUBS', self.ChartFuturesFields,
             fields=fields)
 
     async def chart_futures_add(self, symbols, *, fields=None):
+        '''Add a symbol to the futures chart subscription. Behavior is undefined
+        if called before :meth:`chart_futures_subs`.
+
+        :param symbols: Equity symbols to add to the subscription.'''
         await self._service_op(
             symbols, 'CHART_FUTURES', 'ADD', self.ChartFuturesFields,
             fields=fields)
 
     def add_chart_futures_handler(self, handler):
+        '''Adds a handler to the equity chart subscription.'''
         self._handlers['CHART_FUTURES'].append(_Handler(handler,
                                                         self.ChartFuturesFields))
 

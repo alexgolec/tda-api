@@ -75,12 +75,12 @@ operations that require login before this function is called raises an exception
 Setting Quality of Service
 --------------------------
 
-By default, the stream's update frequency is set to 750ms. The frequency can be
+By default, the stream's update frequency is set to 1000ms. The frequency can be
 increased by calling the ``quality_of_service`` function and passing an
 appropriate ``QOSLevel`` value.
 
-.. automethod:: tda.streaming.StreamClient.quality_of_service
-.. autoclass:: tda.streaming.StreamClient.QOSLevel
+.. automethod:: tda.streaming::StreamClient.quality_of_service
+.. autoclass:: tda.streaming::StreamClient.QOSLevel
   :members:
   :undoc-members:
 
@@ -122,6 +122,16 @@ message and dispatches it to the appropriate handler or handlers.
 
 If a message is received for which no handler is registered, that message is 
 ignored.
+
+Handlers should take a single argument representing the stream message received:
+
+.. code-block:: python
+
+  import json
+
+  def sample_handler(msg):
+      print(json.dumps(msg, indent=4))
+
 
 ---------------------
 Data Field Relabeling
@@ -204,8 +214,50 @@ duplicate ``seq`` values on our users' behalf? Given the ambiguity of the
 documentation, we chose to not ignore them and instead pass them to all handlers.
 Clients are encouraged to use their judgment in handling these values.
 
-++++++++++++++++
-Stream Endpoints
-++++++++++++++++
++++++++++++++++++
+Available Streams
++++++++++++++++++
 
+This section lists the streams supported by ``tda-api``. Some streams are 
+described in the documentation but were not implemented due to complexity. If 
+you feel you'd like a stream added, please file an issue 
+`here <https://github.com/alexgolec/tda-api/issues>`__ or see the 
+`contributing guidelines <https://github.com/alexgolec/tda-api/blob/master/
+CONTRIBUTING.rst>`__ to learn how to add the functionality yourself.
+
+
+------------
+OHLCV Charts
+------------
+
+These streams summarize trading activity on a minute-by-minute basis for 
+equities and futures, providing OHLCV (Open/High/Low/Close/Volume) data.
+
+~~~~~~~~~~~~~
+Equity Charts
+~~~~~~~~~~~~~
+
+OHLCV data for the given equities.
+
+.. autoclass:: tda.streaming::StreamClient.ChartEquityFields
+  :members:
+  :undoc-members:
+
+.. automethod:: tda.streaming::StreamClient.chart_equity_subs
+.. automethod:: tda.streaming::StreamClient.chart_equity_add
+.. automethod:: tda.streaming::StreamClient.add_chart_equity_handler
+
+~~~~~~~~~~~~~~
+Futures Charts
+~~~~~~~~~~~~~~
+
+OHLCV data for the given futures.
+
+.. autoclass:: tda.streaming::StreamClient.ChartFuturesFields
+  :members:
+  :undoc-members:
+
+.. automethod:: tda.streaming::StreamClient.chart_futures_subs
+.. automethod:: tda.streaming::StreamClient.chart_futures_add
+.. automethod:: tda.streaming::StreamClient.add_chart_futures_handler
 
