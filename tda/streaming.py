@@ -265,6 +265,20 @@ class StreamClient(EnumEnforcer):
     # LOGIN
 
     async def login(self):
+        '''
+        `Official Documentation <https://developer.tdameritrade.com/content/
+        streaming-data#_Toc504640574>`__
+
+        Performs initial stream setup:
+         * Fetches streaming information from the HTTP client's
+           :meth:`~tda.client.Client.get_user_principals` method
+         * Initializes the socket
+         * Builds and sends and authentication request
+         * Waits for response indicating login success
+
+        All stream operations are available after this method completes.
+        '''
+
         # Fetch required data and initialize the client
 
         # TODO: Figure out which of these are actually needed
@@ -312,14 +326,35 @@ class StreamClient(EnumEnforcer):
     # QOS
 
     class QOSLevel(Enum):
+        '''Quality of service levels'''
+
+        #: 500ms (fastest possible)
         EXPRESS = '0'
+
+        #: 750ms
         REAL_TIME = '1'
+
+        #: 1000ms
         FAST = '2'
+
+        #: 1500ms
         MODERATE = '3'
+
+        #: 3000ms
         SLOW = '4'
+
+        #: 5000ms
         DELAYED = '5'
 
     async def quality_of_service(self, qos_level):
+        '''
+        `Official Documentation <https://developer.tdameritrade.com/content/
+        streaming-data#_Toc504640578>`__
+
+        :param qos_level: Quality of service level to request. See
+                          :class:`QOSLevel` for options.
+        '''
+
         qos_level = self.convert_enum(qos_level, self.QOSLevel)
 
         request, request_id = self._make_request(

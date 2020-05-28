@@ -60,3 +60,5 @@ add_module_names = True
 # Explicitly specify the master file because ReadTheDocs is running on Sphinx 
 # 1.8.5
 master_doc = 'index'
+
+autodoc_member_order = 'bysource'

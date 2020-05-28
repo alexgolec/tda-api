@@ -9,7 +9,7 @@ Streaming Client
 
 A minimally-opinionated wapper around the
 `TD Ameritrade Streaming API <https://developer.tdameritrade.com/content/streaming-data>`__. This API is a 
-websockets-based interface to extensive up-to-the-second data on market 
+websockets-based that provides to up-to-the-second data on market 
 activity. Most impressively, it allows (apparently truncated) Level Two data for 
 all major markets for equities, options, and futures.
 
@@ -46,34 +46,43 @@ run this outside regular trading hours you may not see anything):
 This API uses Python
 `coroutines <https://docs.python.org/3/library/asyncio-task.html>`_ to simplify 
 implementation and preserve performance. As a result, it requires Python 3.8 or 
-higher to use. ``tda.stream`` will not be visible on older versions of Python.
+higher to use. ``tda.stream`` will not be available on older versions of Python.
 
 ++++++++++++
 Use Overview
 ++++++++++++
 
 The example above demonstrates the end-to-end workflow for using ``tda.stream``. 
-In this section, we dive into what each part does and why it's important.
+There's more in there than meets the eye, so let's dive into the details.
 
 ----------
 Logging In
 ----------
 
-Before any stream operations can be performed, the client must first be logged 
-in. Note this is distinct from the token generation step that has to happen
-before we create an HTTP client.
+Before we can perform any stream operations, the client must be logged in to the 
+stream. Unlike the HTTP client, in which every request is authenticated using a 
+token, this client sends unauthenticated requests and instead authenticates the 
+entire stream. As a result, this login process is distinct from the token 
+generation step that's necessary for the HTTP client.
 
 Stream login is accomplished simply by calling ``login()``. Once this happens 
 successfully, all stream operations can be performed. Attemping to perform
 operations that require login before this function is called raises an exception.
 
+.. automethod:: tda.streaming.StreamClient.login
+
 --------------------------
 Setting Quality of Service
 --------------------------
 
-By default, the stream's update frequency is set to some undocumented default 
-value. The frequency can be improved by calling the ``quality_of_service`` 
-function and passing an appropriate ``QOSLevel`` value.
+By default, the stream's update frequency is set to 750ms. The frequency can be
+increased by calling the ``quality_of_service`` function and passing an
+appropriate ``QOSLevel`` value.
+
+.. automethod:: tda.streaming.StreamClient.quality_of_service
+.. autoclass:: tda.streaming.StreamClient.QOSLevel
+  :members:
+  :undoc-members:
 
 ----------------------
 Subscribing to Streams
