@@ -12,3 +12,6 @@ def __python_version_supports_streaming():
 
 if __python_version_supports_streaming():
     from . import streaming
+else:
+    import sys
+    print('python version < 3.8.0, streaming API will not be available')
