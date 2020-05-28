@@ -14,7 +14,7 @@ activity. Most impressively, it allows (apparently truncated) Level Two data for
 all major markets for equities, options, and futures.
 
 Here's an example of how you can receive book snapshots of ``GOOG`` (note if you 
-run this outside regular trading hours you may not see anything:)
+run this outside regular trading hours you may not see anything):
 
 .. code-block:: python
 
@@ -46,8 +46,7 @@ run this outside regular trading hours you may not see anything:)
 This API uses Python
 `coroutines <https://docs.python.org/3/library/asyncio-task.html>`_ to simplify 
 implementation and preserve performance. As a result, it requires Python 3.8 or 
-higher to use. Attempting to import ``tda.stream`` on a too-old version of 
-Python will result in an ``EnvironmentError``.
+higher to use. ``tda.stream`` will not be visible on older versions of Python.
 
 ++++++++++++
 Use Overview
@@ -67,6 +66,14 @@ before we create an HTTP client.
 Stream login is accomplished simply by calling ``login()``. Once this happens 
 successfully, all stream operations can be performed. Attemping to perform
 operations that require login before this function is called raises an exception.
+
+--------------------------
+Setting Quality of Service
+--------------------------
+
+By default, the stream's update frequency is set to some undocumented default 
+value. The frequency can be improved by calling the ``quality_of_service`` 
+function and passing an appropriate ``QOSLevel`` value.
 
 ----------------------
 Subscribing to Streams
@@ -165,4 +172,31 @@ For instance, the message above would be translated to:
 
 This documentation describes the various fields and their numerical values. You 
 can find them by investigating the various enum classes ending in ``***Fields``.
+
+Some services, such as the ``LEVELONE_***`` services, allow you to specify a 
+subset of fields to be returned. Subscription handlers for these services take 
+a list of the appropriate field enums the extra ``fields`` parameter. If nothing 
+is passed to this parameter, all supported fields are requested.
+
+-----------------------------
+Interpreting Sequence Numbers
+-----------------------------
+
+Many endpoints include a ``seq`` parameter in their data contents. The official
+documentation is unclear on the interpretation of this value: the `time of sale 
+<https://developer.tdameritrade.com/content/streaming-data#_Toc504640628>`__ 
+documentation states that messages containing already-observed values of ``seq``
+can be ignored, but other streams contain this field both in their metadata and 
+in their content, and yet their documentation doesn't mention ignoring any
+``seq`` values.
+
+This presents us with a design choice for us as API authors: do we ignore 
+duplicate ``seq`` values on our users' behalfs? Given the ambiguity of the 
+documentation, we chose to not ignore them and instead pass them to all handlers.
+Clients are encouraged to use their judgment in handling these values.
+
+++++++++++++++++
+Stream Endpoints
+++++++++++++++++
+
 
