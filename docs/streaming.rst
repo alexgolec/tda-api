@@ -190,8 +190,8 @@ can be ignored, but other streams contain this field both in their metadata and
 in their content, and yet their documentation doesn't mention ignoring any
 ``seq`` values.
 
-This presents us with a design choice for us as API authors: do we ignore 
-duplicate ``seq`` values on our users' behalfs? Given the ambiguity of the 
+This presents us with a design choice as API authors: do we ignore 
+duplicate ``seq`` values on our users' behalf? Given the ambiguity of the 
 documentation, we chose to not ignore them and instead pass them to all handlers.
 Clients are encouraged to use their judgment in handling these values.
 
