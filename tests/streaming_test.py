@@ -1,6 +1,8 @@
 from tests.test_utils import account_principals, has_diff, MockResponse
 from unittest.mock import ANY, AsyncMock, call, MagicMock, Mock, patch
-from tda.streaming import StreamClient
+from tda import streaming
+
+StreamClient = streaming.StreamClient
 
 import aiounittest
 import asyncio
