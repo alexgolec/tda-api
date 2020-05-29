@@ -1,15 +1,15 @@
+import tda
+import urllib.parse
+import json
+import copy
+import asyncio
+import aiounittest
 from tests.test_utils import account_principals, has_diff, MockResponse
 from unittest.mock import ANY, AsyncMock, call, MagicMock, Mock, patch
 from tda import streaming
 
 StreamClient = streaming.StreamClient
 
-import aiounittest
-import asyncio
-import copy
-import json
-import urllib.parse
-import tda
 
 ACCOUNT_ID = 1000
 TOKEN_TIMESTAMP = '2020-05-22T02:12:48+0000'
@@ -634,13 +634,13 @@ class StreamClientTest(aiounittest.AsyncTestCase):
     # QUOTE
 
     @patch('tda.streaming.websockets.client.connect', autospec=AsyncMock())
-    async def test_level_one_quote_subs_success_all_fields(self, ws_connect):
+    async def test_level_one_equity_subs_success_all_fields(self, ws_connect):
         socket = await self.login_and_get_socket(ws_connect)
 
         socket.recv.side_effect = [json.dumps(self.success_response(
             1, 'QUOTE', 'SUBS'))]
 
-        await self.client.level_one_quote_subs(['GOOG', 'MSFT'])
+        await self.client.level_one_equity_subs(['GOOG', 'MSFT'])
         socket.recv.assert_awaited_once()
         request = self.request_from_socket_mock(socket)
 
@@ -660,17 +660,17 @@ class StreamClientTest(aiounittest.AsyncTestCase):
         })
 
     @patch('tda.streaming.websockets.client.connect', autospec=AsyncMock())
-    async def test_level_one_quote_subs_success_some_fields(self, ws_connect):
+    async def test_level_one_equity_subs_success_some_fields(self, ws_connect):
         socket = await self.login_and_get_socket(ws_connect)
 
         socket.recv.side_effect = [json.dumps(self.success_response(
             1, 'QUOTE', 'SUBS'))]
 
-        await self.client.level_one_quote_subs(['GOOG', 'MSFT'], fields=[
-            StreamClient.LevelOneQuoteFields.SYMBOL,
-            StreamClient.LevelOneQuoteFields.BID_PRICE,
-            StreamClient.LevelOneQuoteFields.ASK_PRICE,
-            StreamClient.LevelOneQuoteFields.QUOTE_TIME,
+        await self.client.level_one_equity_subs(['GOOG', 'MSFT'], fields=[
+            StreamClient.LevelOneEquityFields.SYMBOL,
+            StreamClient.LevelOneEquityFields.BID_PRICE,
+            StreamClient.LevelOneEquityFields.ASK_PRICE,
+            StreamClient.LevelOneEquityFields.QUOTE_TIME,
         ])
         socket.recv.assert_awaited_once()
         request = self.request_from_socket_mock(socket)
@@ -688,7 +688,7 @@ class StreamClientTest(aiounittest.AsyncTestCase):
         })
 
     @patch('tda.streaming.websockets.client.connect', autospec=AsyncMock())
-    async def test_level_one_quote_subs_failure(self, ws_connect):
+    async def test_level_one_equity_subs_failure(self, ws_connect):
         socket = await self.login_and_get_socket(ws_connect)
 
         response = self.success_response(1, 'QUOTE', 'SUBS')
@@ -696,7 +696,7 @@ class StreamClientTest(aiounittest.AsyncTestCase):
         socket.recv.side_effect = [json.dumps(response)]
 
         with self.assertRaises(tda.streaming.UnexpectedResponseCode):
-            await self.client.level_one_quote_subs(['GOOG', 'MSFT'])
+            await self.client.level_one_equity_subs(['GOOG', 'MSFT'])
 
     @patch('tda.streaming.websockets.client.connect', autospec=AsyncMock())
     async def test_level_one_quote_handler(self, ws_connect):
@@ -828,10 +828,10 @@ class StreamClientTest(aiounittest.AsyncTestCase):
         socket.recv.side_effect = [
             json.dumps(self.success_response(1, 'QUOTE', 'SUBS')),
             json.dumps(stream_item)]
-        await self.client.level_one_quote_subs(['GOOG', 'MSFT'])
+        await self.client.level_one_equity_subs(['GOOG', 'MSFT'])
 
         handler = Mock()
-        self.client.add_level_one_quote_handler(handler)
+        self.client.add_level_one_equity_handler(handler)
         await self.client.handle_message()
 
         expected_item = {

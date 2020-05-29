@@ -15,4 +15,4 @@ if __python_version_supports_streaming():
 else:
     import sys
     print('python version < 3.8.0, streaming API will not be available',
-            file=sys.stderr)
+          file=sys.stderr)

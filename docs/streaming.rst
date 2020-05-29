@@ -3,6 +3,7 @@
 
 .. _stream:
 
+
 ================
 Streaming Client
 ================
@@ -48,12 +49,14 @@ This API uses Python
 implementation and preserve performance. As a result, it requires Python 3.8 or 
 higher to use. ``tda.stream`` will not be available on older versions of Python.
 
+
 ++++++++++++
 Use Overview
 ++++++++++++
 
 The example above demonstrates the end-to-end workflow for using ``tda.stream``. 
 There's more in there than meets the eye, so let's dive into the details.
+
 
 ----------
 Logging In
@@ -71,6 +74,7 @@ operations that require login before this function is called raises an exception
 
 .. automethod:: tda.streaming.StreamClient.login
 
+
 --------------------------
 Setting Quality of Service
 --------------------------
@@ -83,6 +87,7 @@ appropriate ``QOSLevel`` value.
 .. autoclass:: tda.streaming::StreamClient.QOSLevel
   :members:
   :undoc-members:
+
 
 ----------------------
 Subscribing to Streams
@@ -101,6 +106,7 @@ Some services, notably the ``CHART_EQUITY`` and ``CHART_FUTURES`` services,
 offer ``SERVICE_NAME_add`` functions which can be used to augment the subscription 
 with additional symbols.
 
+
 --------------------
 Registering Handlers
 --------------------
@@ -110,6 +116,7 @@ messages to be sent to the client. The ``add_SERVICE_NAME_handler`` functions
 register functions that will receive these messages when they arrive. When 
 messages arrive, these handlers will be called serially. There is no limit to 
 the number of handlers that can be registered to a service.
+
 
 -----------------
 Handling Messages
@@ -197,6 +204,7 @@ subset of fields to be returned. Subscription handlers for these services take
 a list of the appropriate field enums the extra ``fields`` parameter. If nothing 
 is passed to this parameter, all supported fields are requested.
 
+
 -----------------------------
 Interpreting Sequence Numbers
 -----------------------------
@@ -213,6 +221,7 @@ This presents us with a design choice as API authors: do we ignore
 duplicate ``seq`` values on our users' behalf? Given the ambiguity of the 
 documentation, we chose to not ignore them and instead pass them to all handlers.
 Clients are encouraged to use their judgment in handling these values.
+
 
 +++++++++++++++++
 Available Streams
@@ -233,31 +242,52 @@ OHLCV Charts
 These streams summarize trading activity on a minute-by-minute basis for 
 equities and futures, providing OHLCV (Open/High/Low/Close/Volume) data.
 
+
 ~~~~~~~~~~~~~
 Equity Charts
 ~~~~~~~~~~~~~
 
-OHLCV data for the given equities.
-
-.. autoclass:: tda.streaming::StreamClient.ChartEquityFields
-  :members:
-  :undoc-members:
+OHLCV data for equities.
 
 .. automethod:: tda.streaming::StreamClient.chart_equity_subs
 .. automethod:: tda.streaming::StreamClient.chart_equity_add
 .. automethod:: tda.streaming::StreamClient.add_chart_equity_handler
+.. autoclass:: tda.streaming::StreamClient.ChartEquityFields
+  :members:
+  :undoc-members:
+
 
 ~~~~~~~~~~~~~~
 Futures Charts
 ~~~~~~~~~~~~~~
 
-OHLCV data for the given futures.
-
-.. autoclass:: tda.streaming::StreamClient.ChartFuturesFields
-  :members:
-  :undoc-members:
+OHLCV data for futures.
 
 .. automethod:: tda.streaming::StreamClient.chart_futures_subs
 .. automethod:: tda.streaming::StreamClient.chart_futures_add
 .. automethod:: tda.streaming::StreamClient.add_chart_futures_handler
+.. autoclass:: tda.streaming::StreamClient.ChartFuturesFields
+  :members:
+  :undoc-members:
+
+
+----------------
+Level One Quotes
+----------------
+
+Level one quotes provide an up-to-date view of bid/ask/volume data. They are 
+updated live as data comes in.
+
+~~~~~~~~~~~~~~~
+Equities Quotes
+~~~~~~~~~~~~~~~
+
+Quotes for equities on NYSE, AMEX, and Asia Pacific.
+
+.. automethod:: tda.streaming::StreamClient.level_one_equity_subs
+.. automethod:: tda.streaming::StreamClient.add_level_one_equity_handler
+.. autoclass:: tda.streaming::StreamClient.LevelOneEquityFields
+  :members:
+  :undoc-members:
+
 
