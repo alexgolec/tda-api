@@ -379,7 +379,8 @@ class StreamClient(EnumEnforcer):
 
         Data fields for equity OHLCV data. Primarily an implementation detail
         and not used in client code. Provided here as documentation for key
-        values stored returned in the stream messages.'''
+        values stored returned in the stream messages.
+        '''
 
         #: Ticker symbol in upper case. Represented in the stream as the
         #: ``key`` field.
@@ -400,7 +401,8 @@ class StreamClient(EnumEnforcer):
         #: Total volume for the minute
         VOLUME = 5
 
-        #: Identifies the candle minute
+        #: Identifies the candle minute. Explicitly labeled "not useful" in the 
+        #: official documentation.
         SEQUENCE = 6
 
         #: Milliseconds since Epoch
@@ -410,7 +412,11 @@ class StreamClient(EnumEnforcer):
         CHART_DAY = 8
 
     async def chart_equity_subs(self, symbols):
-        '''Subscribe to equity charts. Behavior is undefined if called multiple
+        '''
+        `Official documentation <https://developer.tdameritrade.com/content/
+        streaming-data#_Toc504640587>`__
+
+        Subscribe to equity charts. Behavior is undefined if called multiple
         times.
 
         :param symbols: Equity symbols to subscribe to.'''
@@ -419,16 +425,24 @@ class StreamClient(EnumEnforcer):
             fields=self.ChartEquityFields.all_fields())
 
     async def chart_equity_add(self, symbols):
-        '''Add a symbol to the equity charts subscription. Behavior is undefined
+        '''
+        `Official documentation <https://developer.tdameritrade.com/content/
+        streaming-data#_Toc504640588>`__
+
+        Add a symbol to the equity charts subscription. Behavior is undefined
         if called before :meth:`chart_equity_subs`.
 
-        :param symbols: Equity symbols to add to the subscription.'''
+        :param symbols: Equity symbols to add to the subscription.
+        '''
         await self._service_op(
             symbols, 'CHART_EQUITY', 'ADD', self.ChartEquityFields,
             fields=self.ChartEquityFields.all_fields())
 
     def add_chart_equity_handler(self, handler):
-        '''Adds a handler to the equity chart subscription.'''
+        '''
+        Adds a handler to the equity chart subscription. See
+        :ref:`registering_handlers` for details.
+        '''
         self._handlers['CHART_EQUITY'].append(_Handler(handler,
                                                        self.ChartEquityFields))
 
@@ -442,7 +456,8 @@ class StreamClient(EnumEnforcer):
 
         Data fields for equity OHLCV data. Primarily an implementation detail
         and not used in client code. Provided here as documentation for key
-        values stored returned in the stream messages.'''
+        values stored returned in the stream messages.
+        '''
 
         #: Ticker symbol in upper case. Represented in the stream as the
         #: ``key`` field.
@@ -467,25 +482,38 @@ class StreamClient(EnumEnforcer):
         VOLUME = 6
 
     async def chart_futures_subs(self, symbols):
-        '''Subscribe to futures charts. Behavior is undefined if called multiple
+        '''
+        `Official documentation <https://developer.tdameritrade.com/content/
+        streaming-data#_Toc504640587>`__
+
+        Subscribe to futures charts. Behavior is undefined if called multiple
         times.
 
-        :param symbols: Futures symbols to subscribe to.'''
+        :param symbols: Futures symbols to subscribe to.
+        '''
         await self._service_op(
             symbols, 'CHART_FUTURES', 'SUBS', self.ChartFuturesFields,
             fields=self.ChartFuturesFields.all_fields())
 
     async def chart_futures_add(self, symbols):
-        '''Add a symbol to the futures chart subscription. Behavior is undefined
+        '''
+        `Official documentation <https://developer.tdameritrade.com/content/
+        streaming-data#_Toc504640590>`__
+
+        Add a symbol to the futures chart subscription. Behavior is undefined
         if called before :meth:`chart_futures_subs`.
 
-        :param symbols: Futures symbols to add to the subscription.'''
+        :param symbols: Futures symbols to add to the subscription.
+        '''
         await self._service_op(
             symbols, 'CHART_FUTURES', 'ADD', self.ChartFuturesFields,
             fields=self.ChartFuturesFields.all_fields())
 
     def add_chart_futures_handler(self, handler):
-        '''Adds a handler to the futures chart subscription.'''
+        '''
+        Adds a handler to the futures chart subscription. See
+        :ref:`registering_handlers` for details.
+        '''
         self._handlers['CHART_FUTURES'].append(_Handler(handler,
                                                         self.ChartFuturesFields))
 
@@ -497,7 +525,8 @@ class StreamClient(EnumEnforcer):
         `Official documentation <https://developer.tdameritrade.com/content/
         streaming-data#_Toc504640599>`__
 
-        Fields for equity quotes.'''
+        Fields for equity quotes.
+        '''
 
         #: Ticker symbol in upper case. Represented in the stream as the
         #: ``key`` field.
@@ -687,11 +716,29 @@ class StreamClient(EnumEnforcer):
         REGULAR_MARKET_TRADE_TIME_IN_LONG = 52
 
     async def level_one_equity_subs(self, symbols, *, fields=None):
+        '''
+        `Official documentation <https://developer.tdameritrade.com/content/
+        streaming-data#_Toc504640599>`__
+
+        Subscribe to level one equity quote data.
+
+        :param symbols: Equity symbols to receive quotes for
+        :param fields: Iterable of :class:`LevelOneEquityFields` representing 
+                       the fields to return in streaming entries. If unset, all 
+                       fields will be requested.
+        '''
         await self._service_op(
             symbols, 'QUOTE', 'SUBS', self.LevelOneEquityFields,
             fields=fields)
 
     def add_level_one_equity_handler(self, handler):
+        '''
+        `Official documentation <https://developer.tdameritrade.com/content/
+        streaming-data#_Toc504640600>`__
+
+        Register a function to handle level one equity quotes as they are sent. 
+        See :ref:`registering_handlers` for details.
+        '''
         self._handlers['QUOTE'].append(_Handler(handler,
                                                 self.LevelOneEquityFields))
 

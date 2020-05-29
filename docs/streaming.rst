@@ -118,6 +118,8 @@ messages arrive, these handlers will be called serially. There is no limit to
 the number of handlers that can be registered to a service.
 
 
+.. _registering_handlers:
+
 -----------------
 Handling Messages
 -----------------
