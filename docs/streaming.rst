@@ -219,10 +219,10 @@ can be ignored, but other streams contain this field both in their metadata and
 in their content, and yet their documentation doesn't mention ignoring any
 ``seq`` values.
 
-This presents us with a design choice as API authors: do we ignore 
+This presents us with a design choice as API authors: should ``tda-api`` ignore 
 duplicate ``seq`` values on our users' behalf? Given the ambiguity of the 
-documentation, we chose to not ignore them and instead pass them to all handlers.
-Clients are encouraged to use their judgment in handling these values.
+documentation, it was decided to not ignore them and instead pass them to all
+handlers. Clients are encouraged to use their judgment in handling these values.
 
 
 This section lists the streams supported by ``tda-api``. Some streams are 
@@ -281,7 +281,7 @@ updated live as market conditions change.
 Equities Quotes
 ---------------
 
-Level one quotes for equities traded on NYSE, AMEX, and Asia Pacific.
+Level one quotes for equities traded on NYSE, AMEX, and PACIFIC.
 
 .. automethod:: tda.streaming::StreamClient.level_one_equity_subs
 .. automethod:: tda.streaming::StreamClient.add_level_one_equity_handler
@@ -344,3 +344,83 @@ Level one quotes for futures options.
   :undoc-members:
 
 
+++++++++++++++++++++
+Level Two Order Book 
+++++++++++++++++++++
+
+These streams provide a view on continuous order books of various securities.
+The level two order book describes the current state of the bids and asks as 
+they are made, and these streams provide snapshots of that state.
+
+Due to the lack of `official documentation <https://developer.tdameritrade.com/
+content/streaming-data#_Toc504640612>`__, these streams are largely reverse 
+engineered. While the labeled data represents a best effort attempt to
+interpret stream fields, it's possible that something is wrong or incorrectly
+labeled.
+
+The documentation lists more book types than are implemented here. In 
+particular, it also lists ``FOREX_BOOK``, ``FUTURES_BOOK``, and
+``FUTURES_OPTIONS_BOOK`` as accessible streams. All experimentation has resulted 
+in these streams refusing to connect, typically returning errors about 
+unavailable services. Due to this behavior and the lack of official 
+documentation for book streams generally, ``tda-api`` these streams to be 
+partially implemented, and so excludes them. If you have any insight into using
+them, please
+`let us know <https://github.com/alexgolec/tda-api/issues>`__.
+
+
+-------------------------------------
+Equities Order Books: NYSE and NASDAQ
+-------------------------------------
+
+``tda-api`` supports level two data for NYSE and NASDAQ, which are the two major 
+exchanges dealing in equities, ETFs, etc. Stocks are typically listed on one or 
+the other, and it is useful to learn about the differences between them:
+
+ * `"The NYSE and NASDAQ: How They Work" on Investopedia
+   <https://www.investopedia.com/articles/basics/03/103103.asp>`__
+ * `"Here's the difference between the NASDAQ and NYSE" on Business Insider
+   <https://www.businessinsider.com/
+   heres-the-difference-between-the-nasdaq-and-nyse-2017-7>`__
+ * `"Can Stocks Be Traded on More Than One Exchange?" on Investopedia
+   <https://www.investopedia.com/ask/answers/05/stockmultipleexchanges.asp>`__
+
+You can identify on which exchange a symbol is listed by using
+:meth:`Client.search_instruments() <tda.client.Client.search_instruments>`:
+
+.. code-block:: python
+
+  r = c.search_instruments(['GOOG'], projection=c.Instrument.Projection.FUNDAMENTAL)
+  assert r.ok, r.raise_for_status()
+  print(r.json()['GOOG']['exchange'])  # Outputs NASDAQ
+
+However, many symbols have order books available on these streams even though 
+this API call returns a different exchange altogether. The only sure-fire way to 
+find out whether the book is available is to attempt to subscribe and see what 
+happens.
+
+Note to preserve equivalence with what little documentation there is, the NYSE
+book is called "listed." Testing indicates this stream corresponds to the NYSE
+book, but if you find any behavior that suggests otherwise please
+`let us know <https://github.com/alexgolec/tda-api/issues>`__.
+
+.. automethod:: tda.streaming::StreamClient.listed_book_subs
+.. automethod:: tda.streaming::StreamClient.add_listed_book_handler
+
+.. automethod:: tda.streaming::StreamClient.nasdaq_book_subs
+.. automethod:: tda.streaming::StreamClient.add_nasdaq_book_handler
+
+
+------------------
+Options Order Book
+------------------
+
+This stream provides the order book for options. It's not entirely clear what 
+exchange it aggregates from, but it's functional. The leading hypothesis is that
+it could be the order book for the `Chicago Board of Exchange
+<https://www.cboe.com/us/options>`__ options exchanges, although this is an 
+uneducated guess.
+   
+
+.. automethod:: tda.streaming::StreamClient.options_book_subs
+.. automethod:: tda.streaming::StreamClient.add_options_book_handler

@@ -1420,12 +1420,20 @@ class StreamClient(EnumEnforcer):
     ##########################################################################
     # LISTED_BOOK
 
-    async def listed_book_subs(self, symbols, *, fields=None):
+    async def listed_book_subs(self, symbols):
+        '''
+        Subscribe to the NYSE level two order book. Note this stream has no
+        official documentation.
+        '''
         await self._service_op(
             symbols, 'LISTED_BOOK', 'SUBS',
-            self.BookFields, fields=fields)
+            self.BookFields, fields=self.BookFields.all_fields())
 
     def add_listed_book_handler(self, handler):
+        '''
+        Register a function to handle level two NYSE book data as it is updated
+        See :ref:`registering_handlers` for details.
+        '''
         self._handlers['LISTED_BOOK'].append(
             self._BookHandler(handler, self.BookFields))
 
@@ -1433,22 +1441,39 @@ class StreamClient(EnumEnforcer):
     # NASDAQ_BOOK
 
     async def nasdaq_book_subs(self, symbols):
+        '''
+        Subscribe to the NASDAQ level two order book. Note this stream has no
+        official documentation.
+        '''
         await self._service_op(symbols, 'NASDAQ_BOOK', 'SUBS',
                                self.BookFields,
                                fields=self.BookFields.all_fields())
 
     def add_nasdaq_book_handler(self, handler):
+        '''
+        Register a function to handle level two NASDAQ book data as it is
+        updated See :ref:`registering_handlers` for details.
+        '''
         self._handlers['NASDAQ_BOOK'].append(
             self._BookHandler(handler, self.BookFields))
 
     ##########################################################################
     # OPTIONS_BOOK
 
-    async def options_book_subs(self, symbols, *, fields=None):
+    async def options_book_subs(self, symbols):
+        '''
+        Subscribe to the level two order book for options. Note this stream has no
+        official documentation, and it's not entirely clear what exchange it 
+        corresponds to. Use at your own risk.
+        '''
         await self._service_op(symbols, 'OPTIONS_BOOK', 'SUBS',
                                self.BookFields,
                                fields=self.BookFields.all_fields())
 
     def add_options_book_handler(self, handler):
+        '''
+        Register a function to handle level two options book data as it is
+        updated See :ref:`registering_handlers` for details.
+        '''
         self._handlers['OPTIONS_BOOK'].append(
             self._BookHandler(handler, self.BookFields))
