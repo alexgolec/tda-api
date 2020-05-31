@@ -401,7 +401,7 @@ class StreamClient(EnumEnforcer):
         #: Total volume for the minute
         VOLUME = 5
 
-        #: Identifies the candle minute. Explicitly labeled "not useful" in the 
+        #: Identifies the candle minute. Explicitly labeled "not useful" in the
         #: official documentation.
         SEQUENCE = 6
 
@@ -578,7 +578,7 @@ class StreamClient(EnumEnforcer):
         #: Day’s low trade price. Same notes as ``HIGH_PRICE``.
         LOW_PRICE = 13
 
-        #: Indicates Up or Downtick (NASDAQ NMS & Small Cap). Updates whenever 
+        #: Indicates Up or Downtick (NASDAQ NMS & Small Cap). Updates whenever
         #: bid updates.
         BID_TICK = 14
 
@@ -599,7 +599,7 @@ class StreamClient(EnumEnforcer):
         #: being suitable for providing collateral for margin debt?
         MARGINABLE = 17
 
-        #: Stock can be sold short? 
+        #: Stock can be sold short?
         SHORTABLE = 18
 
         #: Deprecated, documented for completeness.
@@ -723,8 +723,8 @@ class StreamClient(EnumEnforcer):
         Subscribe to level one equity quote data.
 
         :param symbols: Equity symbols to receive quotes for
-        :param fields: Iterable of :class:`LevelOneEquityFields` representing 
-                       the fields to return in streaming entries. If unset, all 
+        :param fields: Iterable of :class:`LevelOneEquityFields` representing
+                       the fields to return in streaming entries. If unset, all
                        fields will be requested.
         '''
         await self._service_op(
@@ -733,10 +733,7 @@ class StreamClient(EnumEnforcer):
 
     def add_level_one_equity_handler(self, handler):
         '''
-        `Official documentation <https://developer.tdameritrade.com/content/
-        streaming-data#_Toc504640600>`__
-
-        Register a function to handle level one equity quotes as they are sent. 
+        Register a function to handle level one equity quotes as they are sent.
         See :ref:`registering_handlers` for details.
         '''
         self._handlers['QUOTE'].append(_Handler(handler,
@@ -746,29 +743,97 @@ class StreamClient(EnumEnforcer):
     # OPTION
 
     class LevelOneOptionFields(_BaseFieldEnum):
+        '''
+        `Official documentation <https://developer.tdameritrade.com/content/
+        streaming-data#_Toc504640601>`__
+        '''
+
+        #: Ticker symbol in upper case. Represented in the stream as the
+        #: ``key`` field.
         SYMBOL = 0
+
+        #: A company, index or fund name
         DESCRIPTION = 1
+
+        #: Current Best Bid Price
         BID_PRICE = 2
+
+        #: Current Best Ask Price
         ASK_PRICE = 3
+
+        #: Price at which the last trade was matched
         LAST_PRICE = 4
+
+        #: Day’s high trade price. Notes:
+        #:
+        #:  * According to industry standard, only regular session trades set
+        #:    the High and Low.
+        #:  * If an option does not trade in the AM session, high and low will
+        #:    be zero.
+        #:  * High/low reset to 0 at 7:28am ET.
         HIGH_PRICE = 5
+
+        #: Day’s low trade price. Same notes as ``HIGH_PRICE``.
         LOW_PRICE = 6
+
+        #: Previous day’s closing price. Closing prices are updated from the
+        #: DB when Pre-Market tasks are run at 7:29AM ET.
         CLOSE_PRICE = 7
+
+        #: Aggregated shares traded throughout the day, including pre/post
+        #: market hours. Reset to zero at 7:28am ET.
         TOTAL_VOLUME = 8
+
+        #: Open interest
         OPEN_INTEREST = 9
+
+        #: Option Risk/Volatility Measurement. Volatility is reset to 0 when
+        #: Pre-Market tasks are run at 7:28 AM ET.
         VOLATILITY = 10
+
+        #: Trade time of the last quote in seconds since midnight EST
         QUOTE_TIME = 11
+
+        #: Trade time of the last quote in seconds since midnight EST
         TRADE_TIME = 12
+
+        #: Money intrinsic value
         MONEY_INTRINSIC_VALUE = 13
+
+        #: Day of the quote
         QUOTE_DAY = 14
+
+        #: Day of the trade
         TRADE_DAY = 15
+
+        #: Option expiration year
         EXPIRATION_YEAR = 16
+
+        #: Option multiplier
         MULTIPLIER = 17
+
+        #: Valid decimal points. 4 digits for AMEX, NASDAQ, OTCBB, and PINKS,
+        #: 2 for others.
         DIGITS = 18
+
+        #: Day's Open Price. Notes:
+        #:
+        #:  * Open is set to ZERO when Pre-Market tasks are run at 7:28.
+        #:  * If a stock doesn’t trade the whole day, then the open price is 0.
+        #:  * In the AM session, Open is blank because the AM session trades do
+        #:    not set the open.
         OPEN_PRICE = 19
+
+        #: Number of shares for bid
         BID_SIZE = 20
+
+        #: Number of shares for ask
         ASK_SIZE = 21
+
+        #: Number of shares traded with last trade, in 100's
         LAST_SIZE = 22
+
+        #: Current Last-Prev Close
         NET_CHANGE = 23
         STRIKE_PRICE = 24
         CONTRACT_TYPE = 25
@@ -783,18 +848,37 @@ class StreamClient(EnumEnforcer):
         THETA = 34
         VEGA = 35
         RHO = 36
+
+        #: Indicates a symbols current trading status, Normal, Halted, Closed
         SECURITY_STATUS = 37
         THEORETICAL_OPTION_VALUE = 38
         UNDERLYING_PRICE = 39
         UV_EXPIRATION_TYPE = 40
+
+        #: Mark Price
         MARK = 41
 
     async def level_one_option_subs(self, symbols, *, fields=None):
+        '''
+        `Official documentation <https://developer.tdameritrade.com/content/
+        streaming-data#_Toc504640602>`__
+
+        Subscribe to level one option quote data.
+
+        :param symbols: Option symbols to receive quotes for
+        :param fields: Iterable of :class:`LevelOneOptionFields` representing
+                       the fields to return in streaming entries. If unset, all
+                       fields will be requested.
+        '''
         await self._service_op(
             symbols, 'OPTION', 'SUBS', self.LevelOneOptionFields,
             fields=fields)
 
     def add_level_one_option_handler(self, handler):
+        '''
+        Register a function to handle level one options quotes as they are sent.
+        See :ref:`registering_handlers` for details.
+        '''
         self._handlers['OPTION'].append(_Handler(handler,
                                                  self.LevelOneOptionFields))
 

@@ -225,10 +225,6 @@ documentation, we chose to not ignore them and instead pass them to all handlers
 Clients are encouraged to use their judgment in handling these values.
 
 
-+++++++++++++++++
-Available Streams
-+++++++++++++++++
-
 This section lists the streams supported by ``tda-api``. Some streams are 
 described in the documentation but were not implemented due to complexity. If 
 you feel you'd like a stream added, please file an issue 
@@ -237,17 +233,17 @@ you feel you'd like a stream added, please file an issue
 CONTRIBUTING.rst>`__ to learn how to add the functionality yourself.
 
 
-------------
+++++++++++++
 OHLCV Charts
-------------
+++++++++++++
 
 These streams summarize trading activity on a minute-by-minute basis for 
 equities and futures, providing OHLCV (Open/High/Low/Close/Volume) data.
 
 
-~~~~~~~~~~~~~
+-------------
 Equity Charts
-~~~~~~~~~~~~~
+-------------
 
 OHLCV data for equities.
 
@@ -259,9 +255,9 @@ OHLCV data for equities.
   :undoc-members:
 
 
-~~~~~~~~~~~~~~
+--------------
 Futures Charts
-~~~~~~~~~~~~~~
+--------------
 
 OHLCV data for futures.
 
@@ -273,22 +269,34 @@ OHLCV data for futures.
   :undoc-members:
 
 
-----------------
+++++++++++++++++
 Level One Quotes
-----------------
+++++++++++++++++
 
 Level one quotes provide an up-to-date view of bid/ask/volume data. They are 
 updated live as data comes in.
 
-~~~~~~~~~~~~~~~
+---------------
 Equities Quotes
-~~~~~~~~~~~~~~~
+---------------
 
 Quotes for equities on NYSE, AMEX, and Asia Pacific.
 
 .. automethod:: tda.streaming::StreamClient.level_one_equity_subs
 .. automethod:: tda.streaming::StreamClient.add_level_one_equity_handler
 .. autoclass:: tda.streaming::StreamClient.LevelOneEquityFields
+  :members:
+  :undoc-members:
+
+--------------
+Options Quotes
+--------------
+
+Quotes for options
+
+.. automethod:: tda.streaming::StreamClient.level_one_option_subs
+.. automethod:: tda.streaming::StreamClient.add_level_one_option_handler
+.. autoclass:: tda.streaming::StreamClient.LevelOneOptionFields
   :members:
   :undoc-members:
 
