@@ -245,7 +245,7 @@ equities and futures, providing OHLCV (Open/High/Low/Close/Volume) data.
 Equity Charts
 -------------
 
-OHLCV data for equities.
+Minute-by-minute OHLCV data for equities.
 
 .. automethod:: tda.streaming::StreamClient.chart_equity_subs
 .. automethod:: tda.streaming::StreamClient.chart_equity_add
@@ -259,7 +259,7 @@ OHLCV data for equities.
 Futures Charts
 --------------
 
-OHLCV data for futures.
+Minute-by-minute OHLCV data for futures.
 
 .. automethod:: tda.streaming::StreamClient.chart_futures_subs
 .. automethod:: tda.streaming::StreamClient.chart_futures_add
@@ -274,13 +274,14 @@ Level One Quotes
 ++++++++++++++++
 
 Level one quotes provide an up-to-date view of bid/ask/volume data. They are 
-updated live as data comes in.
+updated live as market conditions change.
+
 
 ---------------
 Equities Quotes
 ---------------
 
-Quotes for equities on NYSE, AMEX, and Asia Pacific.
+Level one quotes for equities traded on NYSE, AMEX, and Asia Pacific.
 
 .. automethod:: tda.streaming::StreamClient.level_one_equity_subs
 .. automethod:: tda.streaming::StreamClient.add_level_one_equity_handler
@@ -288,15 +289,57 @@ Quotes for equities on NYSE, AMEX, and Asia Pacific.
   :members:
   :undoc-members:
 
+
 --------------
 Options Quotes
 --------------
 
-Quotes for options
+Level one quotes for options. Note you can use 
+:meth:`Client.get_option_chain() <tda.client.Client.get_option_chain>` to fetch
+available option symbols.
 
 .. automethod:: tda.streaming::StreamClient.level_one_option_subs
 .. automethod:: tda.streaming::StreamClient.add_level_one_option_handler
 .. autoclass:: tda.streaming::StreamClient.LevelOneOptionFields
+  :members:
+  :undoc-members:
+
+
+--------------
+Futures Quotes
+--------------
+
+Level one quotes for futures.
+
+.. automethod:: tda.streaming::StreamClient.level_one_futures_subs
+.. automethod:: tda.streaming::StreamClient.add_level_one_futures_handler
+.. autoclass:: tda.streaming::StreamClient.LevelOneFuturesFields
+  :members:
+  :undoc-members:
+
+
+------------
+Forex Quotes
+------------
+
+Level one quotes for foreign exchange pairs.
+
+.. automethod:: tda.streaming::StreamClient.level_one_forex_subs
+.. automethod:: tda.streaming::StreamClient.add_level_one_forex_handler
+.. autoclass:: tda.streaming::StreamClient.LevelOneForexFields
+  :members:
+  :undoc-members:
+
+
+----------------------
+Futures Options Quotes
+----------------------
+
+Level one quotes for futures options.
+
+.. automethod:: tda.streaming::StreamClient.level_one_futures_options_subs
+.. automethod:: tda.streaming::StreamClient.add_level_one_futures_options_handler
+.. autoclass:: tda.streaming::StreamClient.LevelOneFuturesOptionsFields
   :members:
   :undoc-members:
 
