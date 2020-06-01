@@ -7,16 +7,7 @@ import unittest
 from tda.orders import EquityOrderBuilder
 from tda.utils import Utils
 from . import test_utils
-
-
-class MockResponse:
-    def __init__(self, json, ok, headers=None):
-        self._json = json
-        self.ok = ok
-        self.headers = headers if headers is not None else {}
-
-    def json(self):
-        return self._json
+from .test_utils import MockResponse
 
 
 class UtilsTest(unittest.TestCase):

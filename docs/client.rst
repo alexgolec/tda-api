@@ -3,9 +3,9 @@
 
 .. _client:
 
-==============
-Client Wrapper
-==============
+===========
+HTTP Client
+===========
 
 A naive, unopinionated wrapper around the
 `TD Ameritrade HTTP API <https://developer.tdameritrade.com/apis>`_. This

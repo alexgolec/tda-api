@@ -1,3 +1,6 @@
+aiounittest
+asyncmock
+colorama
 coverage
 nose
 requests_oauthlib
@@ -6,3 +9,4 @@ pytz
 selenium
 sphinx_rtd_theme
 twine
+websockets

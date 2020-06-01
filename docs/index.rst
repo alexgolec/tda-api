@@ -10,6 +10,7 @@
   getting-started
   auth
   client
+  streaming
   orders
   util
   example

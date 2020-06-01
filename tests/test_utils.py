@@ -1,3 +1,14 @@
+from colorama import Fore, Back, Style, init
+
+import difflib
+import json
+
+
+def account_principals():
+    with open('tests/testdata/principals.json', 'r') as f:
+        return json.load(f)
+
+
 def real_order():
     return {
         'session': 'NORMAL',
@@ -51,3 +62,42 @@ def real_order():
             }
         ]
     }
+
+
+class MockResponse:
+    def __init__(self, json, ok, headers=None):
+        self._json = json
+        self.ok = ok
+        self.headers = headers if headers is not None else {}
+
+    def json(self):
+        return self._json
+
+
+def has_diff(old, new):
+    old_out = json.dumps(old, indent=4).splitlines()
+    new_out = json.dumps(new, indent=4).splitlines()
+    diff = difflib.ndiff(old_out, new_out)
+    diff, has_diff = color_diff(diff)
+
+    if has_diff:
+        print('\n'.join(diff))
+    return has_diff
+
+
+def color_diff(diff):
+    has_diff = False
+    output = []
+    for line in diff:
+        if line.startswith('+'):
+            output.append(Fore.GREEN + line + Fore.RESET)
+            has_diff = True
+        elif line.startswith('-'):
+            output.append(Fore.RED + line + Fore.RESET)
+            has_diff = True
+        elif line.startswith('^'):
+            output.append(Fore.BLUE + line + Fore.RESET)
+            has_diff = True
+        else:
+            output.append(line)
+    return output, has_diff
