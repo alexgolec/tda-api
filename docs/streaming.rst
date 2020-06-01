@@ -50,6 +50,22 @@ implementation and preserve performance. As a result, it requires Python 3.8 or
 higher to use. ``tda.stream`` will not be available on older versions of Python.
 
 
++++++++++++++++++++++++++++++
+Getting Real-Time Data Access
++++++++++++++++++++++++++++++
+
+By default, TD Ameritrade delivers quotes delayed by fifteen minutes. However, 
+as of this writing, real time streaming is available for all streams, including 
+quotes and level two depth of book data. It is also available for free, which is 
+an impressive feature for a retail brokerage. For most users it's enough to sign 
+`exchange agreements <https://invest.ameritrade.com/grid/p/site#r=jPage/cgi-bin/
+apps/u/AccountSettings>`__, although your mileage may vary. 
+
+Please note that your use of this API is subject to agreeing to TDAmeritrade's 
+terms of service. Please don't reach out to us asking for help enabling 
+real-time data. Answers to most questions are a Google search away.
+
+
 ++++++++++++
 Use Overview
 ++++++++++++
@@ -344,6 +360,8 @@ Level one quotes for futures options.
   :undoc-members:
 
 
+.. _level_two:
+
 ++++++++++++++++++++
 Level Two Order Book 
 ++++++++++++++++++++
@@ -420,7 +438,47 @@ exchange it aggregates from, but it's functional. The leading hypothesis is that
 it could be the order book for the `Chicago Board of Exchange
 <https://www.cboe.com/us/options>`__ options exchanges, although this is an 
 uneducated guess.
-   
 
 .. automethod:: tda.streaming::StreamClient.options_book_subs
 .. automethod:: tda.streaming::StreamClient.add_options_book_handler
+
+
+++++++++++++
+Time of Sale
+++++++++++++
+
+The data in :ref:`level_two` describes the bids and asks for various 
+instruments, but by itself is insufficient to determine when trades actually 
+take place. The time of sale streams notify on trades as they happen. Together 
+with the level two data, they provide a fairly complete picture of what is 
+sappening on an exchange.
+
+All time of sale streams us a common spec:
+
+.. autoclass:: tda.streaming::StreamClient.TimesaleFields
+  :members:
+  :undoc-members:
+
+
+-------------
+Equity Trades
+-------------
+
+.. automethod:: tda.streaming::StreamClient.timesale_equity_subs
+.. automethod:: tda.streaming::StreamClient.add_timesale_equity_handler
+
+--------------
+Futures Trades
+--------------
+
+.. automethod:: tda.streaming::StreamClient.timesale_futures_subs
+.. automethod:: tda.streaming::StreamClient.add_timesale_futures_handler
+
+--------------
+Options Trades
+--------------
+
+.. automethod:: tda.streaming::StreamClient.timesale_options_subs
+.. automethod:: tda.streaming::StreamClient.add_timesale_options_handler
+
+

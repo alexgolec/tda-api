@@ -1322,36 +1322,87 @@ class StreamClient(EnumEnforcer):
     # TIMESALE
 
     class TimesaleFields(_BaseFieldEnum):
+        '''
+        `Official documentation <https://developer.tdameritrade.com/content/
+        streaming-data#_Toc504640626>`__
+        '''
+
+        #: Ticker symbol in upper case. Represented in the stream as the
+        #: ``key`` field.
         SYMBOL = 0
+
+        #: Trade time of the last trade in milliseconds since epoch
         TRADE_TIME = 1
+
+        #: Price at which the last trade was matched
         LAST_PRICE = 2
+
+        #: Number of shares traded with last trade
         LAST_SIZE = 3
+
+        #: Number of shares for bid
         LAST_SEQUENCE = 4
 
     async def timesale_equity_subs(self, symbols, *, fields=None):
+        '''
+        `Official documentation <https://developer.tdameritrade.com/content/
+        streaming-data#_Toc504640628>`__
+
+        Subscribe to time of sale notifications for equities.
+
+        :param symbols: Equity symbols to subscribe to
+        '''
         await self._service_op(
             symbols, 'TIMESALE_EQUITY', 'SUBS',
             self.TimesaleFields, fields=fields)
 
     def add_timesale_equity_handler(self, handler):
+        '''
+        Register a function to handle equity trade notifications as they happen
+        See :ref:`registering_handlers` for details.
+        '''
         self._handlers['TIMESALE_EQUITY'].append(_Handler(handler,
                                                           self.TimesaleFields))
 
     async def timesale_futures_subs(self, symbols, *, fields=None):
+        '''
+        `Official documentation <https://developer.tdameritrade.com/content/
+        streaming-data#_Toc504640628>`__
+
+        Subscribe to time of sale notifications for futures.
+
+        :param symbols: Futures symbols to subscribe to
+        '''
         await self._service_op(
             symbols, 'TIMESALE_FUTURES', 'SUBS',
             self.TimesaleFields, fields=fields)
 
     def add_timesale_futures_handler(self, handler):
+        '''
+        Register a function to handle futures trade notifications as they happen
+        See :ref:`registering_handlers` for details.
+        '''
         self._handlers['TIMESALE_FUTURES'].append(_Handler(handler,
                                                            self.TimesaleFields))
 
     async def timesale_options_subs(self, symbols, *, fields=None):
+        '''
+        `Official documentation <https://developer.tdameritrade.com/content/
+        streaming-data#_Toc504640628>`__
+
+        Subscribe to time of sale notifications for options.
+
+        :param symbols: Options symbols to subscribe to
+        '''
         await self._service_op(
             symbols, 'TIMESALE_OPTIONS', 'SUBS',
             self.TimesaleFields, fields=fields)
 
     def add_timesale_options_handler(self, handler):
+        '''
+        Register a function to handle options trade notifications as they happen
+        See :ref:`registering_handlers` for details.
+        '''
         self._handlers['TIMESALE_OPTIONS'].append(_Handler(handler,
                                                            self.TimesaleFields))
 
