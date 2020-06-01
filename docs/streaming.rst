@@ -8,11 +8,12 @@
 Streaming Client
 ================
 
-A minimally-opinionated wapper around the
-`TD Ameritrade Streaming API <https://developer.tdameritrade.com/content/streaming-data>`__. This API is a 
-websockets-based that provides to up-to-the-second data on market 
-activity. Most impressively, it allows (apparently truncated) Level Two data for 
-all major markets for equities, options, and futures.
+A wapper around the
+`TD Ameritrade Streaming API <https://developer.tdameritrade.com/content/
+streaming-data>`__. This API is a 
+websockets-based streaming API that provides to up-to-the-second data on market 
+activity. Most impressively, it provides realtime data, including Level Two and 
+time of sale data for major equities, options, and futures exchanges. 
 
 Here's an example of how you can receive book snapshots of ``GOOG`` (note if you 
 run this outside regular trading hours you may not see anything):
@@ -45,25 +46,9 @@ run this outside regular trading hours you may not see anything):
   asyncio.get_event_loop().run_until_complete(read_stream())
 
 This API uses Python
-`coroutines <https://docs.python.org/3/library/asyncio-task.html>`_ to simplify 
+`coroutines <https://docs.python.org/3/library/asyncio-task.html>`__ to simplify 
 implementation and preserve performance. As a result, it requires Python 3.8 or 
 higher to use. ``tda.stream`` will not be available on older versions of Python.
-
-
-+++++++++++++++++++++++++++++
-Getting Real-Time Data Access
-+++++++++++++++++++++++++++++
-
-By default, TD Ameritrade delivers quotes delayed by fifteen minutes. However, 
-as of this writing, real time streaming is available for all streams, including 
-quotes and level two depth of book data. It is also available for free, which is 
-an impressive feature for a retail brokerage. For most users it's enough to sign 
-`exchange agreements <https://invest.ameritrade.com/grid/p/site#r=jPage/cgi-bin/
-apps/u/AccountSettings>`__, although your mileage may vary. 
-
-Please note that your use of this API is subject to agreeing to TDAmeritrade's 
-terms of service. Please don't reach out to us asking for help enabling 
-real-time data. Answers to most questions are a Google search away.
 
 
 ++++++++++++
@@ -82,11 +67,12 @@ Before we can perform any stream operations, the client must be logged in to the
 stream. Unlike the HTTP client, in which every request is authenticated using a 
 token, this client sends unauthenticated requests and instead authenticates the 
 entire stream. As a result, this login process is distinct from the token 
-generation step that's necessary for the HTTP client.
+generation step that's used in the HTTP client.
 
-Stream login is accomplished simply by calling ``login()``. Once this happens 
-successfully, all stream operations can be performed. Attemping to perform
-operations that require login before this function is called raises an exception.
+Stream login is accomplished simply by calling :meth:`StreamClient.login()`. Once
+this happens successfully, all stream operations can be performed. Attemping to
+perform operations that require login before this function is called raises an
+exception.
 
 .. automethod:: tda.streaming.StreamClient.login
 
@@ -118,9 +104,12 @@ vary. What's more, these results aren't documented in the official
 documentation. As a result, it's recommended not to call a subscription function 
 more than once for any given stream.
 
-Some services, notably the ``CHART_EQUITY`` and ``CHART_FUTURES`` services, 
-offer ``SERVICE_NAME_add`` functions which can be used to augment the subscription 
-with additional symbols.
+Some services, notably :ref:`equity_charts` and :ref:`futures_charts`, 
+offer ``SERVICE_NAME_add`` functions which can be used to add symbols to the 
+stream after the subscription has been created. For others, calling the 
+subscription methods again seems to clear the old subscription and create a new 
+one. Note this behavior is not officially documented, so this interpretation may 
+be incorrect.
 
 
 --------------------
@@ -190,7 +179,7 @@ labels:
 These labels are tricky to decode, and require a knowledge of the documentation 
 to decode properly. ``tda-api`` makes your life easier by doing this decoding 
 for you, replacing numerical labels with strings pulled from the documentation. 
-For instance, the message above would be translated to:
+For instance, the message above would be relabeled as:
 
 .. code-block:: python
 
@@ -217,10 +206,11 @@ For instance, the message above would be translated to:
 This documentation describes the various fields and their numerical values. You 
 can find them by investigating the various enum classes ending in ``***Fields``.
 
-Some services, such as the ``LEVELONE_***`` services, allow you to specify a 
-subset of fields to be returned. Subscription handlers for these services take 
-a list of the appropriate field enums the extra ``fields`` parameter. If nothing 
-is passed to this parameter, all supported fields are requested.
+Some streams, such as the ones described in :ref:`level_one`, allow you to
+specify a subset of fields to be returned. Subscription handlers for these
+services take a list of the appropriate field enums the extra ``fields``
+parameter. If nothing is passed to this parameter, all supported fields are 
+requested.
 
 
 -----------------------------
@@ -235,18 +225,39 @@ can be ignored, but other streams contain this field both in their metadata and
 in their content, and yet their documentation doesn't mention ignoring any
 ``seq`` values.
 
-This presents us with a design choice as API authors: should ``tda-api`` ignore 
-duplicate ``seq`` values on our users' behalf? Given the ambiguity of the 
-documentation, it was decided to not ignore them and instead pass them to all
-handlers. Clients are encouraged to use their judgment in handling these values.
+This presents a design choice: should ``tda-api`` ignore duplicate ``seq``
+values on users' behalf? Given the ambiguity of the documentation, it was
+decided to not ignore them and instead pass them to all handlers. Clients 
+are encouraged to use their judgment in handling these values.
 
 
-This section lists the streams supported by ``tda-api``. Some streams are 
-described in the documentation but were not implemented due to complexity. If 
-you feel you'd like a stream added, please file an issue 
+---------------------
+Unimplemented Streams
+---------------------
+
+This document lists the streams supported by ``tda-api``. Eagle-eyed readers may 
+notice that some streams are described in the documentation but were not 
+implemented. This is due to complexity or anticipated lack of interest. If you 
+feel you'd like a stream added, please file an issue 
 `here <https://github.com/alexgolec/tda-api/issues>`__ or see the 
 `contributing guidelines <https://github.com/alexgolec/tda-api/blob/master/
 CONTRIBUTING.rst>`__ to learn how to add the functionality yourself.
+
+
+++++++++++++++++++++++++++++++
+Enabling Real-Time Data Access
+++++++++++++++++++++++++++++++
+
+By default, TD Ameritrade delivers delayed quotes. However, as of this writing,
+real time streaming is available for all streams, including quotes and level two 
+depth of book data. It is also available for free, which in the author's opinion
+is an impressive feature for a retail brokerage. For most users it's enough to 
+sign the relevant `exchange agreements <https://invest.ameritrade.com/grid/p/
+site#r=jPage/cgi-bin/apps/u/AccountSettings>`__, although your mileage may vary. 
+
+Please remember that your use of this API is subject to agreeing to 
+TDAmeritrade's terms of service. Please don't reach out to us asking for help 
+enabling real-time data. Answers to most questions are a Google search away.
 
 
 ++++++++++++
@@ -256,6 +267,8 @@ OHLCV Charts
 These streams summarize trading activity on a minute-by-minute basis for 
 equities and futures, providing OHLCV (Open/High/Low/Close/Volume) data.
 
+
+.. _equity_charts:
 
 -------------
 Equity Charts
@@ -271,6 +284,8 @@ Minute-by-minute OHLCV data for equities.
   :undoc-members:
 
 
+.. _futures_charts:
+
 --------------
 Futures Charts
 --------------
@@ -285,12 +300,15 @@ Minute-by-minute OHLCV data for futures.
   :undoc-members:
 
 
+.. _level_one:
+
 ++++++++++++++++
 Level One Quotes
 ++++++++++++++++
 
-Level one quotes provide an up-to-date view of bid/ask/volume data. They are 
-updated live as market conditions change.
+Level one quotes provide an up-to-date view of bid/ask/volume data. In 
+particular they list the best available bid and ask prices, together with the 
+requested volume of each. They are updated live as market conditions change.
 
 
 ---------------
@@ -366,9 +384,9 @@ Level one quotes for futures options.
 Level Two Order Book 
 ++++++++++++++++++++
 
-These streams provide a view on continuous order books of various securities.
-The level two order book describes the current state of the bids and asks as 
-they are made, and these streams provide snapshots of that state.
+Level two streams provide a view on continuous order books of various securities.
+The level two order book describes the current the current bids and asks on the 
+market, and these streams provide snapshots of that state.
 
 Due to the lack of `official documentation <https://developer.tdameritrade.com/
 content/streaming-data#_Toc504640612>`__, these streams are largely reverse 
@@ -381,8 +399,8 @@ particular, it also lists ``FOREX_BOOK``, ``FUTURES_BOOK``, and
 ``FUTURES_OPTIONS_BOOK`` as accessible streams. All experimentation has resulted 
 in these streams refusing to connect, typically returning errors about 
 unavailable services. Due to this behavior and the lack of official 
-documentation for book streams generally, ``tda-api`` these streams to be 
-partially implemented, and so excludes them. If you have any insight into using
+documentation for book streams generally, ``tda-api`` assumes these streams are not
+actually implemented, and so excludes them. If you have any insight into using
 them, please
 `let us know <https://github.com/alexgolec/tda-api/issues>`__.
 
@@ -413,8 +431,8 @@ You can identify on which exchange a symbol is listed by using
   print(r.json()['GOOG']['exchange'])  # Outputs NASDAQ
 
 However, many symbols have order books available on these streams even though 
-this API call returns a different exchange altogether. The only sure-fire way to 
-find out whether the book is available is to attempt to subscribe and see what 
+this API call returns neither NYSE nor NASDAQ. The only sure-fire way to find out
+whether the order book is available is to attempt to subscribe and see what 
 happens.
 
 Note to preserve equivalence with what little documentation there is, the NYSE
@@ -434,10 +452,10 @@ Options Order Book
 ------------------
 
 This stream provides the order book for options. It's not entirely clear what 
-exchange it aggregates from, but it's functional. The leading hypothesis is that
-it could be the order book for the `Chicago Board of Exchange
-<https://www.cboe.com/us/options>`__ options exchanges, although this is an 
-uneducated guess.
+exchange it aggregates from, but it's been tested to work and deliver data. The 
+leading hypothesis is that it is bethe order book for the 
+`Chicago Board of Exchange <https://www.cboe.com/us/options>`__ options 
+exchanges, although this is an admittedly an uneducated guess.
 
 .. automethod:: tda.streaming::StreamClient.options_book_subs
 .. automethod:: tda.streaming::StreamClient.add_options_book_handler
@@ -451,9 +469,9 @@ The data in :ref:`level_two` describes the bids and asks for various
 instruments, but by itself is insufficient to determine when trades actually 
 take place. The time of sale streams notify on trades as they happen. Together 
 with the level two data, they provide a fairly complete picture of what is 
-sappening on an exchange.
+happening on an exchange.
 
-All time of sale streams us a common spec:
+All time of sale streams uss a common set of fields:
 
 .. autoclass:: tda.streaming::StreamClient.TimesaleFields
   :members:
