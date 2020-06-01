@@ -3061,3 +3061,13 @@ class StreamClientTest(aiounittest.AsyncTestCase):
         await self.client.handle_message()
         handler_1.assert_has_calls(
             [call(stream_item['data'][0]), call(stream_item['data'][1])])
+
+    @patch('tda.streaming.websockets.client.connect', autospec=AsyncMock())
+    async def test_handle_message_without_login(self, ws_connect):
+        with self.assertRaisesRegex(ValueError, '.*Socket not open.*'):
+            await self.client.handle_message()
+
+    @patch('tda.streaming.websockets.client.connect', autospec=AsyncMock())
+    async def test_subscribe_without_login(self, ws_connect):
+        with self.assertRaisesRegex(ValueError, '.*Socket not open.*'):
+            await self.client.chart_equity_subs(['GOOG,MSFT'])
