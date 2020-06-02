@@ -99,9 +99,9 @@ and fetch a reusable token. It returns a fully-configured :ref:`client`, ready
 to send API calls. It also handles token refreshing, and writes updated tokens 
 to the token file.
 
-These functions are agnostic to the webdriver, meaning you can use the webdriver 
-of whaetever browser you have available. You can find information about 
-available webdriver on the `Selenium documentation
+These functions are webdriver-agnostic, meaning you can use whatever 
+webdriver-supported browser you can available on your system. You can find 
+information about available webdriver on the `Selenium documentation
 <https://www.selenium.dev/documentation/en/getting_started_with_webdriver/
 browsers/>`__.
 

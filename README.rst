@@ -30,7 +30,7 @@ endpoint. Notable functionality includes:
 How do I use ``tda-api``?
 -------------------------
 
-For a full description of ``tda-api``'s functionality, checkout the 
+For a full description of ``tda-api``'s functionality, check out the 
 `documentation <https://tda-api.readthedocs.io/en/latest/>`__. Meawhile, here's 
 a quick getting started guide:
 
