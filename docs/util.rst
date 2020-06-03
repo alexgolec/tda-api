@@ -17,10 +17,11 @@ Get the Most Recent Order
 -------------------------
 
 For successfully placed orders, :meth:`tda.client.Client.place_order` returns 
-the ID of the newly created order, encoded in the headers. This method inspects 
-the response and extracts the order ID from the contents, if it's there. This
-order ID can then be used to monitor or modify the order as described in the 
-:ref:`Client documentation <orders-section>`. Example usage:
+the ID of the newly created order, encoded in the `r.headers['Location']` 
+header. This method inspects the response and extracts the order ID from the 
+contents, if it's there. This order ID can then be used to monitor or modify the
+order as described in the :ref:`Client documentation <orders-section>`. Example
+usage:
 
 .. code-block:: python
 

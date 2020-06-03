@@ -302,10 +302,6 @@ class Client(EnumEnforcer):
         successful, the response will contain the ID of the generated order. See
         :meth:`tda.utils.Utils.extract_order_id` for more details.
 
-        Note this endpoint does not return JSON on success. If the order was
-        successfully placed you can find its location in the headers under
-        ``r.headers['Location']``.
-
         `Official documentation
         <https://developer.tdameritrade.com/account-access/apis/post/accounts/
         %7BaccountId%7D/orders-0>`__. '''

@@ -138,8 +138,8 @@ class StreamClient(EnumEnforcer):
             ret = self._overflow_items.pop()
 
             self.logger.debug(
-                    'Receive {}: Returning message from overflow: {}'.format(
-                        self.req_num(), json.dumps(ret, indent=4)))
+                'Receive {}: Returning message from overflow: {}'.format(
+                    self.req_num(), json.dumps(ret, indent=4)))
         else:
             raw = await self._socket.recv()
             try:
@@ -151,8 +151,8 @@ class StreamClient(EnumEnforcer):
                 raise UnparsableMessage(raw, e, msg)
 
             self.logger.debug(
-                    'Receive {}: Returning message from stream: {}'.format(
-                        self.req_num(), json.dumps(ret, indent=4)))
+                'Receive {}: Returning message from stream: {}'.format(
+                    self.req_num(), json.dumps(ret, indent=4)))
         return ret
 
     async def _init_from_principals(self, principals):

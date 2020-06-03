@@ -111,11 +111,11 @@ class Utils(EnumEnforcer):
             lookback_window=datetime.timedelta(seconds=60 * 60 * 24)):
         '''
         When placing orders, the TDA API does not always return the order ID
-        of the newly placed order, especially when the order was rejected. This
-        means if we want to make extra sure of its status, we have to take a
-        guess as to which order we just placed. This method simplifies things by
-        returning the most recently-placed order with the given order
-        signature.
+        of the newly placed order, especially when the order was rejected.
+        You can use :meth:`Utils.extract_order_id` to extract order numbers
+        from responses representing successful order creation, but if that
+        method fails then you can use this method to fetch the most
+        recently-placed order that matches the given order signature.
 
         **Note:** This method cannot guarantee that the calling process was the
         one which placed an order. This means that if there are multiple sources
