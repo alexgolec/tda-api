@@ -59,6 +59,8 @@ class Utils(EnumEnforcer):
 
         self.client = client
         self.account_id = account_id
+        if isinstance(self.account_id, str):
+          self.account_id = int(self.account_id)
 
     def set_account_id(self, account_id):
         '''Set the account ID used by this ``Utils`` instance.'''
