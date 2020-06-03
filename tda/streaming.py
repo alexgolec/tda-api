@@ -5,10 +5,21 @@ import asyncio
 import copy
 import datetime
 import json
+import logging
 import urllib.parse
 import websockets
 
 from .utils import EnumEnforcer
+
+
+__LOGGER__ = None
+
+
+def get_logger():
+    global __LOGGER__
+    if __LOGGER__ is None:
+        __LOGGER__ = logging.getLogger(__name__)
+    return __LOGGER__
 
 
 class _BaseFieldEnum(Enum):
@@ -100,10 +111,22 @@ class StreamClient(EnumEnforcer):
         # list before they are read from the stream.
         self._overflow_items = deque()
 
+        # Logging-related fields
+        self.logger = get_logger()
+        self.request_number = 0
+
+    def req_num(self):
+        self.request_number += 1
+        return self.request_number
+
     async def _send(self, obj):
         if self._socket is None:
             raise ValueError(
                 'Socket not open. Did you forget to call login()?')
+
+        self.logger.debug('Send {}: Sending {}'.format(
+            self.req_num(), json.dumps(obj, indent=4)))
+
         await self._socket.send(json.dumps(obj))
 
     async def _receive(self):
@@ -113,6 +136,10 @@ class StreamClient(EnumEnforcer):
 
         if len(self._overflow_items) > 0:
             ret = self._overflow_items.pop()
+
+            self.logger.debug(
+                    'Receive {}: Returning message from overflow: {}'.format(
+                        self.req_num(), json.dumps(ret, indent=4)))
         else:
             raw = await self._socket.recv()
             try:
@@ -122,6 +149,10 @@ class StreamClient(EnumEnforcer):
                        'unknown symbols or other error conditions. Full ' +
                        'message text: ' + raw)
                 raise UnparsableMessage(raw, e, msg)
+
+            self.logger.debug(
+                    'Receive {}: Returning message from stream: {}'.format(
+                        self.req_num(), json.dumps(ret, indent=4)))
         return ret
 
     async def _init_from_principals(self, principals):
@@ -1514,7 +1545,7 @@ class StreamClient(EnumEnforcer):
     async def options_book_subs(self, symbols):
         '''
         Subscribe to the level two order book for options. Note this stream has no
-        official documentation, and it's not entirely clear what exchange it 
+        official documentation, and it's not entirely clear what exchange it
         corresponds to. Use at your own risk.
         '''
         await self._service_op(symbols, 'OPTIONS_BOOK', 'SUBS',

@@ -6,10 +6,22 @@ from enum import Enum
 from requests_oauthlib import OAuth2Session
 
 import datetime
+import json
+import logging
 import pickle
 import time
 
 from .utils import EnumEnforcer
+
+
+__LOGGER__ = None
+
+
+def get_logger():
+    global __LOGGER__
+    if __LOGGER__ is None:
+        __LOGGER__ = logging.getLogger(__name__)
+    return __LOGGER__
 
 
 ##########################################################################
@@ -31,11 +43,23 @@ class Client(EnumEnforcer):
         self.api_key = api_key
         self.session = session
 
+        # Logging-related fields
+        self.logger = get_logger()
+        self.request_number = 0
+
     # XXX: This class's tests perform monkey patching to inject synthetic values
     # of utcnow(). To avoid being confused by this, capture these values here so
     # we can use them later.
     _DATETIME = datetime.datetime
     _DATE = datetime.date
+
+    def __log_response(self, resp, req_num):
+        self.logger.debug('Req {}: GET response: {}, content={}'.format(
+            req_num, resp.status_code, resp.text))
+
+    def __req_num(self):
+        self.request_number += 1
+        return self.request_number
 
     def __assert_type(self, name, value, exp_types):
         value_type = type(value)
@@ -79,24 +103,57 @@ class Client(EnumEnforcer):
 
     def __get_request(self, path, params):
         dest = 'https://api.tdameritrade.com' + path
+
+        req_num = self.__req_num()
+        self.logger.debug('Req {}: GET to {}, params={}'.format(
+            req_num, dest, json.dumps(params, indent=4)))
+
         resp = self.session.get(dest, params=params)
+        self.__log_response(resp, req_num)
         return resp
 
     def __post_request(self, path, data):
         dest = 'https://api.tdameritrade.com' + path
-        return self.session.post(dest, json=data)
+
+        req_num = self.__req_num()
+        self.logger.debug('Req {}: POST to {}, json={}'.format(
+            req_num, dest, json.dumps(data, indent=4)))
+
+        resp = self.session.post(dest, json=data)
+        self.__log_response(resp, req_num)
+        return resp
 
     def __put_request(self, path, data):
         dest = 'https://api.tdameritrade.com' + path
-        return self.session.put(dest, json=data)
+
+        req_num = self.__req_num()
+        self.logger.debug('Req {}: PUT to {}, json={}'.format(
+            req_num, dest, json.dumps(data, indent=4)))
+
+        resp = self.session.put(dest, json=data)
+        self.__log_response(resp, req_num)
+        return resp
 
     def __patch_request(self, path, data):
         dest = 'https://api.tdameritrade.com' + path
-        return self.session.patch(dest, json=data)
+
+        req_num = self.__req_num()
+        self.logger.debug('Req {}: PATCH to {}, json={}'.format(
+            req_num, dest, json.dumps(data, indent=4)))
+
+        resp = self.session.patch(dest, json=data)
+        self.__log_response(resp, req_num)
+        return resp
 
     def __delete_request(self, path):
         dest = 'https://api.tdameritrade.com' + path
-        return self.session.delete(dest)
+
+        req_num = self.__req_num()
+        self.logger.debug('Req {}: DELETE to {}'.format(req_num, dest))
+
+        resp = self.session.delete(dest)
+        self.__log_response(resp, req_num)
+        return resp
 
     ##########################################################################
     # Orders
