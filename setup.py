@@ -29,7 +29,11 @@ setuptools.setup(
         'Topic :: Office/Business :: Financial :: Investment',
     ],
     python_requires='>=3.6',
-    install_requires=['requests_oauthlib', 'python-dateutil', 'selenium'],
+    install_requires=[
+        'requests_oauthlib',
+        'python-dateutil',
+        'selenium', 
+        'websockets'],
     keywords='finance trading equities bonds options research',
     project_urls={
         'Documentation': 'https://tda-api.readthedocs.io/en/latest/',
