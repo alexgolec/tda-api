@@ -1,5 +1,3 @@
-aiounittest
-asyncmock
 colorama
 coverage
 nose
