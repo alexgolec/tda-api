@@ -1,5 +1,6 @@
 from unittest.mock import MagicMock
 
+import copy
 import datetime
 import json
 import unittest
@@ -195,3 +196,26 @@ class UtilsTest(unittest.TestCase):
         out_order = self.utils.find_most_recent_order(
             order_type=EquityOrderBuilder.OrderType.MARKET)
         self.assertEqual(order1, out_order)
+
+    ##########################################################################
+    # extract_average_price tests
+
+    def test_extract_average_price_single(self):
+        order = test_utils.real_order()
+        order['accountId'] = '10000'
+        response = MockResponse(order, True)
+        self.assertEqual(self.utils.extract_average_price(response), 58.1853)
+
+    def test_extract_average_price_single(self):
+        order = test_utils.real_order()
+        order['accountId'] = '10000'
+        order['quantity'] = 3.0
+        order['orderActivityCollection'][0]['quantity'] = 3.0
+        exec_leg0 = order['orderActivityCollection'][0]['executionLegs'][0]
+        exec_leg1 = copy.deepcopy(exec_leg0)
+        exec_leg1['quantity'] = 2.0
+        exec_leg1['price'] = 85.5318
+        order['orderActivityCollection'][0]['executionLegs'].append(exec_leg1)
+        response = MockResponse(order, True)
+        exp = ((1 * 58.1853) + (2 * 85.5318)) / 3
+        self.assertEqual(self.utils.extract_average_price(response), exp)

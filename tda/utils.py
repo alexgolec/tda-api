@@ -173,3 +173,42 @@ class Utils(EnumEnforcer):
                    default=None,
                    key=lambda order: dateutil.parser.parse(
                        order['enteredTime']))
+
+    def extract_average_price(self, get_order_response):
+      '''This returns the average price of an order.
+
+      This must only be used for equity orders that have been completely filled.
+      '''
+      if not get_order_response.ok:
+          raise ValueError('order not successful')
+
+      order = get_order_response.json()
+
+      if order['accountId'] != str(self.account_id):
+          raise ValueError('account ID mismatch')
+
+      if order['status'] != 'FILLED':
+          raise ValueError('the order does not have FILLED status')
+
+      if len(order['orderLegCollection']) != 1:
+          raise NotImplementedError('Multi-leg orders are not supported.')
+      if order['orderLegCollection'][0]['instrument']['assetType'] != 'EQUITY':
+          raise NotImplementedError('Non EQUITY orders are not supported.')
+
+      assert len(order['orderActivityCollection']) == 1, \
+        'Unexpected API behavior'
+      assert (order['quantity'] ==
+              order['orderActivityCollection'][0]['quantity']), \
+              'Unexpected API behavior'
+
+      quantity_sum = 0
+      price_sum = 0
+      for execution_leg in order['orderActivityCollection'][0]['executionLegs']:
+          quantity = execution_leg['quantity']
+          price = execution_leg['price']
+          quantity_sum += quantity
+          price_sum += (quantity * price)
+
+      assert quantity_sum == order['quantity'], 'Unexpected API behavior'
+
+      return price_sum / quantity_sum
