@@ -1,4 +1,5 @@
 from tda import auth
+from tests.test_utils import no_duplicates
 from unittest.mock import patch, ANY, MagicMock
 from unittest.mock import ANY as _
 
@@ -22,10 +23,12 @@ class ClientFromTokenFileTest(unittest.TestCase):
         with open(self.pickle_path, 'wb') as f:
             pickle.dump(self.token, f)
 
+    @no_duplicates
     def test_no_such_file(self):
         with self.assertRaises(FileNotFoundError):
             auth.client_from_token_file(self.pickle_path, API_KEY)
 
+    @no_duplicates
     @patch('tda.auth.Client')
     @patch('tda.auth.OAuth2Session')
     def test_file_exists(self, session, client):
@@ -54,6 +57,7 @@ class ClientFromLoginFlow(unittest.TestCase):
         self.pickle_path = os.path.join(self.tmp_dir.name, 'token.pickle')
         self.token = {'token': 'yes'}
 
+    @no_duplicates
     @patch('tda.auth.Client')
     @patch('tda.auth.OAuth2Session')
     def test_no_token_file(self, session_constructor, client):
@@ -90,6 +94,7 @@ class EasyClientTest(unittest.TestCase):
         with open(self.pickle_path, 'wb') as f:
             pickle.dump(self.token, f)
 
+    @no_duplicates
     @patch('tda.auth.client_from_token_file')
     def test_no_token_file_no_wd_func(self, client_from_token_file):
         webdriver_func = MagicMock()
@@ -98,6 +103,7 @@ class EasyClientTest(unittest.TestCase):
         with self.assertRaises(FileNotFoundError):
             auth.easy_client(API_KEY, REDIRECT_URL, self.pickle_path)
 
+    @no_duplicates
     @patch('tda.auth.client_from_token_file')
     def test_token_file(self, client_from_token_file):
         webdriver_func = MagicMock()
@@ -106,6 +112,7 @@ class EasyClientTest(unittest.TestCase):
         self.assertEquals(self.token,
                           auth.easy_client(API_KEY, REDIRECT_URL, self.pickle_path))
 
+    @no_duplicates
     @patch('tda.auth.client_from_login_flow')
     @patch('tda.auth.client_from_token_file')
     def test_no_token_file_with_wd_func(

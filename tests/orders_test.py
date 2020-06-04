@@ -2,6 +2,7 @@ import unittest
 
 from tda.orders import Duration, EquityOrderBuilder, InvalidOrderException
 from tda.orders import Session
+from tests.test_utils import no_duplicates
 from . import test_utils
 
 
@@ -15,6 +16,7 @@ class EquityOrderBuilderTest(unittest.TestCase):
             .set_duration(Duration.DAY) \
             .set_session(Session.NORMAL)
 
+    @no_duplicates
     def test_successful_construction_market(self):
         order = EquityOrderBuilder('AAPL', 10) \
             .set_instruction(EquityOrderBuilder.Instruction.BUY) \
@@ -36,6 +38,7 @@ class EquityOrderBuilderTest(unittest.TestCase):
             ('symbol', 'AAPL')
             in order['orderLegCollection'][0]['instrument'].items())
 
+    @no_duplicates
     def test_successful_construction_limit(self):
         order = EquityOrderBuilder('AAPL', 10) \
             .set_instruction(EquityOrderBuilder.Instruction.BUY) \
@@ -59,20 +62,7 @@ class EquityOrderBuilderTest(unittest.TestCase):
             ('symbol', 'AAPL')
             in order['orderLegCollection'][0]['instrument'].items())
 
-    def test_limit_requires_price(self):
-        order = EquityOrderBuilder('AAPL', 10) \
-            .set_instruction(EquityOrderBuilder.Instruction.BUY) \
-            .set_order_type(EquityOrderBuilder.OrderType.LIMIT) \
-            .set_duration(Duration.DAY) \
-            .set_session(Session.NORMAL)
-
-        with self.assertRaises(
-                InvalidOrderException, msg='price must be set'):
-            order.build()
-
-        order.set_price(100)
-        order.build()
-
+    @no_duplicates
     def test_limit_requires_price(self):
         order = EquityOrderBuilder('AAPL', 10) \
             .set_instruction(EquityOrderBuilder.Instruction.BUY) \
@@ -94,22 +84,28 @@ class EquityOrderBuilderTest(unittest.TestCase):
                 InvalidOrderException, msg='{} must be set'.format(name)):
             order.build()
 
+    @no_duplicates
     def test_order_type_required(self):
         self.field_required('order_type')
 
+    @no_duplicates
     def test_session_required(self):
         self.field_required('session')
 
+    @no_duplicates
     def test_duration_required(self):
         self.field_required('duration')
 
+    @no_duplicates
     def test_instruction_required(self):
         self.field_required('instruction')
 
+    @no_duplicates
     def test_match_base(self):
         real_order = test_utils.real_order()
         self.assertTrue(EquityOrderBuilder('CVS', 1).matches(real_order))
 
+    @no_duplicates
     def test_match_order_type(self):
         real_order = test_utils.real_order()
         order = EquityOrderBuilder('CVS', 1) \
@@ -118,6 +114,7 @@ class EquityOrderBuilderTest(unittest.TestCase):
         order.set_order_type(EquityOrderBuilder.OrderType.LIMIT)
         self.assertFalse(order.matches(real_order))
 
+    @no_duplicates
     def test_match_session(self):
         real_order = test_utils.real_order()
         order = EquityOrderBuilder('CVS', 1).set_session(Session.NORMAL)
@@ -125,6 +122,7 @@ class EquityOrderBuilderTest(unittest.TestCase):
         order.set_session(Session.AM)
         self.assertFalse(order.matches(real_order))
 
+    @no_duplicates
     def test_match_duration(self):
         real_order = test_utils.real_order()
         order = EquityOrderBuilder('CVS', 1) \
@@ -133,6 +131,7 @@ class EquityOrderBuilderTest(unittest.TestCase):
         order.set_duration(Duration.FILL_OR_KILL)
         self.assertFalse(order.matches(real_order))
 
+    @no_duplicates
     def test_match_instruction(self):
         real_order = test_utils.real_order()
         order = EquityOrderBuilder('CVS', 1) \
@@ -141,6 +140,7 @@ class EquityOrderBuilderTest(unittest.TestCase):
         order.set_instruction(EquityOrderBuilder.Instruction.SELL)
         self.assertFalse(order.matches(real_order))
 
+    @no_duplicates
     def test_match_symbol(self):
         real_order = test_utils.real_order()
         order = EquityOrderBuilder('CVS', 1)
@@ -149,6 +149,7 @@ class EquityOrderBuilderTest(unittest.TestCase):
         order = EquityOrderBuilder('AAPL', 1)
         self.assertFalse(order.matches(real_order))
 
+    @no_duplicates
     def test_match_quantity(self):
         real_order = test_utils.real_order()
         order = EquityOrderBuilder('CVS', 1)
@@ -157,6 +158,7 @@ class EquityOrderBuilderTest(unittest.TestCase):
         order = EquityOrderBuilder('CVS', 10)
         self.assertFalse(order.matches(real_order))
 
+    @no_duplicates
     def test_match_asset_type(self):
         real_order = test_utils.real_order()
         order = EquityOrderBuilder('CVS', 1)

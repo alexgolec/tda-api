@@ -96,7 +96,7 @@ class Utils(EnumEnforcer):
             return None
         account_id, order_id = int(m.group(1)), int(m.group(2))
 
-        if account_id != self.account_id:
+        if str(account_id) != str(self.account_id):
             raise ValueError('order request account ID != Utils.account_id')
 
         return order_id

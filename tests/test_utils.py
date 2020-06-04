@@ -101,3 +101,14 @@ def color_diff(diff):
         else:
             output.append(line)
     return output, has_diff
+
+
+__NO_DUPLICATES_DEFINED_NAMES = set()
+
+
+def no_duplicates(f):
+    name = f.__qualname__
+    if name in __NO_DUPLICATES_DEFINED_NAMES:
+        raise AttributeError('duplicate definition of {}'.format(name))
+    __NO_DUPLICATES_DEFINED_NAMES.add(name)
+    return f
