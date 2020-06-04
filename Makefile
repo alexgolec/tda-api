@@ -1,5 +1,5 @@
 test:
-	python -m nose $(NOSE_ARGS)
+	python3 -m nose $(NOSE_ARGS)
 
 fix:
 	autopep8 --in-place -r -a tda
@@ -7,11 +7,11 @@ fix:
 	autopep8 --in-place -r -a examples
 
 coverage:
-	python -m coverage run --source=tda -m nose
-	python -m coverage html
+	python3 -m coverage run --source=tda -m nose
+	python3 -m coverage html
 
 dist:
-	python setup.py sdist bdist_wheel
+	python3 setup.py sdist bdist_wheel
 
 release:
 	python3 -m twine upload dist/*
