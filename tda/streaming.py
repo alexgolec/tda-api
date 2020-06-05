@@ -1559,3 +1559,52 @@ class StreamClient(EnumEnforcer):
         '''
         self._handlers['OPTIONS_BOOK'].append(
             self._BookHandler(handler, self.BookFields))
+
+    ##########################################################################
+    # NEWS_HEADLINE
+
+    class NewsHeadlineFields(_BaseFieldEnum):
+        '''
+        `Official documentation <https://developer.tdameritrade.com/content/
+        streaming-data#_Toc504640626>`__
+        '''
+
+        #: Ticker symbol in upper case. Represented in the stream as the
+        #: ``key`` field.
+        SYMBOL = 0
+
+        #: Specifies if there is any error
+        ERROR_CODE = 1
+
+        #: Headline’s datetime in milliseconds since epoch
+        STORY_DATETIME = 2
+
+        #: Unique ID for the headline
+        HEADLINE_ID = 3
+        STATUS = 4
+
+        #: News headline
+        HEADLINE = 5
+        STORY_ID = 6
+        COUNT_FOR_KEYWORD = 7
+        KEYWORD_ARRAY = 8
+        IS_HOT = 9
+        STORY_SOURCE = 10
+
+    async def news_headline_subs(self, symbols):
+        '''
+        Subscribe to news headlines related to the given symbols.
+        '''
+        await self._service_op(symbols, 'NEWS_HEADLINE', 'SUBS',
+                               self.NewsHeadlineFields,
+                               fields=self.NewsHeadlineFields.all_fields())
+
+    def add_news_headline_handler(self, handler):
+        '''
+        Register a function to handle news headlines as they are provided. See
+        :ref:`registering_handlers` for details.
+        '''
+        self._handlers['NEWS_HEADLINE'].append(
+            self._BookHandler(handler, self.BookFields))
+
+    
