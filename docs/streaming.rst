@@ -500,3 +500,39 @@ Options Trades
 .. automethod:: tda.streaming::StreamClient.add_timesale_options_handler
 
 
+++++++++++++++
+News Headlines
+++++++++++++++
+
+TD Ameritrade supposedly supports streaming news headlines. However, we have 
+yet to receive any reports of successful access to this stream. Attempts to read 
+this stream result in messages like the following, followed by TDA-initiated 
+stream closure:
+
+.. code-block:: JSON
+
+  {
+      "notify": [
+          {
+              "service": "NEWS_HEADLINE",
+              "timestamp": 1591500923797,
+              "content": {
+                  "code": 17,
+                  "msg": "Not authorized for all quotes."
+              }
+          }
+      ]
+  }
+
+The current hypothesis is that this stream requires some permissions or paid 
+access that so far no one has had.If you manage to get this stream working, or
+even if you manage to get it to fail with a different message than the one 
+above, please `report it <https://github.com/alexgolec/tda-api/issues>`__. In
+the meantime, ``tda-api`` provides the following methods for attempting to
+access this stream.
+
+.. automethod:: tda.streaming::StreamClient.news_headline_subs
+.. automethod:: tda.streaming::StreamClient.add_news_headline_handler
+.. autoclass:: tda.streaming::StreamClient.NewsHeadlineFields
+  :members:
+  :undoc-members:
