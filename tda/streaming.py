@@ -285,6 +285,7 @@ class StreamClient(EnumEnforcer):
         # data
         if 'data' in msg:
             for d in msg['data']:
+                print(' ---------- message')
                 if d['service'] in self._handlers:
                     for handler in self._handlers[d['service']]:
                         labeled_d = handler.label_message(d)
@@ -292,7 +293,12 @@ class StreamClient(EnumEnforcer):
 
         # notify
         if 'notify' in msg:
-            pass
+            for d in msg['notify']:
+                if 'heartbeat' in d:
+                    pass
+                else:
+                    for handler in self._handlers[d['service']]:
+                        handler(d)
 
     ##########################################################################
     # LOGIN
@@ -1605,6 +1611,4 @@ class StreamClient(EnumEnforcer):
         :ref:`registering_handlers` for details.
         '''
         self._handlers['NEWS_HEADLINE'].append(
-            self._BookHandler(handler, self.BookFields))
-
-    
+            self._BookHandler(handler, self.NewsHeadlineFields))

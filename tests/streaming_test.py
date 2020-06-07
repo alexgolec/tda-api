@@ -2954,6 +2954,168 @@ class StreamClientTest(IsolatedAsyncioTestCase):
 
         self.assert_handler_called_once_with(handler, expected_item)
 
+    ##########################################################################
+    # NEWS_HEADLINE
+
+    @no_duplicates
+    @patch('tda.streaming.websockets.client.connect', new_callable=AsyncMock)
+    async def test_news_headline_subs_success(self, ws_connect):
+        socket = await self.login_and_get_socket(ws_connect)
+
+        socket.recv.side_effect = [json.dumps(self.success_response(
+            1, 'NEWS_HEADLINE', 'SUBS'))]
+
+        await self.client.news_headline_subs(['GOOG', 'MSFT'])
+        socket.recv.assert_awaited_once()
+        request = self.request_from_socket_mock(socket)
+
+        self.assertEqual(request, {
+            'account': '1001',
+            'service': 'NEWS_HEADLINE',
+            'command': 'SUBS',
+            'requestid': '1',
+            'source': 'streamerInfo-appId',
+            'parameters': {
+                'keys': 'GOOG,MSFT',
+                'fields': ('0,1,2,3,4,5,6,7,8,9,10')
+            }
+        })
+
+    @no_duplicates
+    @patch('tda.streaming.websockets.client.connect', new_callable=AsyncMock)
+    async def test_news_headline_subs_failure(self, ws_connect):
+        socket = await self.login_and_get_socket(ws_connect)
+
+        response = self.success_response(1, 'NEWS_HEADLINE', 'SUBS')
+        response['response'][0]['content']['code'] = 21
+        socket.recv.side_effect = [json.dumps(response)]
+
+        with self.assertRaises(tda.streaming.UnexpectedResponseCode):
+            await self.client.news_headline_subs(['GOOG', 'MSFT'])
+
+    @no_duplicates
+    # TODO: Replace this with real messages.
+    @patch('tda.streaming.websockets.client.connect', new_callable=AsyncMock)
+    async def test_news_headline_handler(self, ws_connect):
+        socket = await self.login_and_get_socket(ws_connect)
+
+        stream_item = {
+            'data': [{
+                'service': 'NEWS_HEADLINE',
+                'timestamp': 1590245129396,
+                'command': 'SUBS',
+                'content': [{
+                    'key': 'GOOG',
+                    'delayed': False,
+                    '1': 0,
+                    '2': 1590181199727,
+                    '3': '0S21111333342',
+                    '4': 'Active',
+                    '5': 'Google Does Something',
+                    '6': '0S1113435443',
+                    '7': '1',
+                    '8': 'GOOG',
+                    '9': False,
+                    '10': 'Bloomberg',
+                }, {
+                    'key': 'MSFT',
+                    'delayed': False,
+                    '1': 0,
+                    '2': 1590181199728,
+                    '3': '0S21111333343',
+                    '4': 'Active',
+                    '5': 'Microsoft Does Something',
+                    '6': '0S1113435444',
+                    '7': '2',
+                    '8': 'MSFT',
+                    '9': False,
+                    '10': 'WSJ',
+                }]
+            }]
+        }
+
+        socket.recv.side_effect = [
+            json.dumps(self.success_response(1, 'NEWS_HEADLINE', 'SUBS')),
+            json.dumps(stream_item)]
+        await self.client.news_headline_subs(['GOOG', 'MSFT'])
+
+        handler = Mock()
+        self.client.add_news_headline_handler(handler)
+        await self.client.handle_message()
+
+        expected_item = {
+            'service': 'NEWS_HEADLINE',
+            'timestamp': 1590245129396,
+            'command': 'SUBS',
+            'content': [{
+                'key': 'GOOG',
+                'delayed': False,
+                'ERROR_CODE': 0,
+                'STORY_DATETIME': 1590181199727,
+                'HEADLINE_ID': '0S21111333342',
+                'STATUS': 'Active',
+                'HEADLINE': 'Google Does Something',
+                'STORY_ID': '0S1113435443',
+                'COUNT_FOR_KEYWORD': '1',
+                'KEYWORD_ARRAY': 'GOOG',
+                'IS_HOT': False,
+                'STORY_SOURCE': 'Bloomberg',
+            }, {
+                'key': 'MSFT',
+                'delayed': False,
+                'ERROR_CODE': 0,
+                'STORY_DATETIME': 1590181199728,
+                'HEADLINE_ID': '0S21111333343',
+                'STATUS': 'Active',
+                'HEADLINE': 'Microsoft Does Something',
+                'STORY_ID': '0S1113435444',
+                'COUNT_FOR_KEYWORD': '2',
+                'KEYWORD_ARRAY': 'MSFT',
+                'IS_HOT': False,
+                'STORY_SOURCE': 'WSJ',
+            }]
+        }
+
+        self.assert_handler_called_once_with(handler, expected_item)
+
+    @no_duplicates
+    @patch('tda.streaming.websockets.client.connect', new_callable=AsyncMock)
+    async def test_news_headline_not_authorized_notification(self, ws_connect):
+        socket = await self.login_and_get_socket(ws_connect)
+
+        stream_item = {
+            "notify": [
+                {
+                    "service": "NEWS_HEADLINE",
+                    "timestamp": 1591500923797,
+                    "content": {
+                        "code": 17,
+                        "msg": "Not authorized for all quotes."
+                    }
+                }
+            ]
+        }
+
+        socket.recv.side_effect = [
+            json.dumps(self.success_response(1, 'NEWS_HEADLINE', 'SUBS')),
+            json.dumps(stream_item)]
+        await self.client.news_headline_subs(['GOOG', 'MSFT'])
+
+        handler = Mock()
+        self.client.add_news_headline_handler(handler)
+        await self.client.handle_message()
+
+        expected_item = {
+            "service": "NEWS_HEADLINE",
+            "timestamp": 1591500923797,
+            "content": {
+                "code": 17,
+                "msg": "Not authorized for all quotes."
+            }
+        }
+
+        self.assert_handler_called_once_with(handler, expected_item)
+
     ###########################################################################
     # Handler edge cases
     #
@@ -3033,12 +3195,12 @@ class StreamClientTest(IsolatedAsyncioTestCase):
 
     @no_duplicates
     @patch('tda.streaming.websockets.client.connect', new_callable=AsyncMock)
-    async def test_notify_messages_ignored(self, ws_connect):
+    async def test_notify_heartbeat_messages_ignored(self, ws_connect):
         socket = await self.login_and_get_socket(ws_connect)
 
         socket.recv.side_effect = [
             json.dumps(self.success_response(1, 'CHART_EQUITY', 'SUBS')),
-            json.dumps({'notify': {'doesnt': 'matter'}})]
+            json.dumps({'notify': [{'heartbeat': '1591499624412'}]})]
 
         await self.client.chart_equity_subs(['GOOG,MSFT'])
 
