@@ -1599,6 +1599,9 @@ class StreamClient(EnumEnforcer):
 
     async def news_headline_subs(self, symbols):
         '''
+        `Official documentation <https://developer.tdameritrade.com/content/
+        streaming-data#_Toc504640626>`__
+
         Subscribe to news headlines related to the given symbols.
         '''
         await self._service_op(symbols, 'NEWS_HEADLINE', 'SUBS',
