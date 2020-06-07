@@ -16,6 +16,7 @@ applications on their own machines, without distributing them to others. If you
 plan on distributing your app, or if you plan on running it on a server and 
 allowing access to other users, this login flow is not for you.
 
+
 ---------------
 OAuth Refresher
 ---------------
@@ -87,6 +88,7 @@ attention. Security-sensitive protocols can be very complicated, and you should
 implementations of this flow, and ``tda-api``'s authentication module makes 
 using them easy.
 
+
 --------------------------------------
 Fetching a Token and Creating a Client
 --------------------------------------
@@ -117,6 +119,7 @@ when appropriate:
 
 .. autofunction:: tda.auth.easy_client
 
+
 ---------------
 Troubleshooting
 ---------------
@@ -126,6 +129,7 @@ This section outlines some of the more common issues you might encounter. If you
 find yourself dealing with something that isn't listed here, or if you try the 
 suggested remedies and are still seeing issues, please file a ticket on our
 `issues <https://github.com/alexgolec/tda-api/issues>`__ page.
+
 
 +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 "A third-party application may be attempting to make unauthorized access to your account"
@@ -153,6 +157,7 @@ If this happens, you almost certainly copied your API key or redirect URI
 incorrectly. Go back to your `application list
 <https://developer.tdameritrade.com/user/me/apps>`__ and copy-paste it again.
 
+
 ++++++++++++++++++++++++++++++++++++++++
 ``tda-api`` Hangs After Successful Login
 ++++++++++++++++++++++++++++++++++++++++
@@ -178,3 +183,31 @@ If this is happening to you, consider changing your callback URI to use
 ``https`` instead of ``http``. Not only will it make your life easier here, but 
 it is *extremely* bad practice to send credentials like this over an unencrypted 
 channel like that provided by ``http``.
+
+
+++++++++++++++++++++++
+Token Parsing Failures
+++++++++++++++++++++++
+
+``tda-api`` handles creating and refreshing tokens. Simply put, *the user should 
+never create or modify the token file*. If you are experiencing parse errors 
+when accessing the token file or getting exceptions when accessing it, it's 
+probably because you created it yourself or modified it. If you're experiencing 
+token parsing issues, remember that:
+
+1. You should never create the token file yourself. If you don't already have a
+   token, you should pass a nonexistent file path to 
+   :func:`~tda.auth.client_from_login_flow` or :func:`~tda.auth.easy_client`. 
+   If the file already exists, these methods assume it's a valid token file. If 
+   the file does not exist, they will go through the login flow to create one.
+2. You should never modify the token file. The token file is automatically 
+   managed by ``tda-api``, and modifying it will almost certainly break it.
+3. You should never share the token file. If the token file is shared between 
+   applications, one of them will beat the other to refreshing, locking the 
+   slower one out of using ``tda-api``.
+
+If you didn't do any of this and are still seeing issues using a token file that 
+you're confident is valid, please `file a ticket 
+<https://github.com/alexgolec/tda-api/issues>`__. Just remember, **never share 
+your token file, not even with** ``tda-api`` **developers**. Sharing the token
+file is as dangerous as sharing your TD Ameritrade username and password. 

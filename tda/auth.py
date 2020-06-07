@@ -23,12 +23,14 @@ def __normalize_api_key(api_key):
 
 
 def client_from_token_file(token_path, api_key):
-    '''Returns a session from the specified token path. The session will
-    perform an auth refresh as needed. It will also update the token on disk
-    whenever appropriate.
+    '''Returns a session from an existing token file. The session will perform
+    an auth refresh as needed. It will also update the token on disk whenever
+    appropriate.
 
-    :param token_path: Path to the token. Updated tokens will be written to this
-                       path.
+    :param token_path: Path to an existing token. Updated tokens will be written
+                       to this path. If you do not yet have a token, use
+                       :func:`~tda.auth.client_from_login_flow` or
+                       :func:`~tda.auth.easy_client` to create one.
     :param api_key: Your TD Ameritrade application's API key, also known as the
                     client ID.
     '''
@@ -61,8 +63,9 @@ def client_from_login_flow(webdriver, api_key, redirect_url, token_path,
                          this must *exactly* match the value you've entered in
                          your application configuration, otherwise login will
                          fail with a security error.
-    :param token_path: Path to which the new token will be written. Updated
-                       tokens will be written to this path as well.
+    :param token_path: Path to which the new token will be written. If the token
+                       file already exists, it will be overwritten with a new
+                       one. Updated tokens will be written to this path as well.
     '''
     oauth = OAuth2Session(api_key, redirect_uri=redirect_url)
     authorization_url, state = oauth.authorization_url(
@@ -107,14 +110,22 @@ def easy_client(api_key, redirect_uri, token_path, webdriver_func=None):
     from it. Otherwise open a login flow to fetch a new token. Returns a client
     configured to refresh the token to ``token_path``.
 
+    *Reminder:* You should never create the token file yourself or modify it in
+    any way. If ``token_path`` refers to an existing file, this method will
+    assume that file is valid token and will attempt to parse it.
+
     :param api_key: Your TD Ameritrade application's API key, also known as the
                     client ID.
     :param redirect_url: Your TD Ameritrade application's redirect URL. Note
                          this must *exactly* match the value you've entered in
                          your application configuration, otherwise login will
                          fail with a security error.
-    :param token_path: Path that new token will be read from and written to.
-                       Updated tokens will be written to this path as well.
+    :param token_path: Path that new token will be read from and written to. If
+                       If this file exists, this method will assume it's valid
+                       and will attempt to parse it as a token. If it does not,
+                       this method will create a new one using
+                       :func:`~tda.auth.client_from_login_flow`. Updated tokens
+                       will be written to this path as well.
     :param webdriver_func: Function that returns a webdriver for use in fetching
                            a new token. Will only be called if the token file
                            cannot be found.
