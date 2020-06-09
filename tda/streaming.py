@@ -285,7 +285,6 @@ class StreamClient(EnumEnforcer):
         # data
         if 'data' in msg:
             for d in msg['data']:
-                print(' ---------- message')
                 if d['service'] in self._handlers:
                     for handler in self._handlers[d['service']]:
                         labeled_d = handler.label_message(d)
