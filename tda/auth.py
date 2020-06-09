@@ -84,7 +84,7 @@ def client_from_login_flow(webdriver, api_key, redirect_url, token_path,
                        one. Updated tokens will be written to this path as well.
     '''
     get_logger().info(('Creating new token with redirect URL \'{}\' ' +
-        'and token path \'{}\'').format(redirect_url, token_path))
+                       'and token path \'{}\'').format(redirect_url, token_path))
 
     oauth = OAuth2Session(api_key, redirect_uri=redirect_url)
     authorization_url, state = oauth.authorization_url(

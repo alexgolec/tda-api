@@ -6,6 +6,7 @@ import copy
 import datetime
 import json
 import logging
+import tda
 import urllib.parse
 import websockets
 
@@ -153,6 +154,7 @@ class StreamClient(EnumEnforcer):
             self.logger.debug(
                 'Receive {}: Returning message from stream: {}'.format(
                     self.req_num(), json.dumps(ret, indent=4)))
+
         return ret
 
     async def _init_from_principals(self, principals):
@@ -258,7 +260,7 @@ class StreamClient(EnumEnforcer):
                             resp_code,
                             resp['response'][0]['content']['msg']))
 
-                break
+                return resp
 
     async def _service_op(self, symbols, service, command, field_type,
                           *, fields=None):
@@ -273,7 +275,9 @@ class StreamClient(EnumEnforcer):
                 'fields': ','.join(str(f) for f in fields)})
 
         await self._send({'requests': [request]})
-        await self._await_response(request_id, service, command)
+        resp = await self._await_response(request_id, service, command)
+
+        return resp
 
     async def handle_message(self):
         msg = await self._receive()
