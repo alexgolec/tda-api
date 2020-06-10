@@ -91,6 +91,7 @@ class StreamClient(EnumEnforcer):
 
         # Set by the login() function
         self._account = None
+        self._stream_key = None
         self._socket = None
         self._source = None
 
@@ -152,7 +153,8 @@ class StreamClient(EnumEnforcer):
         return ret
 
     async def _init_from_principals(self, principals):
-        # Initialize accounts
+        # Initialize accounts and streamer keys.
+        # Assume a 1-to-1 mapping of streamer keys to accounts.
         accounts = principals['accounts']
         num_accounts = len(accounts)
         assert num_accounts > 0, 'zero accounts found'
@@ -165,8 +167,7 @@ class StreamClient(EnumEnforcer):
                 raise ValueError(
                     'multiple accounts found and StreamClient was ' +
                     'initialized with unspecified account_id')
-
-            for account in accounts:
+            for idx, account in enumerate(accounts):
                 if int(account['accountId']) == self._account_id:
                     self._account = account
 
@@ -177,6 +178,13 @@ class StreamClient(EnumEnforcer):
 
         if self._account_id is None:
             self._account_id = self._account['accountId']
+
+        # Record streamer subscription keys
+        stream_keys = principals['streamerSubscriptionKeys']['keys']
+        if len(stream_keys) > 1:
+            self.logger.warn('Found {} stream keys, using the first one'.format(
+                len(stream_keys)))
+        self._stream_key = stream_keys[0]['key']
 
         # Initialize socket
         wss_url = 'wss://{}/ws'.format(
@@ -400,6 +408,56 @@ class StreamClient(EnumEnforcer):
 
         await self._send({'requests': [request]})
         await self._await_response(request_id, 'ADMIN', 'QOS')
+
+    ##########################################################################
+    # ACCT_ACTIVITY
+
+    class AccountActivityFields(_BaseFieldEnum):
+        '''
+        `Official documentation <https://developer.tdameritrade.com/content/
+        streaming-data#_Toc504640580>`__
+
+        Data fields for equity account activity. Primarily an implementation detail
+        and not used in client code. Provided here as documentation for key
+        values stored returned in the stream messages.
+        '''
+
+        #: Subscription key. Represented in the stream as the
+        #: ``key`` field.
+        SUBSCRIPTION_KEY = 0
+
+        #: Account # subscribed
+        ACCOUNT = 1
+
+        #: Refer to the `message type table in the official documentation
+        #: <https://developer.tdameritrade.com/content/streaming-data
+        #: #_Toc504640581>`__
+        MESSAGE_TYPE = 2
+
+        #: The core data for the message.  Either XML Message data describing
+        #: the update, ``NULL`` in some cases, or plain text in case of
+        #: ``ERROR``.
+        MESSAGE_DATA = 3
+
+    async def account_activity_sub(self):
+        '''
+        `Official documentation <https://developer.tdameritrade.com/content/
+        streaming-data#_Toc504640580>`__
+
+        Subscribe to account activity for the account id associated with this
+        streaming client. See :class:`AccountActivityFields` for more info.
+        '''
+        await self._service_op(
+            [self._stream_key], 'ACCT_ACTIVITY', 'SUBS',
+            self.AccountActivityFields)
+
+    def add_account_activity_handler(self, handler):
+        '''
+        Adds a handler to the account activity subscription. See
+        :ref:`registering_handlers` for details.
+        '''
+        self._handlers['ACCT_ACTIVITY'].append(_Handler(handler,
+                                                        self.AccountActivityFields))
 
     ##########################################################################
     # CHART_EQUITY

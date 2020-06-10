@@ -38,6 +38,9 @@ class StreamClientTest(IsolatedAsyncioTestCase):
                 account[key] = value + '-' + str(account['accountId'])
         return account
 
+    def stream_key(self, index):
+        return {'key': 'streamerSubscriptionKeys-keys-key' + str(index)}
+
     def request_from_socket_mock(self, socket):
         return json.loads(
             socket.send.call_args_list[0].args[0])['requests'][0]
@@ -104,6 +107,9 @@ class StreamClientTest(IsolatedAsyncioTestCase):
         principals = account_principals()
         principals['accounts'].clear()
         principals['accounts'].append(self.account(1))
+        principals['streamerSubscriptionKeys']['keys'].clear()
+        principals['streamerSubscriptionKeys']['keys'].append(
+            self.stream_key(1))
 
         self.http_client.get_user_principals.return_value = MockResponse(
             principals, True)
@@ -146,6 +152,11 @@ class StreamClientTest(IsolatedAsyncioTestCase):
         principals['accounts'].clear()
         principals['accounts'].append(self.account(1))
         principals['accounts'].append(self.account(2))
+        principals['streamerSubscriptionKeys']['keys'].clear()
+        principals['streamerSubscriptionKeys']['keys'].append(
+            self.stream_key(1))
+        principals['streamerSubscriptionKeys']['keys'].append(
+            self.stream_key(2))
 
         self.http_client.get_user_principals.return_value = MockResponse(
             principals, True)
@@ -162,6 +173,11 @@ class StreamClientTest(IsolatedAsyncioTestCase):
         principals['accounts'].clear()
         principals['accounts'].append(self.account(1))
         principals['accounts'].append(self.account(2))
+        principals['streamerSubscriptionKeys']['keys'].clear()
+        principals['streamerSubscriptionKeys']['keys'].append(
+            self.stream_key(1))
+        principals['streamerSubscriptionKeys']['keys'].append(
+            self.stream_key(2))
 
         self.http_client.get_user_principals.return_value = MockResponse(
             principals, True)
@@ -205,6 +221,11 @@ class StreamClientTest(IsolatedAsyncioTestCase):
         principals['accounts'].clear()
         principals['accounts'].append(self.account(1))
         principals['accounts'].append(self.account(2))
+        principals['streamerSubscriptionKeys']['keys'].clear()
+        principals['streamerSubscriptionKeys']['keys'].append(
+            self.stream_key(1))
+        principals['streamerSubscriptionKeys']['keys'].append(
+            self.stream_key(2))
 
         self.http_client.get_user_principals.return_value = MockResponse(
             principals, True)
@@ -222,6 +243,9 @@ class StreamClientTest(IsolatedAsyncioTestCase):
         principals = account_principals()
         principals['accounts'].clear()
         principals['accounts'].append(self.account(1))
+        principals['streamerSubscriptionKeys']['keys'].clear()
+        principals['streamerSubscriptionKeys']['keys'].append(
+            self.stream_key(1))
 
         self.http_client.get_user_principals.return_value = MockResponse(
             principals, True)
@@ -242,6 +266,9 @@ class StreamClientTest(IsolatedAsyncioTestCase):
         principals = account_principals()
         principals['accounts'].clear()
         principals['accounts'].append(self.account(1))
+        principals['streamerSubscriptionKeys']['keys'].clear()
+        principals['streamerSubscriptionKeys']['keys'].append(
+            self.stream_key(1))
 
         self.http_client.get_user_principals.return_value = MockResponse(
             principals, True)
@@ -262,6 +289,9 @@ class StreamClientTest(IsolatedAsyncioTestCase):
         principals = account_principals()
         principals['accounts'].clear()
         principals['accounts'].append(self.account(1))
+        principals['streamerSubscriptionKeys']['keys'].clear()
+        principals['streamerSubscriptionKeys']['keys'].append(
+            self.stream_key(1))
 
         self.http_client.get_user_principals.return_value = MockResponse(
             principals, True)
@@ -281,6 +311,9 @@ class StreamClientTest(IsolatedAsyncioTestCase):
         principals = account_principals()
         principals['accounts'].clear()
         principals['accounts'].append(self.account(1))
+        principals['streamerSubscriptionKeys']['keys'].clear()
+        principals['streamerSubscriptionKeys']['keys'].append(
+            self.stream_key(1))
 
         self.http_client.get_user_principals.return_value = MockResponse(
             principals, True)
@@ -332,6 +365,95 @@ class StreamClientTest(IsolatedAsyncioTestCase):
         with self.assertRaises(tda.streaming.UnexpectedResponseCode):
             await self.client.quality_of_service(StreamClient.QOSLevel.EXPRESS)
         socket.recv.assert_awaited_once()
+
+    ##########################################################################
+    # ACCT_ACTIVITY
+
+    @no_duplicates
+    @patch('tda.streaming.websockets.client.connect', new_callable=AsyncMock)
+    async def test_account_activity_subs_success(self, ws_connect):
+        socket = await self.login_and_get_socket(ws_connect)
+
+        socket.recv.side_effect = [json.dumps(self.success_response(
+            1, 'ACCT_ACTIVITY', 'SUBS'))]
+
+        await self.client.account_activity_sub()
+        socket.recv.assert_awaited_once()
+        request = self.request_from_socket_mock(socket)
+
+        self.assertEqual(request, {
+            'account': '1001',
+            'service': 'ACCT_ACTIVITY',
+            'command': 'SUBS',
+            'requestid': '1',
+            'source': 'streamerInfo-appId',
+            'parameters': {
+                'keys': 'streamerSubscriptionKeys-keys-key',
+                'fields': '0,1,2,3'
+            }
+        })
+
+    @no_duplicates
+    @patch('tda.streaming.websockets.client.connect', new_callable=AsyncMock)
+    async def test_account_activity_subs_failure(self, ws_connect):
+        socket = await self.login_and_get_socket(ws_connect)
+
+        response = self.success_response(1, 'ACCT_ACTIVITY', 'SUBS')
+        response['response'][0]['content']['code'] = 21
+        socket.recv.side_effect = [json.dumps(response)]
+
+        with self.assertRaises(tda.streaming.UnexpectedResponseCode):
+            await self.client.account_activity_sub()
+
+    @no_duplicates
+    @patch('tda.streaming.websockets.client.connect', new_callable=AsyncMock)
+    async def test_account_activity_handler(self, ws_connect):
+        socket = await self.login_and_get_socket(ws_connect)
+
+        stream_item = {
+            'data': [
+                {
+                    'service': 'ACCT_ACTIVITY',
+                    'timestamp': 1591754497594,
+                    'command': 'SUBS',
+                    'content': [
+                        {
+                            'seq': 1,
+                            'key': 'streamerSubscriptionKeys-keys-key',
+                            '1': '1001',
+                            '2': 'OrderEntryRequest',
+                            '3': ''
+                        }
+                    ]
+                }
+            ]
+        }
+
+        socket.recv.side_effect = [
+            json.dumps(self.success_response(1, 'ACCT_ACTIVITY', 'SUBS')),
+            json.dumps(stream_item)]
+        await self.client.account_activity_sub()
+
+        handler = Mock()
+        self.client.add_account_activity_handler(handler)
+        await self.client.handle_message()
+
+        expected_item = {
+            'service': 'ACCT_ACTIVITY',
+            'timestamp': 1591754497594,
+            'command': 'SUBS',
+            'content': [
+                {
+                    'seq': 1,
+                    'key': 'streamerSubscriptionKeys-keys-key',
+                    'ACCOUNT': '1001',
+                    'MESSAGE_TYPE': 'OrderEntryRequest',
+                    'MESSAGE_DATA': ''
+                }
+            ]
+        }
+
+        self.assert_handler_called_once_with(handler, expected_item)
 
     ##########################################################################
     # CHART_EQUITY

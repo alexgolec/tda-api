@@ -536,3 +536,20 @@ access this stream.
 .. autoclass:: tda.streaming::StreamClient.NewsHeadlineFields
   :members:
   :undoc-members:
+
+
+++++++++++++++++
+Account Activity
+++++++++++++++++
+
+This stream allows you to monitor your account activity, including order 
+execution/cancellation/expiration/etc. ``tda-api`` provide utilities for setting 
+up and reading the stream, but leaves the task of parsing the `response XML 
+object <https://developer.tdameritrade.com/content/streaming-data#_Toc504640581>`__
+to the user.
+
+.. automethod:: tda.streaming::StreamClient.account_activity_sub
+.. automethod:: tda.streaming::StreamClient.add_account_activity_handler
+.. autoclass:: tda.streaming::StreamClient.AccountActivityFields
+  :members:
+  :undoc-members:
