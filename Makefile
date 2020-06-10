@@ -17,4 +17,4 @@ release:
 	python3 -m twine upload dist/*
 
 clean:
-	rm -rf build dist docs-build tda_api.egg-info __pycache__
+	rm -rf build dist docs-build tda_api.egg-info __pycache__ htmlcov
