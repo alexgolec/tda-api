@@ -77,23 +77,23 @@ def register_redactions(obj, key_path=None,
                 tda.LOG_REDACTOR.register(obj, '-'.join(key_path))
 
 
-def enable_bug_report_logging(output=sys.stderr, loggers=None):
+def enable_bug_report_logging():
     '''
     Turns on bug report logging. Will collect all logged output, redact out
     anything that should be kept secret, and emit the result at program exit.
 
     Notes:
-     * This method does a **BEST EFFORT** redaction. Never share its output
+     * This method does a best effort redaction. Never share its output
        without verifying that all secret information is properly redacted.
      * Because this function records all logged output, it has a performance
        penalty. It should not be called in production code.
+    '''
+    _enable_bug_report_logging()
 
-    :param output: File to which output will be written. Defaults to ``stderr``.
-    :param loggers: List of loggers to register. Primarily available for
-                    testing, so passing non-``None`` values is highly
-                    discouraged.
-
-    :return: Return value should be ignored.
+def _enable_bug_report_logging(output=sys.stderr, loggers=None):
+    '''
+    Module-internal version of :func:`enable_bug_report_logging`, intended for 
+    use in tests.
     '''
     import atexit
     import logging

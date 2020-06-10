@@ -14,6 +14,7 @@
   orders
   util
   example
+  help
   contributing
 
 Indices and tables

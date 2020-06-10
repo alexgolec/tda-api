@@ -50,7 +50,7 @@ class RegisterRedactionsTest(unittest.TestCase):
     def setUp(self):
         self.captured = io.StringIO()
         self.logger = logging.getLogger('test')
-        self.dump_logs = tda.debug.enable_bug_report_logging(
+        self.dump_logs = tda.debug._enable_bug_report_logging(
             output=self.captured, loggers=[self.logger])
         tda.LOG_REDACTOR = tda.debug.LogRedactor()
 
