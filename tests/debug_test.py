@@ -52,6 +52,7 @@ class RegisterRedactionsTest(unittest.TestCase):
         self.logger = logging.getLogger('test')
         self.dump_logs = tda.debug.enable_bug_report_logging(
             output=self.captured, loggers=[self.logger])
+        tda.LOG_REDACTOR = tda.debug.LogRedactor()
 
     @no_duplicates
     def test_empty_string(self):
@@ -68,32 +69,56 @@ class RegisterRedactionsTest(unittest.TestCase):
     @no_duplicates
     def test_dict(self):
         tda.debug.register_redactions(
-            {'accountId': '100001'},
-            bad_patterns=['id'])
+            {'BadNumber': '100001'},
+            bad_patterns=['bad'])
         tda.debug.register_redactions(
-            {'otherAccountId': '200002'},
-            bad_patterns=['id'])
+            {'OtherBadNumber': '200002'},
+            bad_patterns=['bad'])
 
-        self.logger.info('Account ID: 100001')
-        self.logger.info('Other Account ID: 200002')
+        self.logger.info('Bad Number: 100001')
+        self.logger.info('Other Bad Number: 200002')
 
         self.dump_logs()
         self.assertRegex(
             self.captured.getvalue(),
-            r'\[.*\] Account ID: <REDACTED accountId>\n' +
-            r'\[.*\] Other Account ID: <REDACTED otherAccountId>\n')
+            r'\[.*\] Bad Number: <REDACTED BadNumber>\n' +
+            r'\[.*\] Other Bad Number: <REDACTED OtherBadNumber>\n')
 
     @no_duplicates
     def test_list_of_dict(self):
         tda.debug.register_redactions(
-            [{'accountId': '100001'}, {'otherAccountId': '200002'}],
-            bad_patterns=['id'])
+            [{'GoodNumber': '900009'},
+             {'BadNumber': '100001'},
+             {'OtherBadNumber': '200002'}],
+            bad_patterns=['bad'])
 
-        self.logger.info('Account ID: 100001')
-        self.logger.info('Other Account ID: 200002')
+        self.logger.info('Good Number: 900009')
+        self.logger.info('Bad Number: 100001')
+        self.logger.info('Other Bad Number: 200002')
 
         self.dump_logs()
         self.assertRegex(
             self.captured.getvalue(),
-            r'\[.*\] Account ID: <REDACTED accountId>\n' +
-            r'\[.*\] Other Account ID: <REDACTED otherAccountId>\n')
+            r'\[.*\] Good Number: 900009\n' +
+            r'\[.*\] Bad Number: <REDACTED 1-BadNumber>\n' +
+            r'\[.*\] Other Bad Number: <REDACTED 2-OtherBadNumber>\n')
+
+    @no_duplicates
+    def test_whitelist(self):
+        tda.debug.register_redactions(
+            [{'GoodNumber': '900009'},
+             {'BadNumber': '100001'},
+             {'OtherBadNumber': '200002'}],
+            bad_patterns=['bad'],
+            whitelisted=['otherbadnumber'])
+
+        self.logger.info('Good Number: 900009')
+        self.logger.info('Bad Number: 100001')
+        self.logger.info('Other Bad Number: 200002')
+
+        self.dump_logs()
+        self.assertRegex(
+            self.captured.getvalue(),
+            r'\[.*\] Good Number: 900009\n' +
+            r'\[.*\] Bad Number: <REDACTED 1-BadNumber>\n' +
+            r'\[.*\] Other Bad Number: 200002\n')

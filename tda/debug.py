@@ -60,12 +60,12 @@ def register_redactions(obj, key_path=None,
     if isinstance(obj, list):
         for idx, value in enumerate(obj):
             key_path.append(str(idx))
-            register_redactions(value, key_path)
+            register_redactions(value, key_path, bad_patterns, whitelisted)
             key_path.pop()
     elif isinstance(obj, dict):
         for key, value in obj.items():
             key_path.append(key)
-            register_redactions(value, key_path)
+            register_redactions(value, key_path, bad_patterns, whitelisted)
             key_path.pop()
     else:
         if key_path:
@@ -88,7 +88,7 @@ def enable_bug_report_logging(output=sys.stderr, loggers=None):
        penalty. It should not be called in production code.
 
     :param output: File to which output will be written. Defaults to ``stderr``.
-    :param loggers: List of loggers to register. Primarily available for 
+    :param loggers: List of loggers to register. Primarily available for
                     testing, so passing non-``None`` values is highly
                     discouraged.
 
