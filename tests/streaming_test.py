@@ -108,7 +108,8 @@ class StreamClientTest(IsolatedAsyncioTestCase):
         principals['accounts'].clear()
         principals['accounts'].append(self.account(1))
         principals['streamerSubscriptionKeys']['keys'].clear()
-        principals['streamerSubscriptionKeys']['keys'].append(self.stream_key(1))
+        principals['streamerSubscriptionKeys']['keys'].append(
+            self.stream_key(1))
 
         self.http_client.get_user_principals.return_value = MockResponse(
             principals, True)
@@ -152,8 +153,10 @@ class StreamClientTest(IsolatedAsyncioTestCase):
         principals['accounts'].append(self.account(1))
         principals['accounts'].append(self.account(2))
         principals['streamerSubscriptionKeys']['keys'].clear()
-        principals['streamerSubscriptionKeys']['keys'].append(self.stream_key(1))
-        principals['streamerSubscriptionKeys']['keys'].append(self.stream_key(2))
+        principals['streamerSubscriptionKeys']['keys'].append(
+            self.stream_key(1))
+        principals['streamerSubscriptionKeys']['keys'].append(
+            self.stream_key(2))
 
         self.http_client.get_user_principals.return_value = MockResponse(
             principals, True)
@@ -171,8 +174,10 @@ class StreamClientTest(IsolatedAsyncioTestCase):
         principals['accounts'].append(self.account(1))
         principals['accounts'].append(self.account(2))
         principals['streamerSubscriptionKeys']['keys'].clear()
-        principals['streamerSubscriptionKeys']['keys'].append(self.stream_key(1))
-        principals['streamerSubscriptionKeys']['keys'].append(self.stream_key(2))
+        principals['streamerSubscriptionKeys']['keys'].append(
+            self.stream_key(1))
+        principals['streamerSubscriptionKeys']['keys'].append(
+            self.stream_key(2))
 
         self.http_client.get_user_principals.return_value = MockResponse(
             principals, True)
@@ -217,8 +222,10 @@ class StreamClientTest(IsolatedAsyncioTestCase):
         principals['accounts'].append(self.account(1))
         principals['accounts'].append(self.account(2))
         principals['streamerSubscriptionKeys']['keys'].clear()
-        principals['streamerSubscriptionKeys']['keys'].append(self.stream_key(1))
-        principals['streamerSubscriptionKeys']['keys'].append(self.stream_key(2))
+        principals['streamerSubscriptionKeys']['keys'].append(
+            self.stream_key(1))
+        principals['streamerSubscriptionKeys']['keys'].append(
+            self.stream_key(2))
 
         self.http_client.get_user_principals.return_value = MockResponse(
             principals, True)
@@ -237,7 +244,8 @@ class StreamClientTest(IsolatedAsyncioTestCase):
         principals['accounts'].clear()
         principals['accounts'].append(self.account(1))
         principals['streamerSubscriptionKeys']['keys'].clear()
-        principals['streamerSubscriptionKeys']['keys'].append(self.stream_key(1))
+        principals['streamerSubscriptionKeys']['keys'].append(
+            self.stream_key(1))
 
         self.http_client.get_user_principals.return_value = MockResponse(
             principals, True)
@@ -259,7 +267,8 @@ class StreamClientTest(IsolatedAsyncioTestCase):
         principals['accounts'].clear()
         principals['accounts'].append(self.account(1))
         principals['streamerSubscriptionKeys']['keys'].clear()
-        principals['streamerSubscriptionKeys']['keys'].append(self.stream_key(1))
+        principals['streamerSubscriptionKeys']['keys'].append(
+            self.stream_key(1))
 
         self.http_client.get_user_principals.return_value = MockResponse(
             principals, True)
@@ -281,7 +290,8 @@ class StreamClientTest(IsolatedAsyncioTestCase):
         principals['accounts'].clear()
         principals['accounts'].append(self.account(1))
         principals['streamerSubscriptionKeys']['keys'].clear()
-        principals['streamerSubscriptionKeys']['keys'].append(self.stream_key(1))
+        principals['streamerSubscriptionKeys']['keys'].append(
+            self.stream_key(1))
 
         self.http_client.get_user_principals.return_value = MockResponse(
             principals, True)
@@ -302,7 +312,8 @@ class StreamClientTest(IsolatedAsyncioTestCase):
         principals['accounts'].clear()
         principals['accounts'].append(self.account(1))
         principals['streamerSubscriptionKeys']['keys'].clear()
-        principals['streamerSubscriptionKeys']['keys'].append(self.stream_key(1))
+        principals['streamerSubscriptionKeys']['keys'].append(
+            self.stream_key(1))
 
         self.http_client.get_user_principals.return_value = MockResponse(
             principals, True)
@@ -443,7 +454,6 @@ class StreamClientTest(IsolatedAsyncioTestCase):
         }
 
         self.assert_handler_called_once_with(handler, expected_item)
-     
 
     ##########################################################################
     # CHART_EQUITY

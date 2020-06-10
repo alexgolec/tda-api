@@ -153,7 +153,7 @@ class StreamClient(EnumEnforcer):
         return ret
 
     async def _init_from_principals(self, principals):
-        # Initialize accounts and streamer keys. 
+        # Initialize accounts and streamer keys.
         # Assume a 1-to-1 mapping of streamer keys to accounts.
         accounts = principals['accounts']
         num_accounts = len(accounts)
@@ -415,7 +415,7 @@ class StreamClient(EnumEnforcer):
     class AccountActivityFields(_BaseFieldEnum):
         '''
         `Official documentation <https://developer.tdameritrade.com/content/
-        streaming-data#_Toc504640580`__
+        streaming-data#_Toc504640580>`__
 
         Data fields for equity account activity. Primarily an implementation detail
         and not used in client code. Provided here as documentation for key
@@ -429,24 +429,27 @@ class StreamClient(EnumEnforcer):
         #: Account # subscribed
         ACCOUNT = 1
 
-        #: Refer to Message Type table below
+        #: Refer to the `message type table in the official documentation
+        #: <https://developer.tdameritrade.com/content/streaming-data
+        #: #_Toc504640581>`__
         MESSAGE_TYPE = 2
 
-        #: The core data for the message.  Either XML Message data describing 
-        #: the update, NULL in some cases, or plain text in case of ERROR
+        #: The core data for the message.  Either XML Message data describing
+        #: the update, ``NULL`` in some cases, or plain text in case of
+        #: ``ERROR``.
         MESSAGE_DATA = 3
 
-    async def account_activity_sub(self, *, fields=None):
+    async def account_activity_sub(self):
         '''
         `Official documentation <https://developer.tdameritrade.com/content/
-        streaming-data#_Toc504640580`__
+        streaming-data#_Toc504640580>`__
 
         Subscribe to account activity for the account id associated with this
-        streaming client.
+        streaming client. See :class:`AccountActivityFields` for more info.
         '''
         await self._service_op(
-            [self._stream_key], 'ACCT_ACTIVITY', 'SUBS', 
-            self.AccountActivityFields, fields=fields)
+            [self._stream_key], 'ACCT_ACTIVITY', 'SUBS',
+            self.AccountActivityFields)
 
     def add_account_activity_handler(self, handler):
         '''
@@ -454,7 +457,7 @@ class StreamClient(EnumEnforcer):
         :ref:`registering_handlers` for details.
         '''
         self._handlers['ACCT_ACTIVITY'].append(_Handler(handler,
-                                                self.AccountActivityFields))
+                                                        self.AccountActivityFields))
 
     ##########################################################################
     # CHART_EQUITY
