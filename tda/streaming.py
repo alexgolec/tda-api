@@ -416,10 +416,9 @@ class StreamClient(EnumEnforcer):
         `Official documentation <https://developer.tdameritrade.com/content/
         streaming-data#_Toc504640580`__
 
-        This service is used to request streaming updates for one or more accounts 
-        associated with the logged in User ID.  Common usage would involve issuing 
-        the OrderStatus API request to get all transactions for an account, and 
-        subscribing to ACCT_ACTIVITY to get any updates. 
+        Data fields for equity account activity. Primarily an implementation detail
+        and not used in client code. Provided here as documentation for key
+        values stored returned in the stream messages.
         '''
         SUBSCRIPTION_KEY = 0
         ACCOUNT = 1
