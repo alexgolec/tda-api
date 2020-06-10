@@ -8,6 +8,7 @@ import pickle
 import time
 
 from tda.client import Client
+from tda.debug import register_redactions
 
 
 def get_logger():
@@ -32,6 +33,10 @@ def __normalize_api_key(api_key):
     return api_key
 
 
+def __register_token_redactions(token):
+    register_redactions(token)
+
+
 def client_from_token_file(token_path, api_key):
     '''
     Returns a session from an existing token file. The session will perform
@@ -48,6 +53,9 @@ def client_from_token_file(token_path, api_key):
     # Load old token from secrets directory
     with open(token_path, 'rb') as f:
         token = pickle.load(f)
+
+    # Don't emit token details in debug logs
+    __register_token_redactions(token)
 
     # Return a new session configured to refresh credentials
     return Client(
@@ -105,6 +113,9 @@ def client_from_login_flow(webdriver, api_key, redirect_url, token_path,
         client_id=api_key,
         include_client_id=True)
 
+    # Don't emit token details in debug logs
+    __register_token_redactions(token)
+
     # Record the token
     update_token = __token_updater(token_path)
     update_token(token)
@@ -157,7 +168,12 @@ def easy_client(api_key, redirect_uri, token_path, webdriver_func=None):
 
         if webdriver_func is not None:
             with webdriver_func() as driver:
-                return client_from_login_flow(
+                c = client_from_login_flow(
                     driver, api_key, redirect_uri, token_path)
+                logger.info(
+                        'Returning client fetched using webdriver, writing'+
+                        'token to \'{}\''.format(token_path))
+                return c
         else:
+            logger.info('No webdriver_func set, returning')
             raise

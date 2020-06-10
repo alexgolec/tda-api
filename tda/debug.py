@@ -49,7 +49,8 @@ def register_redactions(obj, key_path=None,
                         bad_patterns=[
                             'auth', 'acl', 'displayname', 'id', 'key', 'token'],
                         whitelisted=set([
-                            'requestid'])):
+                            'requestid',
+                            'token_type'])):
     '''
     Recursively iterates through the leaf elements of ``obj`` and registers
     elements with keys matching a blacklist with the global ``Redactor``.
