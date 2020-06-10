@@ -3,27 +3,43 @@
 
 from requests_oauthlib import OAuth2Session
 
+import logging
 import pickle
 import time
 
 from tda.client import Client
+from tda.debug import register_redactions
+
+
+def get_logger():
+    return logging.getLogger(__name__)
 
 
 def __token_updater(token_path):
     def update_token(t):
+        get_logger().info('Updating token to file {}'.format(token_path))
+
         with open(token_path, 'wb') as f:
             pickle.dump(t, f)
     return update_token
 
 
 def __normalize_api_key(api_key):
-    if not api_key.endswith('@AMER.OAUTHAP'):
-        api_key = api_key + '@AMER.OAUTHAP'
+    api_key_suffix = '@AMER.OAUTHAP'
+
+    if not api_key.endswith(api_key_suffix):
+        get_logger().info('Appending {} to API key'.format(api_key_suffix))
+        api_key = api_key + api_key_suffix
     return api_key
 
 
+def __register_token_redactions(token):
+    register_redactions(token)
+
+
 def client_from_token_file(token_path, api_key):
-    '''Returns a session from an existing token file. The session will perform
+    '''
+    Returns a session from an existing token file. The session will perform
     an auth refresh as needed. It will also update the token on disk whenever
     appropriate.
 
@@ -34,10 +50,12 @@ def client_from_token_file(token_path, api_key):
     :param api_key: Your TD Ameritrade application's API key, also known as the
                     client ID.
     '''
-
     # Load old token from secrets directory
     with open(token_path, 'rb') as f:
         token = pickle.load(f)
+
+    # Don't emit token details in debug logs
+    __register_token_redactions(token)
 
     # Return a new session configured to refresh credentials
     return Client(
@@ -50,7 +68,8 @@ def client_from_token_file(token_path, api_key):
 
 def client_from_login_flow(webdriver, api_key, redirect_url, token_path,
                            redirect_wait_time_seconds=0.1):
-    '''Uses the webdriver to perform an OAuth webapp login flow and creates a
+    '''
+    Uses the webdriver to perform an OAuth webapp login flow and creates a
     client wrapped around the resulting token. The client will be configured to
     refresh the token as necessary, writing each updated version to
     ``token_path``.
@@ -67,6 +86,9 @@ def client_from_login_flow(webdriver, api_key, redirect_url, token_path,
                        file already exists, it will be overwritten with a new
                        one. Updated tokens will be written to this path as well.
     '''
+    get_logger().info(('Creating new token with redirect URL \'{}\' ' +
+                       'and token path \'{}\'').format(redirect_url, token_path))
+
     oauth = OAuth2Session(api_key, redirect_uri=redirect_url)
     authorization_url, state = oauth.authorization_url(
         'https://auth.tdameritrade.com/auth')
@@ -90,6 +112,9 @@ def client_from_login_flow(webdriver, api_key, redirect_url, token_path,
         access_type='offline',
         client_id=api_key,
         include_client_id=True)
+
+    # Don't emit token details in debug logs
+    __register_token_redactions(token)
 
     # Record the token
     update_token = __token_updater(token_path)
@@ -131,13 +156,24 @@ def easy_client(api_key, redirect_uri, token_path, webdriver_func=None):
                            cannot be found.
     '''
     api_key = __normalize_api_key(api_key)
+    logger = get_logger()
 
     try:
-        return client_from_token_file(token_path, api_key)
+        c = client_from_token_file(token_path, api_key)
+        logger.info('Returning client loaded from token file \'{}\''.format(
+            token_path))
+        return c
     except FileNotFoundError:
+        logger.info('Failed to find token file \'{}\''.format(token_path))
+
         if webdriver_func is not None:
             with webdriver_func() as driver:
-                return client_from_login_flow(
+                c = client_from_login_flow(
                     driver, api_key, redirect_uri, token_path)
+                logger.info(
+                    'Returning client fetched using webdriver, writing' +
+                    'token to \'{}\''.format(token_path))
+                return c
         else:
+            logger.info('No webdriver_func set, returning')
             raise

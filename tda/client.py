@@ -9,19 +9,14 @@ import datetime
 import json
 import logging
 import pickle
+import tda
 import time
 
 from .utils import EnumEnforcer
 
 
-__LOGGER__ = None
-
-
 def get_logger():
-    global __LOGGER__
-    if __LOGGER__ is None:
-        __LOGGER__ = logging.getLogger(__name__)
-    return __LOGGER__
+    return logging.getLogger(__name__)
 
 
 ##########################################################################
@@ -46,6 +41,8 @@ class Client(EnumEnforcer):
         # Logging-related fields
         self.logger = get_logger()
         self.request_number = 0
+
+        tda.LOG_REDACTOR.register(api_key, 'API_KEY')
 
     # XXX: This class's tests perform monkey patching to inject synthetic values
     # of utcnow(). To avoid being confused by this, capture these values here so
@@ -110,6 +107,7 @@ class Client(EnumEnforcer):
 
         resp = self.session.get(dest, params=params)
         self.__log_response(resp, req_num)
+        tda.debug.register_redactions_from_response(resp)
         return resp
 
     def __post_request(self, path, data):
@@ -121,6 +119,7 @@ class Client(EnumEnforcer):
 
         resp = self.session.post(dest, json=data)
         self.__log_response(resp, req_num)
+        tda.debug.register_redactions_from_response(resp)
         return resp
 
     def __put_request(self, path, data):
@@ -132,6 +131,7 @@ class Client(EnumEnforcer):
 
         resp = self.session.put(dest, json=data)
         self.__log_response(resp, req_num)
+        tda.debug.register_redactions_from_response(resp)
         return resp
 
     def __patch_request(self, path, data):
@@ -143,6 +143,7 @@ class Client(EnumEnforcer):
 
         resp = self.session.patch(dest, json=data)
         self.__log_response(resp, req_num)
+        tda.debug.register_redactions_from_response(resp)
         return resp
 
     def __delete_request(self, path):
@@ -153,6 +154,7 @@ class Client(EnumEnforcer):
 
         resp = self.session.delete(dest)
         self.__log_response(resp, req_num)
+        tda.debug.register_redactions_from_response(resp)
         return resp
 
     ##########################################################################

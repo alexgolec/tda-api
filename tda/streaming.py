@@ -6,20 +6,15 @@ import copy
 import datetime
 import json
 import logging
+import tda
 import urllib.parse
 import websockets
 
 from .utils import EnumEnforcer
 
 
-__LOGGER__ = None
-
-
 def get_logger():
-    global __LOGGER__
-    if __LOGGER__ is None:
-        __LOGGER__ = logging.getLogger(__name__)
-    return __LOGGER__
+    return logging.getLogger(__name__)
 
 
 class _BaseFieldEnum(Enum):
@@ -154,6 +149,7 @@ class StreamClient(EnumEnforcer):
             self.logger.debug(
                 'Receive {}: Returning message from stream: {}'.format(
                     self.req_num(), json.dumps(ret, indent=4)))
+
         return ret
 
     async def _init_from_principals(self, principals):
@@ -292,7 +288,6 @@ class StreamClient(EnumEnforcer):
         # data
         if 'data' in msg:
             for d in msg['data']:
-                print(' ---------- message')
                 if d['service'] in self._handlers:
                     for handler in self._handlers[d['service']]:
                         labeled_d = handler.label_message(d)
