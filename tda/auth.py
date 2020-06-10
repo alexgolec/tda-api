@@ -171,8 +171,8 @@ def easy_client(api_key, redirect_uri, token_path, webdriver_func=None):
                 c = client_from_login_flow(
                     driver, api_key, redirect_uri, token_path)
                 logger.info(
-                        'Returning client fetched using webdriver, writing'+
-                        'token to \'{}\''.format(token_path))
+                    'Returning client fetched using webdriver, writing' +
+                    'token to \'{}\''.format(token_path))
                 return c
         else:
             logger.info('No webdriver_func set, returning')
