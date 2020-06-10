@@ -1,6 +1,11 @@
+import atexit
+import logging
 import sys
 import tda
 
+
+def get_logger():
+    return logging.getLogger(__name__)
 
 class LogRedactor:
     '''
@@ -95,14 +100,12 @@ def _enable_bug_report_logging(output=sys.stderr, loggers=None):
     Module-internal version of :func:`enable_bug_report_logging`, intended for 
     use in tests.
     '''
-    import atexit
-    import logging
-
     if loggers is None:
         loggers = (
             tda.auth.get_logger(),
             tda.client.get_logger(),
-            tda.streaming.get_logger())
+            tda.streaming.get_logger(),
+            get_logger())
 
     class RecordingHandler(logging.Handler):
         def __init__(self, *args, **kwargs):
@@ -125,5 +128,7 @@ def _enable_bug_report_logging(output=sys.stderr, loggers=None):
             msg = tda.LOG_REDACTOR.redact(msg)
             print(msg, file=output)
     atexit.register(write_logs)
+
+    get_logger().debug('tda-api version {}'.format(tda.__version__))
 
     return write_logs
