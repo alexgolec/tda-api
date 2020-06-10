@@ -157,25 +157,19 @@ class StreamClient(EnumEnforcer):
         # Assume a 1-to-1 mapping of streamer keys to accounts.
         accounts = principals['accounts']
         num_accounts = len(accounts)
-        stream_keys = principals['streamerSubscriptionKeys']['keys']
-        num_stream_keys = len(stream_keys)
         assert num_accounts > 0, 'zero accounts found'
-        assert num_accounts == num_stream_keys, 'missing/too many stream keys'
 
         # If there's only one account, use it. Otherwise require an account ID.
         if num_accounts == 1:
             self._account = accounts[0]
-            self._stream_key = stream_keys[0]['key']
         else:
             if self._account_id is None:
                 raise ValueError(
                     'multiple accounts found and StreamClient was ' +
                     'initialized with unspecified account_id')
-
             for idx, account in enumerate(accounts):
                 if int(account['accountId']) == self._account_id:
                     self._account = account
-                    self._stream_key = stream_keys[idx]['key']
 
         if self._account is None:
             raise ValueError(
@@ -184,6 +178,13 @@ class StreamClient(EnumEnforcer):
 
         if self._account_id is None:
             self._account_id = self._account['accountId']
+
+        # Record streamer subscription keys
+        stream_keys = principals['streamerSubscriptionKeys']['keys']
+        if len(stream_keys) > 1:
+            self.logger.warn('Found {} stream keys, using the first one'.format(
+                len(stream_keys)))
+        self._stream_key = stream_keys[0]['key']
 
         # Initialize socket
         wss_url = 'wss://{}/ws'.format(
