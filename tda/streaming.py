@@ -13,14 +13,8 @@ import websockets
 from .utils import EnumEnforcer
 
 
-__LOGGER__ = None
-
-
 def get_logger():
-    global __LOGGER__
-    if __LOGGER__ is None:
-        __LOGGER__ = logging.getLogger(__name__)
-    return __LOGGER__
+    return logging.getLogger(__name__)
 
 
 class _BaseFieldEnum(Enum):

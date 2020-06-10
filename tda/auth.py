@@ -9,14 +9,9 @@ import time
 
 from tda.client import Client
 
-__LOGGER__ = None
-
 
 def get_logger():
-    global __LOGGER__
-    if __LOGGER__ is None:
-        __LOGGER__ = logging.getLogger(__name__)
-    return __LOGGER__
+    return logging.getLogger(__name__)
 
 
 def __token_updater(token_path):
