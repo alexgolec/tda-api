@@ -98,6 +98,7 @@ class StreamClient(EnumEnforcer):
         self._account = None
         self._socket = None
         self._source = None
+        self._stream_key = None
 
         # Internal fields
         self._request_id = 0
@@ -189,6 +190,7 @@ class StreamClient(EnumEnforcer):
 
         # Initialize miscellaneous parameters
         self._source = principals['streamerInfo']['appId']
+        self._stream_key = principals['streamerSubscriptionKeys']['keys'][0]['key']
 
     def _make_request(self, *, service, command, parameters):
         request_id = self._request_id
@@ -405,6 +407,44 @@ class StreamClient(EnumEnforcer):
 
         await self._send({'requests': [request]})
         await self._await_response(request_id, 'ADMIN', 'QOS')
+
+    ##########################################################################
+    # ACCT_ACTIVITY
+
+    class AccountActivityFields(_BaseFieldEnum):
+        '''
+        `Official documentation <https://developer.tdameritrade.com/content/
+        streaming-data#_Toc504640580`__
+
+        This service is used to request streaming updates for one or more accounts 
+        associated with the logged in User ID.  Common usage would involve issuing 
+        the OrderStatus API request to get all transactions for an account, and 
+        subscribing to ACCT_ACTIVITY to get any updates. 
+        '''
+        SUBSCRIPTION_KEY = 0
+        ACCOUNT = 1
+        MESSAGE_TYPE = 2
+        MESSAGE_DATA = 3
+
+    async def account_activity_sub(self, *, fields=None):
+        '''
+        `Official documentation <https://developer.tdameritrade.com/content/
+        streaming-data#_Toc504640580`__
+
+        Subscribe to account activity for the account id associated with this
+        streaming client.
+        '''
+        await self._service_op(
+            [self._stream_key], 'ACCT_ACTIVITY', 'SUBS', 
+            self.AccountActivityFields, fields=fields)
+
+    def add_account_activity_handler(self, handler):
+        '''
+        Adds a handler to the account activity subscription. See
+        :ref:`registering_handlers` for details.
+        '''
+        self._handlers['ACCT_ACTIVITY'].append(_Handler(handler,
+                                                self.AccountActivityFields))
 
     ##########################################################################
     # CHART_EQUITY
