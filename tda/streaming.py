@@ -254,7 +254,7 @@ class StreamClient(EnumEnforcer):
                             resp_code,
                             resp['response'][0]['content']['msg']))
 
-                return resp
+                break
 
     async def _service_op(self, symbols, service, command, field_type,
                           *, fields=None):
@@ -269,9 +269,7 @@ class StreamClient(EnumEnforcer):
                 'fields': ','.join(str(f) for f in fields)})
 
         await self._send({'requests': [request]})
-        resp = await self._await_response(request_id, service, command)
-
-        return resp
+        await self._await_response(request_id, service, command)
 
     async def handle_message(self):
         msg = await self._receive()
