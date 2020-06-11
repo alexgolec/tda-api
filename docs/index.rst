@@ -1,7 +1,13 @@
 ``tda-api``: An Unofficial TD Ameritrade Client
 ===============================================
 
-`This project is on GitHub <https://github.com/alexgolec/tda-api>`__
+.. image:: _static/github-logo.png
+   :width: 40
+   :target: https://github.com/alexgolec/tda-api
+
+.. image:: _static/discord-logo.png
+   :width: 50
+   :target: https://discord.gg/nfrd9gh
 
 .. toctree::
   :maxdepth: 2

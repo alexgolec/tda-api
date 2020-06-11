@@ -76,3 +76,12 @@ package:
   import tda
 
 If this succeeded, you're ready to move on to :ref:`auth`.
+
+++++++++++++
+Getting Help
+++++++++++++
+
+If you are ever stuck, feel free to  `join our Discord server
+<https://discord.gg/nfrd9gh>`__ to ask questions, get advice, and chat with 
+like-minded people. If you feel you've found a bug, you can :ref:`fill out a bug 
+report <help>`.

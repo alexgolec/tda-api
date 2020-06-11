@@ -127,7 +127,8 @@ Troubleshooting
 As simple as it seems, this process is complex and mistakes are easy to make. 
 This section outlines some of the more common issues you might encounter. If you 
 find yourself dealing with something that isn't listed here, or if you try the 
-suggested remedies and are still seeing issues, see the :ref:`help` page.
+suggested remedies and are still seeing issues, see the :ref:`help` page. You 
+can also `join our Discord server <https://discord.gg/nfrd9gh>`__ to ask questions.
 
 
 +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++

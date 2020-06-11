@@ -24,6 +24,7 @@ endpoint. Notable functionality includes:
 * Login and authentication
 * Quotes, fundamentals, and historical pricing data
 * Options chains
+* Streaming quotes and order book depth data
 * Trades and trade management
 * Account info and preferences
 
@@ -99,6 +100,9 @@ only be used to perform real trades using a TD Ameritrade account.
 
 What else?
 ----------
+
+We have a `Discord server <https://discord.gg/nfrd9gh>`__! You can join to get 
+help using ``tda-api`` or just to chat with interesting people.
 
 Bug reports, suggestions, and patches are always welcome! Submit issues
 `here <https://github.com/alexgolec/tda-api/issues>`__ and pull requests
