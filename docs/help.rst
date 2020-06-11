@@ -14,7 +14,7 @@ date, and it almost certainly contains bugs. If you think of a way in which
 This page outlines the process for getting help if you found a bug. If you need 
 general help using ``tda-api``, or just want to chat with other people 
 interested in developing trading strategies, you can 
-`join our discord <https://discord.gg/nfrd9gh>`__.
+`join our discord <https://discord.gg/M3vjtHj>`__.
 
 If you still want to submit an issue, we ask that you follow a few guidelines to 
 make both our lives easier:
