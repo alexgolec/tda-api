@@ -1,6 +1,9 @@
 ``tda-api``: A TD Ameritrade API Wrapper
 ========================================
 
+.. image:: https://img.shields.io/discord/720378361880248621.svg?label=&logo=discord&logoColor=ffffff&color=7389D8&labelColor=6A7EC2
+  :target: https://discord.gg/nfrd9gh
+
 .. image:: https://readthedocs.org/projects/tda-api/badge/?version=latest
   :target: https://tda-api.readthedocs.io/en/latest/?badge=latest
 
