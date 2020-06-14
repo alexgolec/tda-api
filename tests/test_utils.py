@@ -75,8 +75,8 @@ class MockResponse:
 
 
 def has_diff(old, new):
-    old_out = json.dumps(old, indent=4).splitlines()
-    new_out = json.dumps(new, indent=4).splitlines()
+    old_out = json.dumps(old, indent=4, sort_keys=True).splitlines()
+    new_out = json.dumps(new, indent=4, sort_keys=True).splitlines()
     diff = difflib.ndiff(old_out, new_out)
     diff, has_diff = color_diff(diff)
 
