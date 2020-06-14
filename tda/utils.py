@@ -5,8 +5,6 @@ import datetime
 import dateutil.parser
 import re
 
-from .orders import EquityOrderBuilder
-
 
 class EnumEnforcer:
     def __init__(self, enforce_enums):
