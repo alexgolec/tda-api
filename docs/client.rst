@@ -72,7 +72,14 @@ users can simply use the following pattern:
 
 The API indicates errors using the response status code, and this pattern will 
 raise the appropriate exception if the response is not a success. The data can 
-be fetched by calling the ``.json()`` method.
+be fetched by calling the ``.json()`` method. 
+
+This data will be pure python data structures which can be directly accessed. 
+You can also use your favorite data analysis library's dataframe format using 
+the appropriate library. For instance you can create a `pandas
+<https://pandas.pydata.org/>`__ dataframe using `its conversion method 
+<https://pandas.pydata.org/pandas-docs/stable/reference/api/
+pandas.DataFrame.from_dict.html>`__.
 
 **Note:** Because the author has no relationship whatsoever with TD Ameritrade, 
 this document makes no effort to describe the structure of the returned JSON 
