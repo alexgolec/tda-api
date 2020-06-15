@@ -1,6 +1,6 @@
 import unittest
 
-from tda.orders.complex import *
+from tda.orders.generic import *
 from tests.test_utils import has_diff
 
 
