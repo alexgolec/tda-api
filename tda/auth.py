@@ -97,7 +97,7 @@ def client_from_login_flow(webdriver, api_key, redirect_url, token_path,
     print('Opening the login page in a webdriver. Please use this window to',
           'log in. Successful login will be detected automatically.')
     print('If you encounter any issues, see here for troubleshooting: ' +
-          'https://tda-api.readthedocs.io/en/latest/auth.html' +
+          'https://tda-api.readthedocs.io/en/stable/auth.html' +
           '#troubleshooting')
 
     webdriver.get(authorization_url)

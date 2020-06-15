@@ -4,8 +4,8 @@
 .. image:: https://img.shields.io/discord/720378361880248621.svg?label=&logo=discord&logoColor=ffffff&color=7389D8&labelColor=6A7EC2
   :target: https://discord.gg/nfrd9gh
 
-.. image:: https://readthedocs.org/projects/tda-api/badge/?version=latest
-  :target: https://tda-api.readthedocs.io/en/latest/?badge=latest
+.. image:: https://readthedocs.org/projects/tda-api/badge/?version=stable
+  :target: https://tda-api.readthedocs.io/en/stable/?badge=stable
 
 .. image:: https://circleci.com/gh/alexgolec/tda-api.svg?style=shield
   :target: https://circleci.com/gh/alexgolec/tda-api
@@ -35,7 +35,7 @@ How do I use ``tda-api``?
 -------------------------
 
 For a full description of ``tda-api``'s functionality, check out the 
-`documentation <https://tda-api.readthedocs.io/en/latest/>`__. Meawhile, here's 
+`documentation <https://tda-api.readthedocs.io/en/stable/>`__. Meawhile, here's 
 a quick getting started guide:
 
 Before you do anything, create an account and an application on the
