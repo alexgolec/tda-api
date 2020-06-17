@@ -20,6 +20,9 @@ class OrderBuilderTest(unittest.TestCase):
             'session': 'NORMAL'
         }, self.order_builder.build()))
 
+        self.order_builder.clear_session()
+        self.assertFalse(has_diff({}, self.order_builder.build()))
+
     def test_session_wrong_type(self):
         with self.assertRaises(ValueError):
             self.order_builder.set_session('NORMAL')
@@ -40,6 +43,9 @@ class OrderBuilderTest(unittest.TestCase):
             'duration': 'DAY'
         }, self.order_builder.build()))
 
+        self.order_builder.clear_duration()
+        self.assertFalse(has_diff({}, self.order_builder.build()))
+
     def test_duration_wrong_type(self):
         with self.assertRaises(ValueError):
             self.order_builder.set_duration('DAY')
@@ -59,6 +65,9 @@ class OrderBuilderTest(unittest.TestCase):
         self.assertFalse(has_diff({
             'orderType': 'MARKET'
         }, self.order_builder.build()))
+
+        self.order_builder.clear_order_type()
+        self.assertFalse(has_diff({}, self.order_builder.build()))
 
     def test_order_type_wrong_type(self):
         with self.assertRaises(ValueError):
@@ -81,6 +90,9 @@ class OrderBuilderTest(unittest.TestCase):
             'complexOrderStrategyType': 'IRON_CONDOR'
         }, self.order_builder.build()))
 
+        self.order_builder.clear_complex_order_strategy_type()
+        self.assertFalse(has_diff({}, self.order_builder.build()))
+
     def test__wrong_type(self):
         with self.assertRaises(ValueError):
             self.order_builder.set_complex_order_strategy_type('IRON_CONDOR')
@@ -101,6 +113,9 @@ class OrderBuilderTest(unittest.TestCase):
             'quantity': 12
         }, self.order_builder.build()))
 
+        self.order_builder.clear_quantity()
+        self.assertFalse(has_diff({}, self.order_builder.build()))
+
     def test_quantity_negative(self):
         with self.assertRaises(ValueError):
             self.order_builder.set_quantity(-12)
@@ -117,6 +132,9 @@ class OrderBuilderTest(unittest.TestCase):
         self.assertFalse(has_diff({
             'requestedDestination': 'INET'
         }, self.order_builder.build()))
+
+        self.order_builder.clear_requested_destination()
+        self.assertFalse(has_diff({}, self.order_builder.build()))
 
     def test_requested_destination_wrong_type(self):
         with self.assertRaises(ValueError):
@@ -137,6 +155,9 @@ class OrderBuilderTest(unittest.TestCase):
         self.assertFalse(has_diff({
             'stopPrice': '42.90'
         }, self.order_builder.build()))
+
+        self.order_builder.clear_stop_price()
+        self.assertFalse(has_diff({}, self.order_builder.build()))
 
     def test_stop_price_negative(self):
         self.order_builder.set_stop_price(-1.31)
@@ -171,6 +192,9 @@ class OrderBuilderTest(unittest.TestCase):
             'stopPriceLinkBasis': 'ASK'
         }, self.order_builder.build()))
 
+        self.order_builder.clear_stop_price_link_basis()
+        self.assertFalse(has_diff({}, self.order_builder.build()))
+
     def test_stop_price_link_basis_wrong_type(self):
         with self.assertRaises(ValueError):
             self.order_builder.set_stop_price_link_basis('ASK')
@@ -190,6 +214,9 @@ class OrderBuilderTest(unittest.TestCase):
         self.assertFalse(has_diff({
             'stopPriceLinkType': 'VALUE'
         }, self.order_builder.build()))
+
+        self.order_builder.clear_stop_price_link_type()
+        self.assertFalse(has_diff({}, self.order_builder.build()))
 
     def test_stop_price_link_type_wrong_type(self):
         with self.assertRaises(ValueError):
@@ -211,6 +238,9 @@ class OrderBuilderTest(unittest.TestCase):
             'stopPriceOffset': 12.98
         }, self.order_builder.build()))
 
+        self.order_builder.clear_stop_price_offset()
+        self.assertFalse(has_diff({}, self.order_builder.build()))
+
     ##########################################################################
     # StopType
 
@@ -219,6 +249,9 @@ class OrderBuilderTest(unittest.TestCase):
         self.assertFalse(has_diff({
             'stopType': 'MARK'
         }, self.order_builder.build()))
+
+        self.order_builder.clear_stop_type()
+        self.assertFalse(has_diff({}, self.order_builder.build()))
 
     def test_stop_type_wrong_type(self):
         with self.assertRaises(ValueError):
@@ -232,13 +265,16 @@ class OrderBuilderTest(unittest.TestCase):
         }, self.order_builder.build()))
 
     ##########################################################################
-    #
+    # PriceLinkBasis
 
     def test_price_link_basis_success(self):
         self.order_builder.set_price_link_basis(PriceLinkBasis.AVERAGE)
         self.assertFalse(has_diff({
             'priceLinkBasis': 'AVERAGE'
         }, self.order_builder.build()))
+
+        self.order_builder.clear_price_link_basis()
+        self.assertFalse(has_diff({}, self.order_builder.build()))
 
     def test_price_link_basis_wrong_type(self):
         with self.assertRaises(ValueError):
@@ -260,6 +296,9 @@ class OrderBuilderTest(unittest.TestCase):
             'priceLinkType': 'PERCENT'
         }, self.order_builder.build()))
 
+        self.order_builder.clear_price_link_type()
+        self.assertFalse(has_diff({}, self.order_builder.build()))
+
     def test_price_link_type_wrong_type(self):
         with self.assertRaises(ValueError):
             self.order_builder.set_price_link_type('PERCENT')
@@ -279,6 +318,9 @@ class OrderBuilderTest(unittest.TestCase):
         self.assertFalse(has_diff({
             'price': '23.49'
         }, self.order_builder.build()))
+
+        self.order_builder.clear_price()
+        self.assertFalse(has_diff({}, self.order_builder.build()))
 
     def test_price_negative(self):
         self.order_builder.set_price(-1.23)
@@ -313,6 +355,9 @@ class OrderBuilderTest(unittest.TestCase):
             'activationPrice': 54.03
         }, self.order_builder.build()))
 
+        self.order_builder.clear_activation_price()
+        self.assertFalse(has_diff({}, self.order_builder.build()))
+
     def test_activation_price_negative(self):
         with self.assertRaises(ValueError):
             self.order_builder.set_activation_price(-3.94)
@@ -330,6 +375,9 @@ class OrderBuilderTest(unittest.TestCase):
         self.assertFalse(has_diff({
             'specialInstruction': 'DO_NOT_REDUCE'
         }, self.order_builder.build()))
+
+        self.order_builder.clear_special_instruction()
+        self.assertFalse(has_diff({}, self.order_builder.build()))
 
     def test_special_instruction_wrong_type(self):
         with self.assertRaises(ValueError):
@@ -351,6 +399,9 @@ class OrderBuilderTest(unittest.TestCase):
             'orderStrategyType': 'OCO'
         }, self.order_builder.build()))
 
+        self.order_builder.clear_order_strategy_type()
+        self.assertFalse(has_diff({}, self.order_builder.build()))
+
     def test_order_strategy_type_wrong_type(self):
         with self.assertRaises(ValueError):
             self.order_builder.set_order_strategy_type('OCO')
@@ -367,10 +418,13 @@ class OrderBuilderTest(unittest.TestCase):
 
     def test_add_child_order_strategy_success(self):
         self.order_builder.add_child_order_strategy(
-            OrderBuilder().set_session(Session.NORMAL))
+                OrderBuilder().set_session(Session.NORMAL))
         self.assertFalse(has_diff({
             'childOrderStrategies': [{'session': 'NORMAL'}]
         }, self.order_builder.build()))
+
+        self.order_builder.clear_child_order_strategies()
+        self.assertFalse(has_diff({}, self.order_builder.build()))
 
     def test_add_child_order_strategy_dict(self):
         self.order_builder.add_child_order_strategy(
@@ -412,6 +466,10 @@ class OrderBuilderTest(unittest.TestCase):
                 'quantity': 1,
             }]
         }, self.order_builder.build()))
+
+        self.order_builder.clear_order_legs()
+        self.assertFalse(has_diff({}, self.order_builder.build()))
+
 
     def test_add_order_leg_wrong_type(self):
         with self.assertRaises(ValueError):

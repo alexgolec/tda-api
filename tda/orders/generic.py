@@ -74,17 +74,26 @@ class OrderBuilder(EnumEnforcer):
         self._session = session
         return self
 
+    def clear_session(self):
+        self._session = None
+
     # Duration
     def set_duration(self, duration):
         duration = self.convert_enum(duration, common.Duration)
         self._duration = duration
         return self
 
+    def clear_duration(self):
+        self._duration = None
+
     # OrderType
     def set_order_type(self, order_type):
         order_type = self.convert_enum(order_type, common.OrderType)
         self._orderType = order_type
         return self
+
+    def clear_order_type(self):
+        self._orderType = None
 
     # ComplexOrderStrategyType
     def set_complex_order_strategy_type(self, complex_order_strategy_type):
@@ -93,12 +102,18 @@ class OrderBuilder(EnumEnforcer):
         self._complexOrderStrategyType = complex_order_strategy_type
         return self
 
+    def clear_complex_order_strategy_type(self):
+        self._complexOrderStrategyType = None
+
     # Quantity
     def set_quantity(self, quantity):
         if quantity <= 0:
             raise ValueError('quantity must be positive')
         self._quantity = quantity
         return self
+
+    def clear_quantity(self):
+        self._quantity = None
 
     # RequestedDestination
     def set_requested_destination(self, requested_destination):
@@ -107,10 +122,16 @@ class OrderBuilder(EnumEnforcer):
         self._requestedDestination = requested_destination
         return self
 
+    def clear_requested_destination(self):
+        self._requestedDestination = None
+
     # StopPrice
     def set_stop_price(self, stop_price):
         self._stopPrice = _truncate_float(stop_price)
         return self
+
+    def clear_stop_price(self):
+        self._stopPrice = None
 
     # StopPriceLinkBasis
     def set_stop_price_link_basis(self, stop_price_link_basis):
@@ -119,6 +140,9 @@ class OrderBuilder(EnumEnforcer):
         self._stopPriceLinkBasis = stop_price_link_basis
         return self
 
+    def clear_stop_price_link_basis(self):
+        self._stopPriceLinkBasis = None
+
     # StopPriceLinkType
     def set_stop_price_link_type(self, stop_price_link_type):
         stop_price_link_type = self.convert_enum(
@@ -126,16 +150,25 @@ class OrderBuilder(EnumEnforcer):
         self._stopPriceLinkType = stop_price_link_type
         return self
 
+    def clear_stop_price_link_type(self):
+        self._stopPriceLinkType = None
+
     # StopPriceOffset
     def set_stop_price_offset(self, stop_price_offset):
         self._stopPriceOffset = stop_price_offset
         return self
+
+    def clear_stop_price_offset(self):
+        self._stopPriceOffset = None
 
     # StopType
     def set_stop_type(self, stop_type):
         stop_type = self.convert_enum(stop_type, common.StopType)
         self._stopType = stop_type
         return self
+
+    def clear_stop_type(self):
+        self._stopType = None
 
     # PriceLinkBasis
     def set_price_link_basis(self, price_link_basis):
@@ -144,6 +177,9 @@ class OrderBuilder(EnumEnforcer):
         self._priceLinkBasis = price_link_basis
         return self
 
+    def clear_price_link_basis(self):
+        self._priceLinkBasis = None
+
     # PriceLinkType
     def set_price_link_type(self, price_link_type):
         price_link_type = self.convert_enum(
@@ -151,10 +187,16 @@ class OrderBuilder(EnumEnforcer):
         self._priceLinkType = price_link_type
         return self
 
+    def clear_price_link_type(self):
+        self._priceLinkType = None
+
     # Price
     def set_price(self, price):
         self._price = _truncate_float(price)
         return self
+
+    def clear_price(self):
+        self._price = None
 
     # ActivationPrice
     def set_activation_price(self, activation_price):
@@ -163,12 +205,18 @@ class OrderBuilder(EnumEnforcer):
         self._activationPrice = activation_price
         return self
 
+    def clear_activation_price(self):
+        self._activationPrice = None
+
     # SpecialInstruction
     def set_special_instruction(self, special_instruction):
         special_instruction = self.convert_enum(
             special_instruction, common.SpecialInstruction)
         self._specialInstruction = special_instruction
         return self
+
+    def clear_special_instruction(self):
+        self._specialInstruction = None
 
     # OrderStrategyType
     def set_order_strategy_type(self, order_strategy_type):
@@ -177,17 +225,23 @@ class OrderBuilder(EnumEnforcer):
         self._orderStrategyType = order_strategy_type
         return self
 
+    def clear_order_strategy_type(self):
+        self._orderStrategyType = None
+
     # ChildOrderStrategies
     def add_child_order_strategy(self, child_order_strategy):
-        if self._childOrderStrategies is None:
-            self._childOrderStrategies = []
-
         if (not isinstance(child_order_strategy, OrderBuilder)
                 and not isinstance(child_order_strategy, dict)):
             raise ValueError('child order must be OrderBuilder or dict')
 
+        if self._childOrderStrategies is None:
+            self._childOrderStrategies = []
+
         self._childOrderStrategies.append(child_order_strategy)
         return self
+
+    def clear_child_order_strategies(self):
+        self._childOrderStrategies = None
 
     # OrderLegCollection
     def add_order_leg(self, instruction, instrument, quantity):
@@ -198,6 +252,7 @@ class OrderBuilder(EnumEnforcer):
 
         if self._orderLegCollection is None:
             self._orderLegCollection = []
+
         self._orderLegCollection.append({
             'instruction': instruction,
             'instrument': instrument,
@@ -205,6 +260,11 @@ class OrderBuilder(EnumEnforcer):
         })
 
         return self
+
+    def clear_order_legs(self):
+        self._orderLegCollection = None
+
+    # Build
 
     def build(self):
         return _build_object(self)
