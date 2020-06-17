@@ -1,6 +1,7 @@
 from enum import Enum
 
 from tda.orders import common
+from tda.utils import EnumEnforcer
 
 
 def _build_object(obj):
@@ -22,7 +23,7 @@ def _build_object(obj):
     else:
         ret = {}
         for name, value in vars(obj).items():
-            if value is None:
+            if value is None or name[0] != '_':
                 continue
 
             name = name[1:]
@@ -30,7 +31,11 @@ def _build_object(obj):
         return ret
 
 
-class OrderBuilder:
+def _truncate_float(flt):
+    return '{:.2f}'.format(float(int(flt * 100)) / 100.0)
+
+
+class OrderBuilder(EnumEnforcer):
     '''
     Helper class to create arbitrarily complex orders. Note this class simply
     implements the order schema defined in the `documentation
@@ -40,7 +45,9 @@ class OrderBuilder:
     your own risk.
     '''
 
-    def __init__(self):
+    def __init__(self, *, enforce_enums=True):
+        super().__init__(enforce_enums)
+
         self._session = None
         self._duration = None
         self._orderType = None
@@ -61,66 +68,61 @@ class OrderBuilder:
         self._orderStrategyType = None
         self._childOrderStrategies = None
 
-    class OrderLegCollection:
-        def __init__(self):
-            self._orderLegType = None
-            self._legId = None
-            self._instrument = None
-            self._instruction = None
-            self._quantity = None
-            self._quantityType = None
-
     # Session
     def set_session(self, session):
-        assert isinstance(session, common.Session)
+        session = self.convert_enum(session, common.Session)
         self._session = session
         return self
 
     # Duration
     def set_duration(self, duration):
-        assert isinstance(duration, common.Duration)
+        duration = self.convert_enum(duration, common.Duration)
         self._duration = duration
         return self
 
     # OrderType
     def set_order_type(self, order_type):
-        assert isinstance(order_type, common.OrderType)
+        order_type = self.convert_enum(order_type, common.OrderType)
         self._orderType = order_type
         return self
 
     # ComplexOrderStrategyType
     def set_complex_order_strategy_type(self, complex_order_strategy_type):
-        assert isinstance(
+        complex_order_strategy_type = self.convert_enum(
             complex_order_strategy_type, common.ComplexOrderStrategyType)
         self._complexOrderStrategyType = complex_order_strategy_type
         return self
 
     # Quantity
     def set_quantity(self, quantity):
-        assert quantity > 0
+        if quantity <= 0:
+            raise ValueError('quantity must be positive')
         self._quantity = quantity
         return self
 
     # RequestedDestination
     def set_requested_destination(self, requested_destination):
-        assert isinstance(requested_destination, common.Destination)
+        requested_destination = self.convert_enum(
+            requested_destination, common.Destination)
         self._requestedDestination = requested_destination
         return self
 
     # StopPrice
     def set_stop_price(self, stop_price):
-        self._stopPrice = '{:.2f}'.format(stop_price)
+        self._stopPrice = _truncate_float(stop_price)
         return self
 
     # StopPriceLinkBasis
     def set_stop_price_link_basis(self, stop_price_link_basis):
-        assert isinstance(stop_price_link_basis, common.StopPriceLinkBasis)
+        stop_price_link_basis = self.convert_enum(
+            stop_price_link_basis, common.StopPriceLinkBasis)
         self._stopPriceLinkBasis = stop_price_link_basis
         return self
 
     # StopPriceLinkType
     def set_stop_price_link_type(self, stop_price_link_type):
-        assert isinstance(stop_price_link_type, common.StopPriceLinkType)
+        stop_price_link_type = self.convert_enum(
+            stop_price_link_type, common.StopPriceLinkType)
         self._stopPriceLinkType = stop_price_link_type
         return self
 
@@ -131,31 +133,68 @@ class OrderBuilder:
 
     # StopType
     def set_stop_type(self, stop_type):
-        assert isinstance(stop_type, common.StopType)
+        stop_type = self.convert_enum(stop_type, common.StopType)
         self._stopType = stop_type
         return self
 
     # PriceLinkBasis
     def set_price_link_basis(self, price_link_basis):
-        assert isinstance(price_link_basis, common.PriceLinkBasis)
+        price_link_basis = self.convert_enum(
+            price_link_basis, common.PriceLinkBasis)
         self._priceLinkBasis = price_link_basis
         return self
 
     # PriceLinkType
     def set_price_link_type(self, price_link_type):
-        assert isinstance(price_link_type, common.PriceLinkType)
+        price_link_type = self.convert_enum(
+            price_link_type, common.PriceLinkType)
         self._priceLinkType = price_link_type
         return self
 
     # Price
     def set_price(self, price):
-        assert price > 0.0
-        self._price = '{:.2f}'.format(price)
+        self._price = _truncate_float(price)
+        return self
+
+    # ActivationPrice
+    def set_activation_price(self, activation_price):
+        if activation_price <= 0.0:
+            raise ValueError('activation price must be positive')
+        self._activationPrice = activation_price
+        return self
+
+    # SpecialInstruction
+    def set_special_instruction(self, special_instruction):
+        special_instruction = self.convert_enum(
+            special_instruction, common.SpecialInstruction)
+        self._specialInstruction = special_instruction
+        return self
+
+    # OrderStrategyType
+    def set_order_strategy_type(self, order_strategy_type):
+        order_strategy_type = self.convert_enum(
+            order_strategy_type, common.OrderStrategyType)
+        self._orderStrategyType = order_strategy_type
+        return self
+
+    # ChildOrderStrategies
+    def add_child_order_strategy(self, child_order_strategy):
+        if self._childOrderStrategies is None:
+            self._childOrderStrategies = []
+
+        if (not isinstance(child_order_strategy, OrderBuilder)
+                and not isinstance(child_order_strategy, dict)):
+            raise ValueError('child order must be OrderBuilder or dict')
+
+        self._childOrderStrategies.append(child_order_strategy)
         return self
 
     # OrderLegCollection
     def add_order_leg(self, instruction, instrument, quantity):
-        assert quantity > 0
+        instruction = self.convert_enum(instruction, common.Instruction)
+
+        if quantity <= 0:
+            raise ValueError('quantity must be positive')
 
         if self._orderLegCollection is None:
             self._orderLegCollection = []
@@ -164,31 +203,7 @@ class OrderBuilder:
             'instrument': instrument,
             'quantity': quantity,
         })
-        return self
 
-    # ActivationPrice
-    def set_activation_price(self, activation_price):
-        assert activation_price >= 0.0
-        self._activationPrice = activation_price
-        return self
-
-    # SpecialInstruction
-    def set_special_instruction(self, special_instruction):
-        assert isinstance(special_instruction, common.SpecialInstruction)
-        self._specialInstruction = special_instruction
-        return self
-
-    # OrderStrategyType
-    def set_order_strategy_type(self, order_strategy_type):
-        assert isinstance(order_strategy_type, common.OrderStrategyType)
-        self._orderStrategyType = order_strategy_type
-        return self
-
-    # ChildOrderStrategies
-    def add_child_order_strategy(self, child_order_strategy):
-        if self._childOrderStrategies is None:
-            self._childOrderStrategies = []
-        self._childOrderStrategies.append(child_order_strategy)
         return self
 
     def build(self):
