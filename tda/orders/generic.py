@@ -9,7 +9,7 @@ def _build_object(obj):
     if isinstance(obj, str) or isinstance(obj, int) or isinstance(obj, float):
         return obj
 
-    # Note enums are not handled because call callers convert their enums to 
+    # Note enums are not handled because call callers convert their enums to
     # values.
 
     # Dicts and lists are iterated over, with keys intact

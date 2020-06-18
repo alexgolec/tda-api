@@ -6,9 +6,6 @@ class __BaseInstrument:
         self._assetType = asset_type
         self._symbol = symbol
 
-    def asset_type(self):
-        return self._assetType
-
 
 class EquityInstrument(__BaseInstrument):
     def __init__(self, symbol):

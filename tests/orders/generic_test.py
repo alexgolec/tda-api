@@ -418,7 +418,7 @@ class OrderBuilderTest(unittest.TestCase):
 
     def test_add_child_order_strategy_success(self):
         self.order_builder.add_child_order_strategy(
-                OrderBuilder().set_session(Session.NORMAL))
+            OrderBuilder().set_session(Session.NORMAL))
         self.assertFalse(has_diff({
             'childOrderStrategies': [{'session': 'NORMAL'}]
         }, self.order_builder.build()))
@@ -469,7 +469,6 @@ class OrderBuilderTest(unittest.TestCase):
 
         self.order_builder.clear_order_legs()
         self.assertFalse(has_diff({}, self.order_builder.build()))
-
 
     def test_add_order_leg_wrong_type(self):
         with self.assertRaises(ValueError):

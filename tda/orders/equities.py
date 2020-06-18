@@ -1,6 +1,10 @@
 from enum import Enum
 
+from tda.orders.common import InvalidOrderException
 from tda.orders.common import InvalidOrderException, Duration, Session
+
+
+_DEPRECATION_WARNED = False
 
 
 class EquityOrderBuilder:
@@ -10,9 +14,21 @@ class EquityOrderBuilder:
         '''Create an order for the given symbol and quantity. Note all
         unspecified parameters must be set prior to building the order spec.
 
+        **WARNING:** This class is deprecated in favor of the
+        :ref:`tda.orders.generic.OrderBuilder` and the order template helpers.
+        It will be removed in a future release.
+
         :param symbol: Symbol for the order
         :param quantity: Quantity of the order
         '''
+        global _DEPRECATION_WARNED
+        if not _DEPRECATION_WARNED:
+            import sys
+            print('WARNING: EquityOrderBuilder has been deprecated. Please ' +
+                  'migrate to one of the new order templates or use the ' +
+                  'generic OrderBuilder class.', file=sys.stderr)
+            _DEPRECATION_WARNED = True
+
         self.symbol = symbol
         self.quantity = quantity
 
@@ -98,3 +114,148 @@ class EquityOrderBuilder:
             assert self.price is None
 
         return spec
+
+
+##########################################################################
+# Buy orders
+
+
+def equity_buy_market(symbol, quantity):
+    from tda.orders.common import Duration, EquityInstrument, Instruction
+    from tda.orders.common import OrderStrategyType, OrderType, Session
+    from tda.orders.generic import OrderBuilder
+
+    return (OrderBuilder()
+            .set_order_type(OrderType.MARKET)
+            .set_session(Session.NORMAL)
+            .set_duration(Duration.DAY)
+            .set_order_strategy_type(OrderStrategyType.SINGLE)
+            .add_order_leg(
+                instruction=Instruction.BUY,
+                instrument=EquityInstrument(symbol),
+                quantity=quantity))
+
+
+def equity_buy_limit(symbol, quantity, price):
+    from tda.orders.common import Duration, EquityInstrument, Instruction
+    from tda.orders.common import OrderStrategyType, OrderType, Session
+    from tda.orders.generic import OrderBuilder
+
+    return (OrderBuilder()
+            .set_order_type(OrderType.LIMIT)
+            .set_price(price)
+            .set_session(Session.NORMAL)
+            .set_duration(Duration.DAY)
+            .set_order_strategy_type(OrderStrategyType.SINGLE)
+            .add_order_leg(
+                instruction=Instruction.BUY,
+                instrument=EquityInstrument(symbol),
+                quantity=quantity))
+
+##########################################################################
+# Sell orders
+
+
+def equity_sell_market(symbol, quantity):
+    from tda.orders.common import Duration, EquityInstrument, Instruction
+    from tda.orders.common import OrderStrategyType, OrderType, Session
+    from tda.orders.generic import OrderBuilder
+
+    return (OrderBuilder()
+            .set_order_type(OrderType.MARKET)
+            .set_session(Session.NORMAL)
+            .set_duration(Duration.DAY)
+            .set_order_strategy_type(OrderStrategyType.SINGLE)
+            .add_order_leg(
+                instruction=Instruction.SELL,
+                instrument=EquityInstrument(symbol),
+                quantity=quantity))
+
+
+def equity_sell_limit(symbol, quantity, price):
+    from tda.orders.common import Duration, EquityInstrument, Instruction
+    from tda.orders.common import OrderStrategyType, OrderType, Session
+    from tda.orders.generic import OrderBuilder
+
+    return (OrderBuilder()
+            .set_order_type(OrderType.LIMIT)
+            .set_price(price)
+            .set_session(Session.NORMAL)
+            .set_duration(Duration.DAY)
+            .set_order_strategy_type(OrderStrategyType.SINGLE)
+            .add_order_leg(
+                instruction=Instruction.SELL,
+                instrument=EquityInstrument(symbol),
+                quantity=quantity))
+
+##########################################################################
+# Short sell orders
+
+
+def equity_sell_short_market(symbol, quantity):
+    from tda.orders.common import Duration, EquityInstrument, Instruction
+    from tda.orders.common import OrderStrategyType, OrderType, Session
+    from tda.orders.generic import OrderBuilder
+
+    return (OrderBuilder()
+            .set_order_type(OrderType.MARKET)
+            .set_session(Session.NORMAL)
+            .set_duration(Duration.DAY)
+            .set_order_strategy_type(OrderStrategyType.SINGLE)
+            .add_order_leg(
+                instruction=Instruction.SELL_SHORT,
+                instrument=EquityInstrument(symbol),
+                quantity=quantity))
+
+
+def equity_sell_short_limit(symbol, quantity, price):
+    from tda.orders.common import Duration, EquityInstrument, Instruction
+    from tda.orders.common import OrderStrategyType, OrderType, Session
+    from tda.orders.generic import OrderBuilder
+
+    return (OrderBuilder()
+            .set_order_type(OrderType.LIMIT)
+            .set_price(price)
+            .set_session(Session.NORMAL)
+            .set_duration(Duration.DAY)
+            .set_order_strategy_type(OrderStrategyType.SINGLE)
+            .add_order_leg(
+                instruction=Instruction.SELL_SHORT,
+                instrument=EquityInstrument(symbol),
+                quantity=quantity))
+
+##########################################################################
+# Buy to cover orders
+
+
+def equity_buy_to_cover_market(symbol, quantity):
+    from tda.orders.common import Duration, EquityInstrument, Instruction
+    from tda.orders.common import OrderStrategyType, OrderType, Session
+    from tda.orders.generic import OrderBuilder
+
+    return (OrderBuilder()
+            .set_order_type(OrderType.MARKET)
+            .set_session(Session.NORMAL)
+            .set_duration(Duration.DAY)
+            .set_order_strategy_type(OrderStrategyType.SINGLE)
+            .add_order_leg(
+                instruction=Instruction.BUY_TO_COVER,
+                instrument=EquityInstrument(symbol),
+                quantity=quantity))
+
+
+def equity_buy_to_cover_limit(symbol, quantity, price):
+    from tda.orders.common import Duration, EquityInstrument, Instruction
+    from tda.orders.common import OrderStrategyType, OrderType, Session
+    from tda.orders.generic import OrderBuilder
+
+    return (OrderBuilder()
+            .set_order_type(OrderType.LIMIT)
+            .set_price(price)
+            .set_session(Session.NORMAL)
+            .set_duration(Duration.DAY)
+            .set_order_strategy_type(OrderStrategyType.SINGLE)
+            .add_order_leg(
+                instruction=Instruction.BUY_TO_COVER,
+                instrument=EquityInstrument(symbol),
+                quantity=quantity))
