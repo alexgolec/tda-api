@@ -69,31 +69,52 @@ class OrderBuilder(EnumEnforcer):
 
     # Session
     def set_session(self, session):
+        '''
+        Set the order session. See :class:`~tda.orders.common.Session` for
+        details.
+        '''
         session = self.convert_enum(session, common.Session)
         self._session = session
         return self
 
     def clear_session(self):
+        '''
+        Clear the order session.
+        '''
         self._session = None
         return self
 
     # Duration
     def set_duration(self, duration):
+        '''
+        Set the order duration. See :class:`~tda.orders.common.Duration` for
+        details.
+        '''
         duration = self.convert_enum(duration, common.Duration)
         self._duration = duration
         return self
 
     def clear_duration(self):
+        '''
+        Clear the order duration.
+        '''
         self._duration = None
         return self
 
     # OrderType
     def set_order_type(self, order_type):
+        '''
+        Set the order type. See :class:`~tda.orders.common.OrderType` for
+        details.
+        '''
         order_type = self.convert_enum(order_type, common.OrderType)
         self._orderType = order_type
         return self
 
     def clear_order_type(self):
+        '''
+        Clear the order type.
+        '''
         self._orderType = None
         return self
 

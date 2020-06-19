@@ -23,15 +23,40 @@ class InvalidOrderException(Exception):
 
 
 class Duration(Enum):
+    '''
+    Length of time over which the trade will be active.
+    '''
+    #: Cancel the trade at the end of the trading day. Note if the order cannot
+    #: be filled all at once, you may see partial executions throughout the day.
     DAY = 'DAY'
+
+    #: Keep the trade open for six months, or until the end of the cancel date,
+    #: whichever is shorter. Note if the order cannot be filled all at once, you
+    #: may see partial executions over the lifetime of the order.
+    # TODO: Implement order cancellation date
     GOOD_TILL_CANCEL = 'GOOD_TILL_CANCEL'
+
+    #: Either execute the order immediately at the specified price, or cancel it
+    #: immediately.
     FILL_OR_KILL = 'FILL_OR_KILL'
 
 
 class Session(Enum):
+    '''
+    The market session during which the order trade should be executed.
+    '''
+
+    #: Normal market hours, from 9:30am to 4:00pm Eastern.
     NORMAL = 'NORMAL'
+
+    #: Premarket session, from 8:00am to 9:30am Eastern.
     AM = 'AM'
+
+    #: After-market session, from 4:00pm to 8:00pm Eastern.
     PM = 'PM'
+
+    #: Unclear what this means. If you know, please `tell us
+    #: <https://github.com/alexgolec/tda-api/issues>`__.
     SEAMESS = 'SEAMLESS'
 
 
@@ -39,16 +64,58 @@ class OrderType(Enum):
     '''
     Type of equity or option order to place.
     '''
+
+    #: Execute the order immediately at the best-available price.
+    #: `More Info <https://www.investopedia.com/terms/m/marketorder.asp>`__.
     MARKET = 'MARKET'
+
+    #: Execute the order at your price or better. `
+    #: More info <https://www.investopedia.com/terms/l/limitorder.asp>`__.
     LIMIT = 'LIMIT'
+
+    #: Wait until the price reaches the stop price, and then immediately place a
+    #: market order.
+    #: `More Info <https://www.investopedia.com/terms/l/limitorder.asp>`__.
     STOP = 'STOP'
+
+    #: Wait until the price reaches the stop price, and then immediately place a
+    #: limit order at the specified price. `More Info
+    #: <https://www.investopedia.com/terms/s/stop-limitorder.asp>`__.
     STOP_LIMIT = 'STOP_LIMIT'
+
+    #: Similar to ``STOP``, except if the price moves in your favor, the stop
+    #: price is adjusted in that direction. Places a market order if the stop
+    #: condition is met.
+    #: `More info <https://www.investopedia.com/terms/t/trailingstop.asp>`__.
     TRAILING_STOP = 'TRAILING_STOP'
-    MARKET_ON_CLOSE = 'MARKET_ON_CLOSE'
-    EXERCISE = 'EXERCISE'
+
+    #: Similar to ``STOP_LIMIT``, except if the price moves in your favor, the
+    #: stop price is adjusted in that direction. Places a limit order at the
+    #: specified price if the stop condition is met.
+    #: `More info <https://www.investopedia.com/terms/t/trailingstop.asp>`__.
     TRAILING_STOP_LIMIT = 'TRAILING_STOP_LIMIT'
+
+    #: Place the order at the closing price immediately upon market close.
+    #: `More info <https://www.investopedia.com/terms/m/marketonclose.asp>`__
+    MARKET_ON_CLOSE = 'MARKET_ON_CLOSE'
+
+    #: Exercise an option.
+    EXERCISE = 'EXERCISE'
+
+    #: Place an order for an options spread resulting in a net debit equal.
+    #: `More info <https://www.investopedia.com/ask/answers/042215/
+    #: whats-difference-between-credit-spread-and-debt-spread.asp>`__
     NET_DEBIT = 'NET_DEBIT'
+
+    #: Place an order for an options spread resulting in a net debit equal.
+    #: `More info <https://www.investopedia.com/ask/answers/042215/
+    #: whats-difference-between-credit-spread-and-debt-spread.asp>`__
     NET_CREDIT = 'NET_CREDIT'
+
+    #: Place an order for an options spread resulting in neither a credit nor a
+    #: debit.
+    #: `More info <https://www.investopedia.com/ask/answers/042215/
+    #: whats-difference-between-credit-spread-and-debt-spread.asp>`__
     NET_ZERO = 'NET_ZERO'
 
 
@@ -252,3 +319,31 @@ class OrderStrategyType(Enum):
 
     #: Execution of one order triggers placement of the other
     TRIGGER = 'TRIGGER'
+
+
+def one_cancels_other(order1, order2):
+    '''
+    Combines the two orders so that one execution of one cancels the other.
+    '''
+    return (OrderBuilder()
+            .set_order_strategy_type(OrderStrategyType.OCO)
+            .add_child_order_strategy(order1)
+            .add_child_order_strategy(order2))
+
+
+def one_cancels_other(order1, order2):
+    '''
+    Combines the two orders so that one execution of one cancels the other.
+    '''
+    from tda.orders.generic import OrderBuilder
+
+    return (OrderBuilder()
+            .set_order_strategy_type(OrderStrategyType.OCO)
+            .add_child_order_strategy(order1)
+            .add_child_order_strategy(order2))
+
+
+def one_triggers_other(first_order, second_order):
+    return (first_order
+            .set_order_strategy_type(OrderStrategyType.TRIGGER)
+            .add_child_order_strategy(second_order))
