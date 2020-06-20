@@ -296,13 +296,15 @@ class SpecialInstruction(Enum):
     Special instruction for trades.
     '''
 
-    #: Disallow partial orders
+    #: Disallow partial order execution.
+    #: `More info <https://www.investopedia.com/terms/a/aon.asp>`__.
     ALL_OR_NONE = 'ALL_OR_NONE'
 
-    #: Do not reduce order size in response to cash dividends
+    #: Do not reduce order size in response to cash dividends.
+    #: `More info <https://www.investopedia.com/terms/d/dnr.asp>`__.
     DO_NOT_REDUCE = 'DO_NOT_REDUCE'
 
-    #: Combination of ``ALL_OR_NONE`` and ``DO_NOT_REDUCE``
+    #: Combination of ``ALL_OR_NONE`` and ``DO_NOT_REDUCE``.
     ALL_OR_NONE_DO_NOT_REDUCE = 'ALL_OR_NONE_DO_NOT_REDUCE'
 
 

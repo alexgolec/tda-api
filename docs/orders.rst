@@ -242,3 +242,104 @@ the default session and duration, you can use these methods to do so.
 .. automethod:: tda.orders.generic.OrderBuilder.clear_session
 
 
++++++
+Price
++++++
+
+Price is the amount you'd like to pay for each unit of the position you're 
+taking:
+
+ * For equities and simple options limit orders, this is the price which you'd 
+   like to pay/receive. 
+ * For complex options limit orders (net debit/net credit), this is the total
+   credit or debit you'd like to receive.
+
+.. automethod:: tda.orders.generic.OrderBuilder.set_price
+.. automethod:: tda.orders.generic.OrderBuilder.clear_price
+
+
++++++++++++++++++++++
+Requested Destination
++++++++++++++++++++++
+
+By default, TD Ameritrade sends trades to whichever exchange provides the best 
+price. This field allows you to request a destination exchange for your trade, 
+although whether your order is actually executed there is up to TDA.
+
+.. autoclass:: tda.orders.common::Destination
+  :members:
+  :undoc-members:
+.. automethod:: tda.orders.generic.OrderBuilder.set_requested_destination
+.. automethod:: tda.orders.generic.OrderBuilder.clear_requested_destination
+
+
+++++++++++++++++++++
+Special Instructions
+++++++++++++++++++++
+
+Trades can contain special instructions which handle some edge cases:
+
+.. autoclass:: tda.orders.common::SpecialInstruction
+  :members:
+  :undoc-members:
+.. automethod:: tda.orders.generic.OrderBuilder.set_special_instruction
+.. automethod:: tda.orders.generic.OrderBuilder.clear_special_instruction
+
+
+++++++++++++++++++++++++++
+Complex Options Strategies
+++++++++++++++++++++++++++
+
+TD Ameritrade supports a number of complex options strategies. These strategies 
+are complex affairs, with each leg of the trade specified in the order legs. TD 
+performs additional validation on these strategies, so they are somewhat 
+complicated to place. However, the benefit is more flexibility, as trades like 
+trailing stop orders based on net debit/credit can be specified.
+
+Unfortunately, due to the complexity of these orders and the lack of any real 
+documentation, we cannot offer definitively say how to structure these orders. A 
+few things have been observed, however:
+
+ * The legs of the order can be placed by adding them as order legs.
+ * For spreads resulting in a new debit/credit, the price represents the overall 
+   debit or credit desired.
+
+If you successfully use these strategies, we want to know about it. Please let 
+us know by joining our `Discord server <https://discord.gg/nfrd9gh>`__ to chat 
+about it, or by `creating a feature request <https://github.com/alexgolec/
+tda-api/issues>`__.
+
+.. autoclass:: tda.orders.common::ComplexOrderStrategyType
+  :members:
+  :undoc-members:
+.. automethod:: tda.orders.generic.OrderBuilder.set_complex_order_strategy_type
+.. automethod:: tda.orders.generic.OrderBuilder.clear_complex_order_strategy_type
+
+
++++++++++++++++++++
+Undocumented Fields
++++++++++++++++++++
+
+Unfortunately, your humble author is not an expert in all things trading. The 
+order spec schema describes some things that are outside my ability to document, 
+so rather than make stuff up, I'm putting them here in the hopes that someone 
+will come along and explain what they mean. You can make suggestions by filing 
+an issue on our 
+`GitHub issues page <https://github.com/alexgolec/tda-api/issues>`__, 
+or by joining our `Discord server <https://discord.gg/nfrd9gh>`__.
+
+
+.. _undocumented_quantity:
+
+~~~~~~~~
+Quantity
+~~~~~~~~
+
+This one seems obvious: doesn't the quantity mean the number of stock I want to 
+buy? The trouble is that the order legs also have a ``quantity`` field, which 
+suggests this field means something else. The leading hypothesis is that is 
+outlines the number of copies of the order to place, although we have yet to 
+verify that.
+
+.. automethod:: tda.orders.generic.OrderBuilder.set_quantity
+.. automethod:: tda.orders.generic.OrderBuilder.clear_quantity

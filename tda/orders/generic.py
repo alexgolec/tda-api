@@ -120,34 +120,55 @@ class OrderBuilder(EnumEnforcer):
 
     # ComplexOrderStrategyType
     def set_complex_order_strategy_type(self, complex_order_strategy_type):
+        '''
+        Set the complex order strategy type. See
+        :class:`~tda.orders.common.ComplexOrderStrategyType` for details.
+        '''
         complex_order_strategy_type = self.convert_enum(
             complex_order_strategy_type, common.ComplexOrderStrategyType)
         self._complexOrderStrategyType = complex_order_strategy_type
         return self
 
     def clear_complex_order_strategy_type(self):
+        '''
+        Clear the complex order strategy type.
+        '''
         self._complexOrderStrategyType = None
         return self
 
     # Quantity
     def set_quantity(self, quantity):
+        '''
+        Exact semantics unknown. See :ref:`undocumented_quantity` for a
+        discussion.
+        '''
         if quantity <= 0:
             raise ValueError('quantity must be positive')
         self._quantity = quantity
         return self
 
     def clear_quantity(self):
+        '''
+        Clear the order-level quantity. Note this does not affect order legs.
+        '''
         self._quantity = None
         return self
 
     # RequestedDestination
     def set_requested_destination(self, requested_destination):
+        '''
+        Set the requested destination. See
+        :class:`~tda.orders.common.Destination` for details.
+        '''
         requested_destination = self.convert_enum(
             requested_destination, common.Destination)
         self._requestedDestination = requested_destination
         return self
 
     def clear_requested_destination(self):
+        '''
+        Clear the requested destination.
+        '''
         self._requestedDestination = None
         return self
 
@@ -225,10 +246,16 @@ class OrderBuilder(EnumEnforcer):
 
     # Price
     def set_price(self, price):
+        '''
+        Set the order price.
+        '''
         self._price = _truncate_float(price)
         return self
 
     def clear_price(self):
+        '''
+        Clear the order price
+        '''
         self._price = None
         return self
 
@@ -245,12 +272,19 @@ class OrderBuilder(EnumEnforcer):
 
     # SpecialInstruction
     def set_special_instruction(self, special_instruction):
+        '''
+        Set the special instruction. See
+        :class:`~tda.orders.common.SpecialInstruction` for details.
+        '''
         special_instruction = self.convert_enum(
             special_instruction, common.SpecialInstruction)
         self._specialInstruction = special_instruction
         return self
 
     def clear_special_instruction(self):
+        '''
+        Clear the special instruction.
+        '''
         self._specialInstruction = None
         return self
 
