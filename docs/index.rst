@@ -17,7 +17,8 @@
   auth
   client
   streaming
-  orders
+  order-templates
+  order-builder
   util
   example
   help

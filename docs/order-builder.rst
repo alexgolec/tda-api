@@ -1,5 +1,6 @@
-.. _orders:
 .. py:module:: tda.orders.generic
+
+.. _order_builder:
 
 ===============
 Building Orders
@@ -206,6 +207,7 @@ learn more, courtesy of the Securites and Exchange Commission:
 
 You can also find TD Ameritrade's official documentation on orders `here
 <https://www.tdameritrade.com/retail-en_us/resources/pdf/SDPS819.pdf>`__.
+
 
 +++++++++++
 Order Types
@@ -453,5 +455,3 @@ these fields at their own risk.
 
 .. automethod:: tda.orders.generic.OrderBuilder.set_activation_price
 .. automethod:: tda.orders.generic.OrderBuilder.clear_activation_price
-
-
