@@ -2,7 +2,7 @@ import unittest
 
 from tda.orders.generic import *
 from tda.orders.common import *
-from tests.test_utils import has_diff
+from tests.test_utils import has_diff, no_duplicates
 
 
 class OrderBuilderTest(unittest.TestCase):
@@ -14,6 +14,7 @@ class OrderBuilderTest(unittest.TestCase):
     ##########################################################################
     # Session
 
+    @no_duplicates
     def test_session_success(self):
         self.order_builder.set_session(Session.NORMAL)
         self.assertFalse(has_diff({
@@ -23,10 +24,12 @@ class OrderBuilderTest(unittest.TestCase):
         self.order_builder.clear_session()
         self.assertFalse(has_diff({}, self.order_builder.build()))
 
+    @no_duplicates
     def test_session_wrong_type(self):
         with self.assertRaises(ValueError):
             self.order_builder.set_session('NORMAL')
 
+    @no_duplicates
     def test_session_wrong_type_no_check(self):
         self.order_builder = OrderBuilder(enforce_enums=False)
         self.order_builder.set_session('NORMAL')
@@ -37,6 +40,7 @@ class OrderBuilderTest(unittest.TestCase):
     ##########################################################################
     # Duration
 
+    @no_duplicates
     def test_duration_success(self):
         self.order_builder.set_duration(Duration.DAY)
         self.assertFalse(has_diff({
@@ -46,10 +50,12 @@ class OrderBuilderTest(unittest.TestCase):
         self.order_builder.clear_duration()
         self.assertFalse(has_diff({}, self.order_builder.build()))
 
+    @no_duplicates
     def test_duration_wrong_type(self):
         with self.assertRaises(ValueError):
             self.order_builder.set_duration('DAY')
 
+    @no_duplicates
     def test_duration_wrong_type_no_check(self):
         self.order_builder = OrderBuilder(enforce_enums=False)
         self.order_builder.set_duration('DAY')
@@ -60,6 +66,7 @@ class OrderBuilderTest(unittest.TestCase):
     ##########################################################################
     # OrderType
 
+    @no_duplicates
     def test_order_type_success(self):
         self.order_builder.set_order_type(OrderType.MARKET)
         self.assertFalse(has_diff({
@@ -69,10 +76,12 @@ class OrderBuilderTest(unittest.TestCase):
         self.order_builder.clear_order_type()
         self.assertFalse(has_diff({}, self.order_builder.build()))
 
+    @no_duplicates
     def test_order_type_wrong_type(self):
         with self.assertRaises(ValueError):
             self.order_builder.set_order_type('MARKET')
 
+    @no_duplicates
     def test_order_type_wrong_type_no_check(self):
         self.order_builder = OrderBuilder(enforce_enums=False)
         self.order_builder.set_order_type('MARKET')
@@ -83,6 +92,7 @@ class OrderBuilderTest(unittest.TestCase):
     ##########################################################################
     # ComplexOrderStrategyType
 
+    @no_duplicates
     def test_complex_order_strategy_type_success(self):
         self.order_builder.set_complex_order_strategy_type(
             ComplexOrderStrategyType.IRON_CONDOR)
@@ -93,10 +103,12 @@ class OrderBuilderTest(unittest.TestCase):
         self.order_builder.clear_complex_order_strategy_type()
         self.assertFalse(has_diff({}, self.order_builder.build()))
 
+    @no_duplicates
     def test__wrong_type(self):
         with self.assertRaises(ValueError):
             self.order_builder.set_complex_order_strategy_type('IRON_CONDOR')
 
+    @no_duplicates
     def test__wrong_type_no_check(self):
         self.order_builder = OrderBuilder(enforce_enums=False)
         self.order_builder.set_complex_order_strategy_type('IRON_CONDOR')
@@ -107,6 +119,7 @@ class OrderBuilderTest(unittest.TestCase):
     ##########################################################################
     # Quantity
 
+    @no_duplicates
     def test_quantity_success(self):
         self.order_builder.set_quantity(12)
         self.assertFalse(has_diff({
@@ -116,10 +129,12 @@ class OrderBuilderTest(unittest.TestCase):
         self.order_builder.clear_quantity()
         self.assertFalse(has_diff({}, self.order_builder.build()))
 
+    @no_duplicates
     def test_quantity_negative(self):
         with self.assertRaises(ValueError):
             self.order_builder.set_quantity(-12)
 
+    @no_duplicates
     def test_quantity_zero(self):
         with self.assertRaises(ValueError):
             self.order_builder.set_quantity(0)
@@ -127,6 +142,7 @@ class OrderBuilderTest(unittest.TestCase):
     ##########################################################################
     # RequestedDestination
 
+    @no_duplicates
     def test_requested_destination_success(self):
         self.order_builder.set_requested_destination(Destination.INET)
         self.assertFalse(has_diff({
@@ -136,10 +152,12 @@ class OrderBuilderTest(unittest.TestCase):
         self.order_builder.clear_requested_destination()
         self.assertFalse(has_diff({}, self.order_builder.build()))
 
+    @no_duplicates
     def test_requested_destination_wrong_type(self):
         with self.assertRaises(ValueError):
             self.order_builder.set_requested_destination('INET')
 
+    @no_duplicates
     def test_requested_destination_wrong_type_no_check(self):
         self.order_builder = OrderBuilder(enforce_enums=False)
         self.order_builder.set_requested_destination('INET')
@@ -150,6 +168,7 @@ class OrderBuilderTest(unittest.TestCase):
     ##########################################################################
     # StopPrice
 
+    @no_duplicates
     def test_stop_price_success(self):
         self.order_builder.set_stop_price(42.90)
         self.assertFalse(has_diff({
@@ -159,24 +178,28 @@ class OrderBuilderTest(unittest.TestCase):
         self.order_builder.clear_stop_price()
         self.assertFalse(has_diff({}, self.order_builder.build()))
 
+    @no_duplicates
     def test_stop_price_negative(self):
         self.order_builder.set_stop_price(-1.31)
         self.assertFalse(has_diff({
             'stopPrice': '-1.31'
         }, self.order_builder.build()))
 
+    @no_duplicates
     def test_stop_price_zero(self):
         self.order_builder.set_stop_price(0)
         self.assertFalse(has_diff({
             'stopPrice': '0.00'
         }, self.order_builder.build()))
 
+    @no_duplicates
     def test_stop_price_do_not_round_up(self):
         self.order_builder.set_stop_price(1.99999)
         self.assertFalse(has_diff({
             'stopPrice': '1.99'
         }, self.order_builder.build()))
 
+    @no_duplicates
     def test_stop_price_do_round_down(self):
         self.order_builder.set_stop_price(2.00001)
         self.assertFalse(has_diff({
@@ -186,6 +209,7 @@ class OrderBuilderTest(unittest.TestCase):
     ##########################################################################
     # StopPriceLinkBasis
 
+    @no_duplicates
     def test_stop_price_link_basis_success(self):
         self.order_builder.set_stop_price_link_basis(StopPriceLinkBasis.ASK)
         self.assertFalse(has_diff({
@@ -195,10 +219,12 @@ class OrderBuilderTest(unittest.TestCase):
         self.order_builder.clear_stop_price_link_basis()
         self.assertFalse(has_diff({}, self.order_builder.build()))
 
+    @no_duplicates
     def test_stop_price_link_basis_wrong_type(self):
         with self.assertRaises(ValueError):
             self.order_builder.set_stop_price_link_basis('ASK')
 
+    @no_duplicates
     def test_stop_price_link_basis_wrong_type_no_check(self):
         self.order_builder = OrderBuilder(enforce_enums=False)
         self.order_builder.set_stop_price_link_basis('ASK')
@@ -209,6 +235,7 @@ class OrderBuilderTest(unittest.TestCase):
     ##########################################################################
     # StopPriceLinkType
 
+    @no_duplicates
     def test_stop_price_link_type_success(self):
         self.order_builder.set_stop_price_link_type(StopPriceLinkType.VALUE)
         self.assertFalse(has_diff({
@@ -218,10 +245,12 @@ class OrderBuilderTest(unittest.TestCase):
         self.order_builder.clear_stop_price_link_type()
         self.assertFalse(has_diff({}, self.order_builder.build()))
 
+    @no_duplicates
     def test_stop_price_link_type_wrong_type(self):
         with self.assertRaises(ValueError):
             self.order_builder.set_stop_price_link_type('VALUE')
 
+    @no_duplicates
     def test_stop_price_link_type_wrong_type_no_check(self):
         self.order_builder = OrderBuilder(enforce_enums=False)
         self.order_builder.set_stop_price_link_type('VALUE')
@@ -232,6 +261,7 @@ class OrderBuilderTest(unittest.TestCase):
     ##########################################################################
     # StopPriceOffset
 
+    @no_duplicates
     def test_stop_price_offset_success(self):
         self.order_builder.set_stop_price_offset(12.98)
         self.assertFalse(has_diff({
@@ -244,6 +274,7 @@ class OrderBuilderTest(unittest.TestCase):
     ##########################################################################
     # StopType
 
+    @no_duplicates
     def test_stop_type_success(self):
         self.order_builder.set_stop_type(StopType.MARK)
         self.assertFalse(has_diff({
@@ -253,10 +284,12 @@ class OrderBuilderTest(unittest.TestCase):
         self.order_builder.clear_stop_type()
         self.assertFalse(has_diff({}, self.order_builder.build()))
 
+    @no_duplicates
     def test_stop_type_wrong_type(self):
         with self.assertRaises(ValueError):
             self.order_builder.set_stop_type('MARK')
 
+    @no_duplicates
     def test_stop_type_wrong_type_no_check(self):
         self.order_builder = OrderBuilder(enforce_enums=False)
         self.order_builder.set_stop_type('MARK')
@@ -267,6 +300,7 @@ class OrderBuilderTest(unittest.TestCase):
     ##########################################################################
     # PriceLinkBasis
 
+    @no_duplicates
     def test_price_link_basis_success(self):
         self.order_builder.set_price_link_basis(PriceLinkBasis.AVERAGE)
         self.assertFalse(has_diff({
@@ -276,10 +310,12 @@ class OrderBuilderTest(unittest.TestCase):
         self.order_builder.clear_price_link_basis()
         self.assertFalse(has_diff({}, self.order_builder.build()))
 
+    @no_duplicates
     def test_price_link_basis_wrong_type(self):
         with self.assertRaises(ValueError):
             self.order_builder.set_price_link_basis('AVERAGE')
 
+    @no_duplicates
     def test_price_link_basis_wrong_type_no_check(self):
         self.order_builder = OrderBuilder(enforce_enums=False)
         self.order_builder.set_price_link_basis('AVERAGE')
@@ -290,6 +326,7 @@ class OrderBuilderTest(unittest.TestCase):
     ##########################################################################
     # PriceLinkType
 
+    @no_duplicates
     def test_price_link_type_success(self):
         self.order_builder.set_price_link_type(PriceLinkType.PERCENT)
         self.assertFalse(has_diff({
@@ -299,10 +336,12 @@ class OrderBuilderTest(unittest.TestCase):
         self.order_builder.clear_price_link_type()
         self.assertFalse(has_diff({}, self.order_builder.build()))
 
+    @no_duplicates
     def test_price_link_type_wrong_type(self):
         with self.assertRaises(ValueError):
             self.order_builder.set_price_link_type('PERCENT')
 
+    @no_duplicates
     def test_price_link_type_wrong_type_no_check(self):
         self.order_builder = OrderBuilder(enforce_enums=False)
         self.order_builder.set_price_link_type('PERCENT')
@@ -313,6 +352,7 @@ class OrderBuilderTest(unittest.TestCase):
     ##########################################################################
     # Price
 
+    @no_duplicates
     def test_price_success(self):
         self.order_builder.set_price(23.49)
         self.assertFalse(has_diff({
@@ -322,24 +362,28 @@ class OrderBuilderTest(unittest.TestCase):
         self.order_builder.clear_price()
         self.assertFalse(has_diff({}, self.order_builder.build()))
 
+    @no_duplicates
     def test_price_negative(self):
         self.order_builder.set_price(-1.23)
         self.assertFalse(has_diff({
             'price': '-1.23'
         }, self.order_builder.build()))
 
+    @no_duplicates
     def test_price_zero(self):
         self.order_builder.set_price(0.0)
         self.assertFalse(has_diff({
             'price': '0.00'
         }, self.order_builder.build()))
 
+    @no_duplicates
     def test_price_do_not_round_up(self):
         self.order_builder.set_price(19.9999999)
         self.assertFalse(has_diff({
             'price': '19.99'
         }, self.order_builder.build()))
 
+    @no_duplicates
     def test_price_do_not_round_down(self):
         self.order_builder.set_price(20.00000001)
         self.assertFalse(has_diff({
@@ -349,6 +393,7 @@ class OrderBuilderTest(unittest.TestCase):
     ##########################################################################
     # ActivationPrice
 
+    @no_duplicates
     def test_activation_price_success(self):
         self.order_builder.set_activation_price(54.03)
         self.assertFalse(has_diff({
@@ -358,10 +403,12 @@ class OrderBuilderTest(unittest.TestCase):
         self.order_builder.clear_activation_price()
         self.assertFalse(has_diff({}, self.order_builder.build()))
 
+    @no_duplicates
     def test_activation_price_negative(self):
         with self.assertRaises(ValueError):
             self.order_builder.set_activation_price(-3.94)
 
+    @no_duplicates
     def test_activation_price_zero(self):
         with self.assertRaises(ValueError):
             self.order_builder.set_activation_price(0.0)
@@ -369,6 +416,7 @@ class OrderBuilderTest(unittest.TestCase):
     ##########################################################################
     # SpecialInstruction
 
+    @no_duplicates
     def test_special_instruction_success(self):
         self.order_builder.set_special_instruction(
             SpecialInstruction.DO_NOT_REDUCE)
@@ -379,10 +427,12 @@ class OrderBuilderTest(unittest.TestCase):
         self.order_builder.clear_special_instruction()
         self.assertFalse(has_diff({}, self.order_builder.build()))
 
+    @no_duplicates
     def test_special_instruction_wrong_type(self):
         with self.assertRaises(ValueError):
             self.order_builder.set_special_instruction('DO_NOT_REDUCE')
 
+    @no_duplicates
     def test_special_instruction_wrong_type_no_check(self):
         self.order_builder = OrderBuilder(enforce_enums=False)
         self.order_builder.set_special_instruction('DO_NOT_REDUCE')
@@ -393,6 +443,7 @@ class OrderBuilderTest(unittest.TestCase):
     ##########################################################################
     # OrderStrategyType
 
+    @no_duplicates
     def test_order_strategy_type_success(self):
         self.order_builder.set_order_strategy_type(OrderStrategyType.OCO)
         self.assertFalse(has_diff({
@@ -402,10 +453,12 @@ class OrderBuilderTest(unittest.TestCase):
         self.order_builder.clear_order_strategy_type()
         self.assertFalse(has_diff({}, self.order_builder.build()))
 
+    @no_duplicates
     def test_order_strategy_type_wrong_type(self):
         with self.assertRaises(ValueError):
             self.order_builder.set_order_strategy_type('OCO')
 
+    @no_duplicates
     def test_order_strategy_type_wrong_type_no_check(self):
         self.order_builder = OrderBuilder(enforce_enums=False)
         self.order_builder.set_order_strategy_type('OCO')
@@ -416,6 +469,7 @@ class OrderBuilderTest(unittest.TestCase):
     ##########################################################################
     # ChildOrderStrategies
 
+    @no_duplicates
     def test_add_child_order_strategy_success(self):
         self.order_builder.add_child_order_strategy(
             OrderBuilder().set_session(Session.NORMAL))
@@ -426,6 +480,7 @@ class OrderBuilderTest(unittest.TestCase):
         self.order_builder.clear_child_order_strategies()
         self.assertFalse(has_diff({}, self.order_builder.build()))
 
+    @no_duplicates
     def test_add_child_order_strategy_dict(self):
         self.order_builder.add_child_order_strategy(
             {'session': 'NORMAL'})
@@ -433,6 +488,7 @@ class OrderBuilderTest(unittest.TestCase):
             'childOrderStrategies': [{'session': 'NORMAL'}]
         }, self.order_builder.build()))
 
+    @no_duplicates
     def test_add_child_order_strategy_invalid_type(self):
         with self.assertRaises(ValueError):
             self.order_builder.add_child_order_strategy(10)
@@ -440,6 +496,7 @@ class OrderBuilderTest(unittest.TestCase):
     ##########################################################################
     # OrderLegCollection
 
+    @no_duplicates
     def test_add_equity_leg_success(self):
         self.order_builder.add_equity_leg(EquityInstruction.BUY, 'GOOG', 10)
         self.order_builder.add_equity_leg(
@@ -465,10 +522,12 @@ class OrderBuilderTest(unittest.TestCase):
         self.order_builder.clear_order_legs()
         self.assertFalse(has_diff({}, self.order_builder.build()))
 
+    @no_duplicates
     def test_add_equity_leg_wrong_type(self):
         with self.assertRaises(ValueError):
             self.order_builder.add_equity_leg('BUY', 'GOOG', 10)
 
+    @no_duplicates
     def test_add_equity_leg_wrong_type_no_check(self):
         self.order_builder = OrderBuilder(enforce_enums=False)
 
@@ -493,16 +552,19 @@ class OrderBuilderTest(unittest.TestCase):
             }]
         }, self.order_builder.build()))
 
+    @no_duplicates
     def test_add_equity_leg_negative_quantity(self):
         with self.assertRaises(ValueError):
             self.order_builder.add_equity_leg(
                 EquityInstruction.BUY, 'GOOG', -1)
 
+    @no_duplicates
     def test_add_equity_leg_zero_quantity(self):
         with self.assertRaises(ValueError):
             self.order_builder.add_equity_leg(
                 EquityInstruction.BUY, 'GOOG', 0)
 
+    @no_duplicates
     def test_add_option_leg_success(self):
         self.order_builder.add_option_leg(
             OptionInstruction.BUY_TO_OPEN, 'GOOG31433C1342', 10)
@@ -529,11 +591,13 @@ class OrderBuilderTest(unittest.TestCase):
         self.order_builder.clear_order_legs()
         self.assertFalse(has_diff({}, self.order_builder.build()))
 
+    @no_duplicates
     def test_add_option_leg_wrong_type(self):
         with self.assertRaises(ValueError):
             self.order_builder.add_option_leg(
                 'BUY_TO_OPEN', 'GOOG31433C1342', 10)
 
+    @no_duplicates
     def test_add_option_leg_wrong_type_no_check(self):
         self.order_builder = OrderBuilder(enforce_enums=False)
 
@@ -560,12 +624,14 @@ class OrderBuilderTest(unittest.TestCase):
         self.order_builder.clear_order_legs()
         self.assertFalse(has_diff({}, self.order_builder.build()))
 
+    @no_duplicates
     def test_add_option_leg_negative_quantity(self):
         with self.assertRaises(ValueError):
             self.order_builder.add_option_leg(
                 OptionInstruction.BUY_TO_OPEN, 'GOOG31433C1342', -1)
 
-    def test_add_equity_leg_zero_quantity(self):
+    @no_duplicates
+    def test_add_option_leg_zero_quantity(self):
         with self.assertRaises(ValueError):
             self.order_builder.add_option_leg(
                 OptionInstruction.BUY_TO_OPEN, 'GOOG31433C1342', 0)
@@ -579,10 +645,12 @@ class OrderBuilderExamplesTest(unittest.TestCase):
     ##########################################################################
     # Functional tests from here:
     # https://developer.tdameritrade.com/content/place-order-samples
+    @no_duplicates
     def test_quantity_negative(self):
         with self.assertRaises(ValueError):
             self.order_builder.set_quantity(-12)
 
+    @no_duplicates
     def test_quantity_wrong_type_no_check(self):
         self.order_builder = OrderBuilder(enforce_enums=False)
         self.order_builder.set_quantity('')
@@ -593,6 +661,7 @@ class OrderBuilderExamplesTest(unittest.TestCase):
 
 class OrderBuilderExamplesTest(unittest.TestCase):
 
+    @no_duplicates
     def setUp(self):
         self.maxDiff = None
 
@@ -600,6 +669,7 @@ class OrderBuilderExamplesTest(unittest.TestCase):
     # Functional tests from here:
     # https://developer.tdameritrade.com/content/place-order-samples
 
+    @no_duplicates
     def test_buy_market_stock(self):
         builder = (
             OrderBuilder()
@@ -628,6 +698,7 @@ class OrderBuilderExamplesTest(unittest.TestCase):
 
         self.assertFalse(has_diff(expected, builder.build()))
 
+    @no_duplicates
     def test_buy_limit_single_option(self):
         builder = (
             OrderBuilder()
@@ -660,6 +731,7 @@ class OrderBuilderExamplesTest(unittest.TestCase):
 
         self.assertFalse(has_diff(expected, builder.build()))
 
+    @no_duplicates
     def test_buy_limit_vertical_call_spread(self):
         builder = (
             OrderBuilder()
@@ -700,6 +772,7 @@ class OrderBuilderExamplesTest(unittest.TestCase):
 
         self.assertFalse(has_diff(expected, builder.build()))
 
+    @no_duplicates
     def test_custom_option_spread(self):
         builder = (
             OrderBuilder()
@@ -739,6 +812,7 @@ class OrderBuilderExamplesTest(unittest.TestCase):
 
         self.assertFalse(has_diff(expected, builder.build()))
 
+    @no_duplicates
     def test_conditional_order_one_triggers_another(self):
         builder = (
             OrderBuilder()
@@ -796,6 +870,7 @@ class OrderBuilderExamplesTest(unittest.TestCase):
 
         self.assertFalse(has_diff(expected, builder.build()))
 
+    @no_duplicates
     def test_conditional_order_one_cancels_another(self):
         builder = (
             OrderBuilder()
@@ -862,6 +937,7 @@ class OrderBuilderExamplesTest(unittest.TestCase):
 
         self.assertFalse(has_diff(expected, builder.build()))
 
+    @no_duplicates
     def test_conditional_order_one_triggers_a_one_cancels_other(self):
         builder = (
             OrderBuilder()
@@ -952,6 +1028,7 @@ class OrderBuilderExamplesTest(unittest.TestCase):
 
         self.assertFalse(has_diff(expected, builder.build()))
 
+    @no_duplicates
     def test_sell_trailing_stop_stock(self):
         builder = (
             OrderBuilder()
