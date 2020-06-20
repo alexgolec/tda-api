@@ -347,6 +347,27 @@ tda-api/issues>`__.
 .. automethod:: tda.orders.generic.OrderBuilder.clear_complex_order_strategy_type
 
 
+++++++++++++++++
+Composite Orders
+++++++++++++++++
+
+``tda-api`` supports composite order strategies, in which execution of one orders 
+has an effect on another:
+
+ * ``OCO``, or "one cancels other" orders, consist of a pair of orders where 
+   execution of one immediately cancels the other.
+ * ``TRIGGER`` orders consist of a pair of orders where execution of one 
+   immediately results in placement of the other.
+
+You can specify these composite order strategies like so:
+
+.. autoclass:: tda.orders.common::OrderStrategyType
+  :members:
+  :undoc-members:
+.. automethod:: tda.orders.generic.OrderBuilder.set_order_strategy_type
+.. automethod:: tda.orders.generic.OrderBuilder.clear_order_strategy_type
+
+
 +++++++++++++++++++
 Undocumented Fields
 +++++++++++++++++++
@@ -376,9 +397,9 @@ verify that.
 .. automethod:: tda.orders.generic.OrderBuilder.clear_quantity
 
 
-++++++++++++++++++++++++
+~~~~~~~~~~~~~~~~~~~~~~~~
 Stop Order Configuration
-++++++++++++++++++++++++
+~~~~~~~~~~~~~~~~~~~~~~~~
 
 Stop orders and their variants (stop limit, trailing stop, trailing stop limit) 
 support some rather complex configuration. Both stops prices and the limit 

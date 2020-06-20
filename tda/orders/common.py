@@ -340,19 +340,10 @@ def one_cancels_other(order1, order2):
             .add_child_order_strategy(order2))
 
 
-def one_cancels_other(order1, order2):
+def first_triggers_second(first_order, second_order):
     '''
-    Combines the two orders so that one execution of one cancels the other.
+
     '''
-    from tda.orders.generic import OrderBuilder
-
-    return (OrderBuilder()
-            .set_order_strategy_type(OrderStrategyType.OCO)
-            .add_child_order_strategy(order1)
-            .add_child_order_strategy(order2))
-
-
-def one_triggers_other(first_order, second_order):
     return (first_order
             .set_order_strategy_type(OrderStrategyType.TRIGGER)
             .add_child_order_strategy(second_order))
