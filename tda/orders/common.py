@@ -8,11 +8,15 @@ class __BaseInstrument:
 
 
 class EquityInstrument(__BaseInstrument):
+    '''Represents an equity when creating order legs.'''
+
     def __init__(self, symbol):
         super().__init__('EQUITY', symbol)
 
 
 class OptionInstrument(__BaseInstrument):
+    '''Represents an option when creating order legs.'''
+
     def __init__(self, symbol):
         super().__init__('OPTION', symbol)
 
@@ -259,11 +263,9 @@ class PriceLinkType(Enum):
     TICK = 'TICK'
 
 
-class Instruction(Enum):
+class EquityInstruction(Enum):
     '''
-    Instructions for opening and closing various equity and option positions.
-    See the documentation for each to see which ones can be applied to which
-    asset class.
+    Instructions for opening and closing equity positions.
     '''
 
     #: Open a long equity position
@@ -278,6 +280,11 @@ class Instruction(Enum):
     #: Close a short equity position
     BUY_TO_COVER = 'BUY_TO_COVER'
 
+
+class OptionInstruction(Enum):
+    '''
+    Instructions for opening and closing options positions.
+    '''
     #: Enter a new long option position
     BUY_TO_OPEN = 'BUY_TO_OPEN'
 

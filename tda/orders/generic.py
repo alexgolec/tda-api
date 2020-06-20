@@ -174,73 +174,120 @@ class OrderBuilder(EnumEnforcer):
 
     # StopPrice
     def set_stop_price(self, stop_price):
+        '''
+        Set the stop price.
+        '''
         self._stopPrice = _truncate_float(stop_price)
         return self
 
     def clear_stop_price(self):
+        '''
+        Clear the stop price.
+        '''
         self._stopPrice = None
         return self
 
     # StopPriceLinkBasis
     def set_stop_price_link_basis(self, stop_price_link_basis):
+        '''
+        Set the stop price link basis. See
+        :class:`~tda.orders.common.StopPriceLinkBasis` for details.
+        '''
         stop_price_link_basis = self.convert_enum(
             stop_price_link_basis, common.StopPriceLinkBasis)
         self._stopPriceLinkBasis = stop_price_link_basis
         return self
 
     def clear_stop_price_link_basis(self):
+        '''
+        Clear the stop price link basis.
+        '''
         self._stopPriceLinkBasis = None
         return self
 
     # StopPriceLinkType
     def set_stop_price_link_type(self, stop_price_link_type):
+        '''
+        Set the stop price link type. See
+        :class:`~tda.orders.common.StopPriceLinkType` for details.
+        '''
         stop_price_link_type = self.convert_enum(
             stop_price_link_type, common.StopPriceLinkType)
         self._stopPriceLinkType = stop_price_link_type
         return self
 
     def clear_stop_price_link_type(self):
+        '''
+        Clear the stop price link type.
+        '''
         self._stopPriceLinkType = None
         return self
 
     # StopPriceOffset
     def set_stop_price_offset(self, stop_price_offset):
+        '''
+        Set the stop price offset.
+        '''
         self._stopPriceOffset = stop_price_offset
         return self
 
     def clear_stop_price_offset(self):
+        '''
+        Clear the stop price offset.
+        '''
         self._stopPriceOffset = None
         return self
 
     # StopType
     def set_stop_type(self, stop_type):
+        '''
+        Set the stop type. See
+        :class:`~tda.orders.common.StopType` for more details.
+        '''
         stop_type = self.convert_enum(stop_type, common.StopType)
         self._stopType = stop_type
         return self
 
     def clear_stop_type(self):
+        '''
+        Clear the stop type.
+        '''
         self._stopType = None
         return self
 
     # PriceLinkBasis
     def set_price_link_basis(self, price_link_basis):
+        '''
+        Set the price link basis. See
+        :class:`~tda.orders.common.PriceLinkBasis` for details.
+        '''
         price_link_basis = self.convert_enum(
             price_link_basis, common.PriceLinkBasis)
         self._priceLinkBasis = price_link_basis
         return self
 
     def clear_price_link_basis(self):
+        '''
+        Clear the price link basis.
+        '''
         self._priceLinkBasis = None
         return self
 
     # PriceLinkType
     def set_price_link_type(self, price_link_type):
+        '''
+        Set the price link type. See
+        :class:`~tda.orders.common.PriceLinkType` for more details.
+        '''
         price_link_type = self.convert_enum(
             price_link_type, common.PriceLinkType)
         self._priceLinkType = price_link_type
         return self
 
     def clear_price_link_type(self):
+        '''
+        Clear the price link basis.
+        '''
         self._priceLinkType = None
         return self
 
@@ -261,12 +308,18 @@ class OrderBuilder(EnumEnforcer):
 
     # ActivationPrice
     def set_activation_price(self, activation_price):
+        '''
+        Set the activation price.
+        '''
         if activation_price <= 0.0:
             raise ValueError('activation price must be positive')
         self._activationPrice = activation_price
         return self
 
     def clear_activation_price(self):
+        '''
+        Clear the activation price.
+        '''
         self._activationPrice = None
         return self
 
@@ -290,12 +343,19 @@ class OrderBuilder(EnumEnforcer):
 
     # OrderStrategyType
     def set_order_strategy_type(self, order_strategy_type):
+        '''
+        Set the order strategy type. See
+        :class:`~tda.orders.common.OrderStrategyType` for more details.
+        '''
         order_strategy_type = self.convert_enum(
             order_strategy_type, common.OrderStrategyType)
         self._orderStrategyType = order_strategy_type
         return self
 
     def clear_order_strategy_type(self):
+        '''
+        Clear the order strategy type.
+        '''
         self._orderStrategyType = None
         return self
 
@@ -316,8 +376,8 @@ class OrderBuilder(EnumEnforcer):
         return self
 
     # OrderLegCollection
-    def add_order_leg(self, instruction, instrument, quantity):
-        instruction = self.convert_enum(instruction, common.Instruction)
+    def __add_order_leg(self, instruction, instrument, quantity):
+        # instruction is assumed to have been verified
 
         if quantity <= 0:
             raise ValueError('quantity must be positive')
@@ -333,7 +393,38 @@ class OrderBuilder(EnumEnforcer):
 
         return self
 
+    def add_equity_leg(self, instruction, symbol, quantity):
+        '''
+        Add an equity order leg.
+
+        :param instruction: Instruction for the leg. See
+                            :class:`~tda.orders.common.EquityInstruction` for
+                            valid options.
+        :param symbol: Equity symbol
+        :param quantity: Number of shares for the order
+        '''
+        instruction = self.convert_enum(instruction, common.EquityInstruction)
+        return self.__add_order_leg(
+            instruction, common.EquityInstrument(symbol), quantity)
+
+    def add_option_leg(self, instruction, symbol, quantity):
+        '''
+        Add an option order leg.
+
+        :param instruction: Instruction for the leg. See
+                            :class:`~tda.orders.common.OptionInstruction` for
+                            valid options.
+        :param symbol: Option symbol
+        :param quantity: Number of contracts for the order
+        '''
+        instruction = self.convert_enum(instruction, common.OptionInstruction)
+        return self.__add_order_leg(
+            instruction, common.OptionInstrument(symbol), quantity)
+
     def clear_order_legs(self):
+        '''
+        Clear all order legs.
+        '''
         self._orderLegCollection = None
         return self
 

@@ -254,8 +254,39 @@ taking:
  * For complex options limit orders (net debit/net credit), this is the total
    credit or debit you'd like to receive.
 
+In other words, the price is the sum of the prices of the :ref:`order_legs`. 
+This is particularly powerful for complex multi-leg options orders, which 
+support complex top and/or limit orders that trigger when the price of a 
+position reaches certain levels. In those cases, the price of an order can drop 
+below the specified price as a result of movements in multiple legs of the 
+trade. 
+
 .. automethod:: tda.orders.generic.OrderBuilder.set_price
 .. automethod:: tda.orders.generic.OrderBuilder.clear_price
+
+
+.. _order_legs:
+
+++++++++++
+Order Legs
+++++++++++
+
+Order legs are where the actual assets being bought or sold are specified. For 
+simple equity or single-options orders, there is just one leg. However, for 
+complex multi-leg options trades, there can be any number of legs. 
+
+Note that order legs often do not execute all at once. Order legs can be 
+executed over the specified :class:`~tda.orders.common.Duration` of the order. 
+What's more, if order legs request a large number of shares, legs themselves can 
+be partially filled. You can control this setting using the 
+:class:`~tda.orders.common.SpecialInstruction` value ``ALL_OR_NONE``. 
+
+With all that out of the way, order legs are relatively simple to specify. 
+``tda-api`` currently supports equity and option order legs:
+
+.. automethod:: tda.orders.generic.OrderBuilder.add_equity_leg
+.. automethod:: tda.orders.generic.OrderBuilder.add_option_leg
+.. automethod:: tda.orders.generic.OrderBuilder.clear_order_legs
 
 
 +++++++++++++++++++++
@@ -343,3 +374,63 @@ verify that.
 
 .. automethod:: tda.orders.generic.OrderBuilder.set_quantity
 .. automethod:: tda.orders.generic.OrderBuilder.clear_quantity
+
+
+++++++++++++++++++++++++
+Stop Order Configuration
+++++++++++++++++++++++++
+
+Stop orders and their variants (stop limit, trailing stop, trailing stop limit) 
+support some rather complex configuration. Both stops prices and the limit 
+prices of the resulting order can be configured to follow the market in a 
+dynamic fashion. The market dimensions that they follow can also be configured 
+differently, and it appears that which dimensions are supported varies by order 
+type. 
+
+We have unfortunately not yet done a thorough analysis of what's supported, nor 
+have we made the effort to make it simple and easy. While we're *pretty* sure we 
+understand how these fields work, they've been temporarily placed into the 
+"undocumented" section, pending a followup. Users are invited to experiment with 
+these fields at their own risk. 
+
+
+.. automethod:: tda.orders.generic.OrderBuilder.set_stop_price
+.. automethod:: tda.orders.generic.OrderBuilder.clear_stop_price
+
+.. autoclass:: tda.orders.common::StopPriceLinkBasis
+  :members:
+  :undoc-members:
+.. automethod:: tda.orders.generic.OrderBuilder.set_stop_price_link_basis
+.. automethod:: tda.orders.generic.OrderBuilder.clear_stop_price_link_basis
+
+.. autoclass:: tda.orders.common::StopPriceLinkType
+  :members:
+  :undoc-members:
+.. automethod:: tda.orders.generic.OrderBuilder.set_stop_price_link_type
+.. automethod:: tda.orders.generic.OrderBuilder.clear_stop_price_link_type
+
+.. automethod:: tda.orders.generic.OrderBuilder.set_stop_price_offset
+.. automethod:: tda.orders.generic.OrderBuilder.clear_stop_price_offset
+
+.. autoclass:: tda.orders.common::StopType
+  :members:
+  :undoc-members:
+.. automethod:: tda.orders.generic.OrderBuilder.set_stop_type
+.. automethod:: tda.orders.generic.OrderBuilder.clear_stop_type
+
+.. autoclass:: tda.orders.common::PriceLinkBasis
+  :members:
+  :undoc-members:
+.. automethod:: tda.orders.generic.OrderBuilder.set_price_link_basis
+.. automethod:: tda.orders.generic.OrderBuilder.clear_price_link_basis
+
+.. autoclass:: tda.orders.common::PriceLinkType
+  :members:
+  :undoc-members:
+.. automethod:: tda.orders.generic.OrderBuilder.set_price_link_type
+.. automethod:: tda.orders.generic.OrderBuilder.clear_price_link_type
+
+.. automethod:: tda.orders.generic.OrderBuilder.set_activation_price
+.. automethod:: tda.orders.generic.OrderBuilder.clear_activation_price
+
+

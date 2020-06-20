@@ -440,15 +440,41 @@ class OrderBuilderTest(unittest.TestCase):
     ##########################################################################
     # OrderLegCollection
 
-    def test_add_order_leg_success(self):
-        self.order_builder.add_order_leg(
-            instruction=Instruction.BUY,
-            instrument=EquityInstrument('GOOG'),
-            quantity=10)
-        self.order_builder.add_order_leg(
-            instruction=Instruction.SELL_TO_CLOSE,
-            instrument=OptionInstrument('GOOG01392981343C124323'),
-            quantity=1)
+    def test_add_equity_leg_success(self):
+        self.order_builder.add_equity_leg(EquityInstruction.BUY, 'GOOG', 10)
+        self.order_builder.add_equity_leg(
+            EquityInstruction.SELL_SHORT, 'MSFT', 1)
+        self.assertFalse(has_diff({
+            'orderLegCollection': [{
+                'instruction': 'BUY',
+                'instrument': {
+                    'symbol': 'GOOG',
+                    'assetType': 'EQUITY'
+                },
+                'quantity': 10,
+            }, {
+                'instruction': 'SELL_SHORT',
+                'instrument': {
+                    'symbol': 'MSFT',
+                    'assetType': 'EQUITY'
+                },
+                'quantity': 1,
+            }]
+        }, self.order_builder.build()))
+
+        self.order_builder.clear_order_legs()
+        self.assertFalse(has_diff({}, self.order_builder.build()))
+
+    def test_add_equity_leg_wrong_type(self):
+        with self.assertRaises(ValueError):
+            self.order_builder.add_equity_leg('BUY', 'GOOG', 10)
+
+    def test_add_equity_leg_wrong_type_no_check(self):
+        self.order_builder = OrderBuilder(enforce_enums=False)
+
+        self.order_builder.add_equity_leg('BUY', 'GOOG', 10)
+        self.order_builder.add_equity_leg('SELL_TO_CLOSE', 'MSFT', 1)
+
         self.assertFalse(has_diff({
             'orderLegCollection': [{
                 'instruction': 'BUY',
@@ -460,7 +486,40 @@ class OrderBuilderTest(unittest.TestCase):
             }, {
                 'instruction': 'SELL_TO_CLOSE',
                 'instrument': {
-                    'symbol': 'GOOG01392981343C124323',
+                    'symbol': 'MSFT',
+                    'assetType': 'EQUITY'
+                },
+                'quantity': 1,
+            }]
+        }, self.order_builder.build()))
+
+    def test_add_equity_leg_negative_quantity(self):
+        with self.assertRaises(ValueError):
+            self.order_builder.add_equity_leg(
+                EquityInstruction.BUY, 'GOOG', -1)
+
+    def test_add_equity_leg_zero_quantity(self):
+        with self.assertRaises(ValueError):
+            self.order_builder.add_equity_leg(
+                EquityInstruction.BUY, 'GOOG', 0)
+
+    def test_add_option_leg_success(self):
+        self.order_builder.add_option_leg(
+            OptionInstruction.BUY_TO_OPEN, 'GOOG31433C1342', 10)
+        self.order_builder.add_option_leg(
+            OptionInstruction.BUY_TO_CLOSE, 'MSFT439132P35', 1)
+        self.assertFalse(has_diff({
+            'orderLegCollection': [{
+                'instruction': 'BUY_TO_OPEN',
+                'instrument': {
+                    'symbol': 'GOOG31433C1342',
+                    'assetType': 'OPTION'
+                },
+                'quantity': 10,
+            }, {
+                'instruction': 'BUY_TO_CLOSE',
+                'instrument': {
+                    'symbol': 'MSFT439132P35',
                     'assetType': 'OPTION'
                 },
                 'quantity': 1,
@@ -470,56 +529,46 @@ class OrderBuilderTest(unittest.TestCase):
         self.order_builder.clear_order_legs()
         self.assertFalse(has_diff({}, self.order_builder.build()))
 
-    def test_add_order_leg_wrong_type(self):
+    def test_add_option_leg_wrong_type(self):
         with self.assertRaises(ValueError):
-            self.order_builder.add_order_leg(
-                instruction='BUY',
-                instrument=EquityInstrument('GOOG'),
-                quantity=10)
+            self.order_builder.add_option_leg(
+                'BUY_TO_OPEN', 'GOOG31433C1342', 10)
 
-    def test_add_order_leg_wrong_type_no_check(self):
+    def test_add_option_leg_wrong_type_no_check(self):
         self.order_builder = OrderBuilder(enforce_enums=False)
 
-        self.order_builder.add_order_leg(
-            instruction='BUY',
-            instrument=EquityInstrument('GOOG'),
-            quantity=10)
-        self.order_builder.add_order_leg(
-            instruction='SELL_TO_CLOSE',
-            instrument=OptionInstrument('GOOG01392981343C124323'),
-            quantity=1)
-
+        self.order_builder.add_option_leg('BUY_TO_OPEN', 'GOOG31433C1342', 10)
+        self.order_builder.add_option_leg('BUY_TO_CLOSE', 'MSFT439132P35', 1)
         self.assertFalse(has_diff({
             'orderLegCollection': [{
-                'instruction': 'BUY',
+                'instruction': 'BUY_TO_OPEN',
                 'instrument': {
-                    'symbol': 'GOOG',
-                    'assetType': 'EQUITY'
+                    'symbol': 'GOOG31433C1342',
+                    'assetType': 'OPTION'
                 },
                 'quantity': 10,
             }, {
-                'instruction': 'SELL_TO_CLOSE',
+                'instruction': 'BUY_TO_CLOSE',
                 'instrument': {
-                    'symbol': 'GOOG01392981343C124323',
+                    'symbol': 'MSFT439132P35',
                     'assetType': 'OPTION'
                 },
                 'quantity': 1,
             }]
         }, self.order_builder.build()))
 
-    def test_add_order_leg_negative_quantity(self):
-        with self.assertRaises(ValueError):
-            self.order_builder.add_order_leg(
-                instruction=Instruction.BUY,
-                instrument=EquityInstrument('GOOG'),
-                quantity=0)
+        self.order_builder.clear_order_legs()
+        self.assertFalse(has_diff({}, self.order_builder.build()))
 
-    def test_add_order_leg_zero_quantity(self):
+    def test_add_option_leg_negative_quantity(self):
         with self.assertRaises(ValueError):
-            self.order_builder.add_order_leg(
-                instruction=Instruction.BUY,
-                instrument=EquityInstrument('GOOG'),
-                quantity=0)
+            self.order_builder.add_option_leg(
+                OptionInstruction.BUY_TO_OPEN, 'GOOG31433C1342', -1)
+
+    def test_add_equity_leg_zero_quantity(self):
+        with self.assertRaises(ValueError):
+            self.order_builder.add_option_leg(
+                OptionInstruction.BUY_TO_OPEN, 'GOOG31433C1342', 0)
 
 
 class OrderBuilderExamplesTest(unittest.TestCase):
@@ -541,30 +590,6 @@ class OrderBuilderExamplesTest(unittest.TestCase):
             'quantity': ''
         }, self.order_builder.build()))
 
-    '''
-
-    ##########################################################################
-    #
-
-    def test__success(self):
-        self.order_builder.set_()
-        self.assertFalse(has_diff({
-            '': ''
-        }, self.order_builder.build()))
-
-    def test__wrong_type(self):
-        with self.assertRaises(ValueError):
-            self.order_builder.set_('')
-
-    def test__wrong_type_no_check(self):
-        self.order_builder = OrderBuilder(enforce_enums=False)
-        self.order_builder.set_('')
-        self.assertFalse(has_diff({
-            '': ''
-        }, self.order_builder.build()))
-
-    '''
-
 
 class OrderBuilderExamplesTest(unittest.TestCase):
 
@@ -582,10 +607,7 @@ class OrderBuilderExamplesTest(unittest.TestCase):
             .set_session(Session.NORMAL)
             .set_duration(Duration.DAY)
             .set_order_strategy_type(OrderStrategyType.SINGLE)
-            .add_order_leg(
-                instruction=Instruction.BUY,
-                instrument=EquityInstrument('XYZ'),
-                quantity=15))
+            .add_equity_leg(EquityInstruction.BUY, 'XYZ', 15))
 
         expected = {
             'orderType': 'MARKET',
@@ -615,10 +637,7 @@ class OrderBuilderExamplesTest(unittest.TestCase):
             .set_price(6.45)
             .set_duration(Duration.DAY)
             .set_order_strategy_type(OrderStrategyType.SINGLE)
-            .add_order_leg(
-                instruction=Instruction.BUY_TO_OPEN,
-                instrument=OptionInstrument('XYZ_032015C49'),
-                quantity=10))
+            .add_option_leg(OptionInstruction.BUY_TO_OPEN, 'XYZ_032015C49', 10))
 
         expected = {
             'complexOrderStrategyType': 'NONE',
@@ -649,14 +668,9 @@ class OrderBuilderExamplesTest(unittest.TestCase):
             .set_price(1.20)
             .set_duration(Duration.DAY)
             .set_order_strategy_type(OrderStrategyType.SINGLE)
-            .add_order_leg(
-                instruction=Instruction.BUY_TO_OPEN,
-                quantity=10,
-                instrument=OptionInstrument('XYZ_011516C40'))
-            .add_order_leg(
-                instruction=Instruction.SELL_TO_OPEN,
-                quantity=10,
-                instrument=OptionInstrument('XYZ_011516C42.5')))
+            .add_option_leg(OptionInstruction.BUY_TO_OPEN, 'XYZ_011516C40', 10)
+            .add_option_leg(
+                OptionInstruction.SELL_TO_OPEN, 'XYZ_011516C42.5', 10))
 
         expected = {
             'orderType': 'NET_DEBIT',
@@ -691,14 +705,8 @@ class OrderBuilderExamplesTest(unittest.TestCase):
             OrderBuilder()
             .set_order_strategy_type(OrderStrategyType.SINGLE)
             .set_order_type(OrderType.MARKET)
-            .add_order_leg(
-                instrument=OptionInstrument('XYZ_011819P45'),
-                instruction=Instruction.SELL_TO_OPEN,
-                quantity=1)
-            .add_order_leg(
-                instrument=OptionInstrument('XYZ_011720P43'),
-                instruction=Instruction.BUY_TO_OPEN,
-                quantity=2)
+            .add_option_leg(OptionInstruction.SELL_TO_OPEN, 'XYZ_011819P45', 1)
+            .add_option_leg(OptionInstruction.BUY_TO_OPEN, 'XYZ_011720P43', 2)
             .set_complex_order_strategy_type(ComplexOrderStrategyType.CUSTOM)
             .set_duration(Duration.DAY)
             .set_session(Session.NORMAL))
@@ -739,10 +747,7 @@ class OrderBuilderExamplesTest(unittest.TestCase):
             .set_price(34.97)
             .set_duration(Duration.DAY)
             .set_order_strategy_type(OrderStrategyType.TRIGGER)
-            .add_order_leg(
-                instruction=Instruction.BUY,
-                quantity=10,
-                instrument=EquityInstrument('XYZ'))
+            .add_equity_leg(EquityInstruction.BUY, 'XYZ', 10)
             .add_child_order_strategy(
                 OrderBuilder()
                 .set_order_type(OrderType.LIMIT)
@@ -750,10 +755,7 @@ class OrderBuilderExamplesTest(unittest.TestCase):
                 .set_price(42.03)
                 .set_duration(Duration.DAY)
                 .set_order_strategy_type(OrderStrategyType.SINGLE)
-                .add_order_leg(
-                    instruction=Instruction.SELL,
-                    quantity=10,
-                    instrument=EquityInstrument('XYZ'))))
+                .add_equity_leg(EquityInstruction.SELL, 'XYZ', 10)))
 
         expected = {
             'orderType': 'LIMIT',
@@ -805,7 +807,7 @@ class OrderBuilderExamplesTest(unittest.TestCase):
                 .set_price(45.97)
                 .set_duration(Duration.DAY)
                 .set_order_strategy_type(OrderStrategyType.SINGLE)
-                .add_order_leg(Instruction.SELL, EquityInstrument('XYZ'), 2)
+                .add_equity_leg(EquityInstruction.SELL, 'XYZ', 2)
             )
             .add_child_order_strategy(
                 OrderBuilder()
@@ -815,7 +817,7 @@ class OrderBuilderExamplesTest(unittest.TestCase):
                 .set_stop_price(37.03)
                 .set_duration(Duration.DAY)
                 .set_order_strategy_type(OrderStrategyType.SINGLE)
-                .add_order_leg(Instruction.SELL, EquityInstrument('XYZ'), 2)))
+                .add_equity_leg(EquityInstruction.SELL, 'XYZ', 2)))
 
         expected = {
             'orderStrategyType': 'OCO',
@@ -868,10 +870,7 @@ class OrderBuilderExamplesTest(unittest.TestCase):
             .set_duration(Duration.DAY)
             .set_order_type(OrderType.LIMIT)
             .set_price(14.97)
-            .add_order_leg(
-                instruction=Instruction.BUY,
-                quantity=5,
-                instrument=EquityInstrument('XYZ'))
+            .add_equity_leg(EquityInstruction.BUY, 'XYZ', 5)
             .add_child_order_strategy(
                 OrderBuilder()
                 .set_order_strategy_type(OrderStrategyType.OCO)
@@ -882,10 +881,7 @@ class OrderBuilderExamplesTest(unittest.TestCase):
                     .set_duration(Duration.GOOD_TILL_CANCEL)
                     .set_order_type(OrderType.LIMIT)
                     .set_price(15.27)
-                    .add_order_leg(
-                        instruction=Instruction.SELL,
-                        quantity=5,
-                        instrument=EquityInstrument('XYZ')))
+                    .add_equity_leg(EquityInstruction.SELL, 'XYZ', 5))
                 .add_child_order_strategy(
                     OrderBuilder()
                     .set_order_strategy_type(OrderStrategyType.SINGLE)
@@ -893,10 +889,7 @@ class OrderBuilderExamplesTest(unittest.TestCase):
                     .set_duration(Duration.GOOD_TILL_CANCEL)
                     .set_order_type(OrderType.STOP)
                     .set_stop_price(11.27)
-                    .add_order_leg(
-                        instruction=Instruction.SELL,
-                        quantity=5,
-                        instrument=EquityInstrument('XYZ')))))
+                    .add_equity_leg(EquityInstruction.SELL, 'XYZ', 5))))
 
         expected = {
             'orderStrategyType': 'TRIGGER',
@@ -970,10 +963,7 @@ class OrderBuilderExamplesTest(unittest.TestCase):
             .set_stop_price_offset(10)
             .set_duration(Duration.DAY)
             .set_order_strategy_type(OrderStrategyType.SINGLE)
-            .add_order_leg(
-                instruction=Instruction.SELL,
-                quantity=10,
-                instrument=EquityInstrument('XYZ')))
+            .add_equity_leg(EquityInstruction.SELL, 'XYZ', 10))
 
         expected = {
             'complexOrderStrategyType': 'NONE',
