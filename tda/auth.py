@@ -58,6 +58,7 @@ def client_from_token_file(token_path, api_key):
     __register_token_redactions(token)
 
     # Return a new session configured to refresh credentials
+    api_key = __normalize_api_key(api_key)
     return Client(
         api_key,
         OAuth2Session(api_key, token=token,
@@ -88,6 +89,8 @@ def client_from_login_flow(webdriver, api_key, redirect_url, token_path,
     '''
     get_logger().info(('Creating new token with redirect URL \'{}\' ' +
                        'and token path \'{}\'').format(redirect_url, token_path))
+
+    api_key = __normalize_api_key(api_key)
 
     oauth = OAuth2Session(api_key, redirect_uri=redirect_url)
     authorization_url, state = oauth.authorization_url(
@@ -155,7 +158,6 @@ def easy_client(api_key, redirect_uri, token_path, webdriver_func=None):
                            a new token. Will only be called if the token file
                            cannot be found.
     '''
-    api_key = __normalize_api_key(api_key)
     logger = get_logger()
 
     try:

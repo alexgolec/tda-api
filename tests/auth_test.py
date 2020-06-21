@@ -9,7 +9,7 @@ import tempfile
 import unittest
 
 
-API_KEY = 'APIKEY'
+API_KEY = 'APIKEY@AMER.OAUTHAP'
 
 
 class ClientFromTokenFileTest(unittest.TestCase):
@@ -41,6 +41,24 @@ class ClientFromTokenFileTest(unittest.TestCase):
         client.assert_called_once_with(API_KEY, _)
         session.assert_called_once_with(
             API_KEY,
+            token=self.token,
+            auto_refresh_url=_,
+            auto_refresh_kwargs=_,
+            token_updater=_)
+
+    @no_duplicates
+    @patch('tda.auth.Client')
+    @patch('tda.auth.OAuth2Session')
+    def test_api_key_is_normalized(self, session, client):
+        self.write_token()
+
+        client.return_value = 'returned client'
+
+        self.assertEqual('returned client',
+                         auth.client_from_token_file(self.pickle_path, 'API_KEY'))
+        client.assert_called_once_with('API_KEY@AMER.OAUTHAP', _)
+        session.assert_called_once_with(
+            'API_KEY@AMER.OAUTHAP',
             token=self.token,
             auto_refresh_url=_,
             auto_refresh_kwargs=_,
@@ -81,6 +99,32 @@ class ClientFromLoginFlow(unittest.TestCase):
 
         with open(self.pickle_path, 'rb') as f:
             self.assertEqual(self.token, pickle.load(f))
+
+    @no_duplicates
+    @patch('tda.auth.Client')
+    @patch('tda.auth.OAuth2Session')
+    def test_normalize_api_key(self, session_constructor, client):
+        AUTH_URL = 'https://auth.url.com'
+
+        session = MagicMock()
+        session_constructor.return_value = session
+        session.authorization_url.return_value = AUTH_URL, None
+        session.fetch_token.return_value = self.token
+
+        webdriver = MagicMock()
+        webdriver.get.return_value = REDIRECT_URL + '/token_params'
+
+        client.return_value = 'returned client'
+
+        self.assertEqual('returned client',
+                         auth.client_from_login_flow(
+                             webdriver, 'API_KEY', REDIRECT_URL,
+                             self.pickle_path,
+                             redirect_wait_time_seconds=0.0))
+
+        self.assertEqual(
+                'API_KEY@AMER.OAUTHAP',
+                session_constructor.call_args[0][0])
 
 
 class EasyClientTest(unittest.TestCase):
