@@ -437,6 +437,9 @@ class Client(EnumEnforcer):
         projection = self.convert_enum(
             projection, self.Instrument.Projection)
 
+        if isinstance(symbols, str):
+            symbols = [symbols]
+
         params = {
             'apikey': self.api_key,
             'symbol': ','.join(symbols),
@@ -856,6 +859,9 @@ class Client(EnumEnforcer):
         `Official documentation
         <https://developer.tdameritrade.com/quotes/apis/get/marketdata/
         quotes>`__.'''
+        if isinstance(symbols, str):
+            symbols = [symbols]
+
         params = {
             'apikey': self.api_key,
             'symbol': ','.join(symbols)
@@ -956,6 +962,9 @@ class Client(EnumEnforcer):
         `Official documentation
         <https://developer.tdameritrade.com/user-principal/apis/get/
         userprincipals/streamersubscriptionkeys-0>`__.'''
+        if isinstance(account_ids, int) or isinstance(account_ids, str):
+            account_ids = [account_ids]
+
         params = {
             'apikey': self.api_key,
             'accountIds': ','.join(str(i) for i in account_ids)

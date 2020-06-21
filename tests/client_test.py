@@ -212,6 +212,18 @@ class TestClient(unittest.TestCase):
 
     @no_duplicates
     @patch('tda.client.datetime.datetime', mockdatetime)
+    def test_get_orders_by_path_statuses_scalar(self):
+        self.client.get_orders_by_path(
+            ACCOUNT_ID, statuses=Client.Order.Status.FILLED)
+        self.mock_session.get.assert_called_once_with(
+            self.make_url('/v1/accounts/{accountId}/orders'), params={
+                'fromEnteredTime': MIN_ISO,
+                'toEnteredTime': NOW_DATETIME_ISO,
+                'status': 'FILLED'
+            })
+
+    @no_duplicates
+    @patch('tda.client.datetime.datetime', mockdatetime)
     def test_get_orders_by_path_statuses_unchecked(self):
         self.client.set_enforce_enums(False)
         self.client.get_orders_by_path(
@@ -311,6 +323,17 @@ class TestClient(unittest.TestCase):
                 'fromEnteredTime': MIN_ISO,
                 'toEnteredTime': NOW_DATETIME_ISO,
                 'status': 'FILLED,EXPIRED'
+            })
+
+    @no_duplicates
+    @patch('tda.client.datetime.datetime', mockdatetime)
+    def test_get_orders_by_query_statuses_scalar(self):
+        self.client.get_orders_by_query(statuses=Client.Order.Status.FILLED)
+        self.mock_session.get.assert_called_once_with(
+            self.make_url('/v1/orders'), params={
+                'fromEnteredTime': MIN_ISO,
+                'toEnteredTime': NOW_DATETIME_ISO,
+                'status': 'FILLED'
             })
 
     @no_duplicates
@@ -468,6 +491,14 @@ class TestClient(unittest.TestCase):
             params={'fields': 'positions,orders'})
 
     @no_duplicates
+    def test_get_account_fields_scalar(self):
+        self.client.get_account(
+                ACCOUNT_ID, fields=Client.Account.Fields.POSITIONS)
+        self.mock_session.get.assert_called_once_with(
+            self.make_url('/v1/accounts/{accountId}'),
+            params={'fields': 'positions'})
+
+    @no_duplicates
     def test_get_account_fields_unchecked(self):
         self.client.set_enforce_enums(False)
         self.client.get_account(ACCOUNT_ID, fields=['positions', 'orders'])
@@ -493,6 +524,13 @@ class TestClient(unittest.TestCase):
             params={'fields': 'positions,orders'})
 
     @no_duplicates
+    def test_get_accounts_fields_scalar(self):
+        self.client.get_accounts(fields=Client.Account.Fields.POSITIONS)
+        self.mock_session.get.assert_called_once_with(
+            self.make_url('/v1/accounts'),
+            params={'fields': 'positions'})
+
+    @no_duplicates
     def test_get_accounts_fields_unchecked(self):
         self.client.set_enforce_enums(False)
         self.client.get_accounts(fields=['positions', 'orders'])
@@ -510,6 +548,16 @@ class TestClient(unittest.TestCase):
             self.make_url('/v1/instruments'), params={
                 'apikey': API_KEY,
                 'symbol': 'AAPL,MSFT',
+                'projection': 'fundamental'})
+
+    @no_duplicates
+    def test_search_instruments_one_instrument(self):
+        self.client.search_instruments(
+            'AAPL', Client.Instrument.Projection.FUNDAMENTAL)
+        self.mock_session.get.assert_called_once_with(
+            self.make_url('/v1/instruments'), params={
+                'apikey': API_KEY,
+                'symbol': 'AAPL',
                 'projection': 'fundamental'})
 
     @no_duplicates
@@ -551,6 +599,16 @@ class TestClient(unittest.TestCase):
                 'date': NOW_DATE_ISO})
 
     @no_duplicates
+    def test_get_hours_for_multiple_markets_single_market(self):
+        self.client.get_hours_for_multiple_markets(
+                Client.Markets.EQUITY, NOW_DATETIME)
+        self.mock_session.get.assert_called_once_with(
+            self.make_url('/v1/marketdata/hours'), params={
+                'apikey': API_KEY,
+                'markets': 'EQUITY',
+                'date': NOW_DATE_ISO})
+
+    @no_duplicates
     def test_get_hours_for_multiple_markets_date(self):
         self.client.get_hours_for_multiple_markets([
             Client.Markets.EQUITY,
@@ -568,8 +626,8 @@ class TestClient(unittest.TestCase):
                 Client.Markets.EQUITY,
                 Client.Markets.BOND], '2020-01-01')
         self.assertEqual(str(cm.exception),
-                         "expected type in (datetime.date, datetime.datetime) for " +
-                         "date, got 'builtins.str'")
+                         "expected type in (datetime.date, datetime.datetime) "
+                         "for date, got 'builtins.str'")
 
     @no_duplicates
     def test_get_hours_for_multiple_markets_unchecked(self):
@@ -1020,6 +1078,14 @@ class TestClient(unittest.TestCase):
                 'apikey': API_KEY,
                 'symbol': 'AAPL,MSFT'})
 
+    @no_duplicates
+    def test_get_quotes_single_symbol(self):
+        self.client.get_quotes('AAPL')
+        self.mock_session.get.assert_called_once_with(
+            self.make_url('/v1/marketdata/quotes'), params={
+                'apikey': API_KEY,
+                'symbol': 'AAPL'})
+
     # get_transaction
 
     @no_duplicates
@@ -1157,6 +1223,15 @@ class TestClient(unittest.TestCase):
                 'accountIds': '1000,2000,3000'})
 
     @no_duplicates
+    def test_get_streamer_subscription_keys_one_account_id(self):
+        self.client.get_streamer_subscription_keys(1000)
+        self.mock_session.get.assert_called_once_with(
+            self.make_url('/v1/userprincipals/streamersubscriptionkeys'),
+            params={
+                'apikey': API_KEY,
+                'accountIds': '1000'})
+
+    @no_duplicates
     def test_get_streamer_subscription_keys_str(self):
         self.client.get_streamer_subscription_keys(['1000', '2000', '3000'])
         self.mock_session.get.assert_called_once_with(
@@ -1184,6 +1259,15 @@ class TestClient(unittest.TestCase):
             self.make_url('/v1/userprincipals'), params={
                 'apikey': API_KEY,
                 'fields': 'streamerSubscriptionKeys,preferences'})
+
+    @no_duplicates
+    def test_get_user_principals_one_field(self):
+        self.client.get_user_principals(
+            fields=Client.UserPrincipals.Fields.PREFERENCES)
+        self.mock_session.get.assert_called_once_with(
+            self.make_url('/v1/userprincipals'), params={
+                'apikey': API_KEY,
+                'fields': 'preferences'})
 
     @no_duplicates
     def test_get_user_principals_fields_unchecked(self):
