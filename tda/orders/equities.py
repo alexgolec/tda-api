@@ -26,7 +26,9 @@ class EquityOrderBuilder:
             import sys
             print('WARNING: EquityOrderBuilder has been deprecated. Please ' +
                   'migrate to one of the new order templates or use the ' +
-                  'generic OrderBuilder class.', file=sys.stderr)
+                  'generic OrderBuilder class. You can find documentation on ' +
+                  'its replacement heres: https://tda-api.readthedocs.io/en/'+
+                  'stable/order-templates.html', file=sys.stderr)
             _DEPRECATION_WARNED = True
 
         self.symbol = symbol

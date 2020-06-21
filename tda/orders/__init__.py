@@ -12,10 +12,14 @@ def __getattr__(name):
 
     def warn(new_package):
         if name not in __WARNINGS:
+            replacement_url = ('https://tda-api.readthedocs.io/en/stable/' +
+                               'order-templates.html')
             print(('WARNING: {name} has moved from tda.orders to ' +
                    'tda.orders.{new_package}. It will be removed from tda.orders ' +
-                   'in a future version.').format(
-                       name=name, new_package=new_package), file=sys.stderr)
+                   'in a future version. You can find documentation on its '+
+                   'replacements here: {url}').format(
+                       name=name, new_package=new_package, url=replacement_url),
+                   file=sys.stderr)
             __WARNINGS.add(name)
 
     if name == 'InvalidOrderException':
