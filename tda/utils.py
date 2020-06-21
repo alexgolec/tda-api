@@ -32,6 +32,9 @@ class EnumEnforcer:
         if iterable is None:
             return None
 
+        if isinstance(iterable, required_enum_type):
+            return [iterable.value]
+
         values = []
         for value in iterable:
             if isinstance(value, required_enum_type):
