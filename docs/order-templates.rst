@@ -100,7 +100,8 @@ yourself.
 Utility Methods
 ---------------
 
-These methods return orders that represent complex multi-order strategies. Note 
+These methods return orders that represent complex multi-order strategies, 
+namely "one cancels other" and "first triggers second" strategies. Note they 
 expect all their parameters to be of type ``OrderBuilder``. You can construct 
 these orders using the templates above or by 
 :ref:`creating them from scratch <order_builder>`.

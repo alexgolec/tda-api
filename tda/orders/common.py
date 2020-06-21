@@ -34,10 +34,11 @@ class Duration(Enum):
     #: be filled all at once, you may see partial executions throughout the day.
     DAY = 'DAY'
 
+    # TODO: Implement order cancellation date
+
     #: Keep the trade open for six months, or until the end of the cancel date,
     #: whichever is shorter. Note if the order cannot be filled all at once, you
     #: may see partial executions over the lifetime of the order.
-    # TODO: Implement order cancellation date
     GOOD_TILL_CANCEL = 'GOOD_TILL_CANCEL'
 
     #: Either execute the order immediately at the specified price, or cancel it
@@ -73,8 +74,8 @@ class OrderType(Enum):
     #: `More Info <https://www.investopedia.com/terms/m/marketorder.asp>`__.
     MARKET = 'MARKET'
 
-    #: Execute the order at your price or better. `
-    #: More info <https://www.investopedia.com/terms/l/limitorder.asp>`__.
+    #: Execute the order at your price or better. 
+    #: `More info <https://www.investopedia.com/terms/l/limitorder.asp>`__.
     LIMIT = 'LIMIT'
 
     #: Wait until the price reaches the stop price, and then immediately place a
@@ -106,12 +107,12 @@ class OrderType(Enum):
     #: Exercise an option.
     EXERCISE = 'EXERCISE'
 
-    #: Place an order for an options spread resulting in a net debit equal.
+    #: Place an order for an options spread resulting in a net debit.
     #: `More info <https://www.investopedia.com/ask/answers/042215/
     #: whats-difference-between-credit-spread-and-debt-spread.asp>`__
     NET_DEBIT = 'NET_DEBIT'
 
-    #: Place an order for an options spread resulting in a net debit equal.
+    #: Place an order for an options spread resulting in a net credit.
     #: `More info <https://www.investopedia.com/ask/answers/042215/
     #: whats-difference-between-credit-spread-and-debt-spread.asp>`__
     NET_CREDIT = 'NET_CREDIT'
@@ -125,10 +126,7 @@ class OrderType(Enum):
 
 class ComplexOrderStrategyType(Enum):
     '''
-    Explicit order strategies for executing multi-leg options orders. In
-    contrast to placing individual orders, which are placed and executed in
-    sequence, multi-leg orders are typically executed all at once. This often
-    means less market risk and lower transaction costs.
+    Explicit order strategies for executing multi-leg options orders.
     '''
 
     #: No complex order strategy. This is the default.

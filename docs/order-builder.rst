@@ -17,14 +17,16 @@ to be useful to everyone, from users who want to easily place common equities
 and options trades, to advanced users who want to place complex multi-leg, 
 multi-asset type trades. 
 
-For users interested in simple trades, ``tda-api`` supports pre-built trade 
-templates that allow fast construction of the most common trades. Advanced users 
-can modify these trades however they like, and can even build trades from 
-scratch.
+For users interested in simple trades, ``tda-api`` supports pre-built 
+:ref:`order_templates` that allow fast construction of many common trades. 
+Advanced users can modify these trades however they like, and can even build 
+trades from scratch.
 
-This section begins by listing the supported common trades, and then describing 
-the fully-featured order construction system that supports them. Advanced users 
-can skip straight to that section.
+This page describes the features of the complete order schema in all their 
+complexity. It is aimed at advanced users who want to create complex orders. 
+Less advanced users can use the :ref:`order templates <order_templates>` to 
+create orders. If they find themselves wanting to go beyond those templates, 
+they can return to this page to learn how.
 
 
 ------------------------------------------
@@ -32,11 +34,8 @@ Optional: Order Specification Introduction
 ------------------------------------------
 
 Before we dive in to creating order specs, let's briefly introduce their 
-structure. This section is optional, and if you just want to place common 
-orders, you can skip ahead to the templates below. However, ``tda-api`` supports 
-a lot more than just what those templates provide, so if you want to do 
-something that's not supported out-of-the-box, this section will give you some 
-background to help you achieve it.
+structure. This section is optional, although users wanting to use more advanced 
+featured like stop prices and complex options orders will likely want to read it.
 
 Here is an example of a spec that places a limit order to buy 13 shares of
 ``MSFT`` for no more than $190. This is exactly the order that would be returned 
@@ -74,9 +73,9 @@ Some key points are:
 If this seems like a lot of detail to specify a rather simple order, it is. The 
 thing about the order spec object is that it can express *every* order that can 
 be made through the TD Ameritrade API. For an advanced example, here is a order 
-spec for a standing order to enter a long position in ``GOOG`` that triggers a 
-one-cancels-other order that exits the position if the price rises to $1400 or 
-falls below $1250:
+spec for a standing order to enter a long position in ``GOOG`` at $1310 or less 
+that triggers a one-cancels-other order that exits the position if the price 
+rises to $1400 or falls below $1250:
 
 .. code-block:: JSON
 
@@ -141,12 +140,12 @@ While this looks complex, it can be broken down into the same components as the
 simpler buy order:
 
  * This time, the ``LIMIT`` order type applies to the top-level order.
- * The order strategy type is ``TRIGGER``, which tell TD Ameritrade to wait on 
-   the second order until the first one completes.
+ * The order strategy type is ``TRIGGER``, which tells TD Ameritrade to hold off 
+   placing the the second order until the first one completes.
  * The order leg collection still contains a single leg, and the price is still 
    defined outside the order leg. This is typical for equities orders.
 
-There are also a few things that weren' there in the simple buy order:
+There are also a few things that aren't there in the simple buy order:
 
  * The ``childOrderStrategies`` contains the ``OCO`` order that is triggered 
    when the first ``LIMIT`` order is executed. 
@@ -173,6 +172,9 @@ orders easy:
               .set_stop_price(1250)
       )
 
+You can find the full listing of order templates and utility functions 
+:ref:`here <order_templates>`.
+
 Now that you have some background on how orders are structured, let's dive into 
 the order builder itself. 
 
@@ -194,7 +196,7 @@ something is inaccurate or missing, please `let us know
 <https://github.com/alexgolec/tda-api/issues>`__.
 
 That being said, experienced traders who understand how various order types and 
-complex strategies work will find this builder easy to use, at least for the 
+complex strategies work should find this builder easy to use, at least for the 
 order types with which they are familiar. Here are some resources you can use to 
 learn more, courtesy of the Securites and Exchange Commission:
 
@@ -206,7 +208,8 @@ learn more, courtesy of the Securites and Exchange Commission:
    investor-alerts-bulletins/ib_introductionoptions.html>`__
 
 You can also find TD Ameritrade's official documentation on orders `here
-<https://www.tdameritrade.com/retail-en_us/resources/pdf/SDPS819.pdf>`__.
+<https://www.tdameritrade.com/retail-en_us/resources/pdf/SDPS819.pdf>`__, 
+although it doesn't actually cover all functionality that ``tda-api`` supports.
 
 
 +++++++++++
@@ -227,9 +230,10 @@ Session and Duration
 ++++++++++++++++++++
 
 Together, these fields control when the order will be placed and how long it 
-will remain active. Note ``tda-api``'s templates place orders that are active 
-for the duration of the current normal trading session. If you want to modify 
-the default session and duration, you can use these methods to do so.
+will remain active. Note ``tda-api``'s :ref:`templates <order_templates>` place 
+orders that are active for the duration of the current normal trading session. 
+If you want to modify the default session and duration, you can use these 
+methods to do so.
 
 .. autoclass:: tda.orders.common::Session
   :members:
@@ -275,7 +279,7 @@ Order Legs
 
 Order legs are where the actual assets being bought or sold are specified. For 
 simple equity or single-options orders, there is just one leg. However, for 
-complex multi-leg options trades, there can be any number of legs. 
+complex multi-leg options trades, there can be more than one leg.
 
 Note that order legs often do not execute all at once. Order legs can be 
 executed over the specified :class:`~tda.orders.common.Duration` of the order. 
@@ -287,8 +291,17 @@ With all that out of the way, order legs are relatively simple to specify.
 ``tda-api`` currently supports equity and option order legs:
 
 .. automethod:: tda.orders.generic.OrderBuilder.add_equity_leg
+.. autoclass:: tda.orders.common::EquityInstruction
+  :members:
+  :undoc-members:
+
 .. automethod:: tda.orders.generic.OrderBuilder.add_option_leg
+.. autoclass:: tda.orders.common::OptionInstruction
+  :members:
+  :undoc-members:
+
 .. automethod:: tda.orders.generic.OrderBuilder.clear_order_legs
+
 
 
 +++++++++++++++++++++
@@ -333,7 +346,8 @@ Unfortunately, due to the complexity of these orders and the lack of any real
 documentation, we cannot offer definitively say how to structure these orders. A 
 few things have been observed, however:
 
- * The legs of the order can be placed by adding them as order legs.
+ * The legs of the order can be placed by adding them as option order legs using
+   :meth:`~tda.orders.generic.OrderBuilder.add_option_leg`.
  * For spreads resulting in a new debit/credit, the price represents the overall 
    debit or credit desired.
 
@@ -353,7 +367,7 @@ tda-api/issues>`__.
 Composite Orders
 ++++++++++++++++
 
-``tda-api`` supports composite order strategies, in which execution of one orders 
+``tda-api`` supports composite order strategies, in which execution of one order 
 has an effect on another:
 
  * ``OCO``, or "one cancels other" orders, consist of a pair of orders where 
@@ -361,7 +375,11 @@ has an effect on another:
  * ``TRIGGER`` orders consist of a pair of orders where execution of one 
    immediately results in placement of the other.
 
-You can specify these composite order strategies like so:
+``tda-api`` provides helpers to specify these easily: 
+:func:`~tda.orders.common.one_cancels_other` and
+:func:`~tda.orders.common.first_triggers_second`. This is almost certainly 
+easier than specifying these orders manually. However, if you still want to 
+create them yourself, you can specify these composite order strategies like so:
 
 .. autoclass:: tda.orders.common::OrderStrategyType
   :members:
@@ -377,7 +395,7 @@ Undocumented Fields
 Unfortunately, your humble author is not an expert in all things trading. The 
 order spec schema describes some things that are outside my ability to document, 
 so rather than make stuff up, I'm putting them here in the hopes that someone 
-will come along and explain what they mean. You can make suggestions by filing 
+will come along and shed some light on them. You can make suggestions by filing 
 an issue on our 
 `GitHub issues page <https://github.com/alexgolec/tda-api/issues>`__, 
 or by joining our `Discord server <https://discord.gg/nfrd9gh>`__.
