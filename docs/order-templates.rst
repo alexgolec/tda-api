@@ -107,3 +107,21 @@ these orders using the templates above or by
 
 .. autofunction:: tda.orders.common.one_cancels_other
 .. autofunction:: tda.orders.common.first_triggers_second
+
+
+----------------------------------------
+What happened to ``EquityOrderBuilder``?
+----------------------------------------
+
+Long-time users may notice that this documentation no longer mentions the 
+``EquityOrderBuilder`` class. This class used to be used to create equities 
+orders, and offered a subset of the functionality offered by the 
+:ref:`OrderBuilder <order_builder>`. This class has been deprecated in favor of 
+the order builder and the above templates, and will be removed from a future 
+release. 
+
+In the meantime, you can continue using this order builder, although you really 
+should migrate to the new one soon. You can find documentation for this class in 
+the `older versions 
+<https://tda-api.readthedocs.io/en/v0.3.2/orders.html>`__ of ``tda-api``'s 
+documentation. 
