@@ -1,12 +1,13 @@
 import atexit
 import io
+import json
 import logging
 import tda
 import unittest
 
 from tda.client import Client
-from tests.test_utils import no_duplicates
-from unittest.mock import ANY, MagicMock, Mock, patch
+from tests.test_utils import MockResponse, no_duplicates
+from unittest.mock import Mock, patch
 
 
 class RedactorTest(unittest.TestCase):
@@ -122,3 +123,28 @@ class RegisterRedactionsTest(unittest.TestCase):
             r'\[.*\] Good Number: 900009\n' +
             r'\[.*\] Bad Number: <REDACTED 1-BadNumber>\n' +
             r'\[.*\] Other Bad Number: 200002\n')
+
+    @no_duplicates
+    @patch('tda.debug.register_redactions', new_callable=Mock)
+    def test_register_from_request_success(self, register_redactions):
+        resp = MockResponse({'success': 1}, True)
+        tda.debug.register_redactions_from_response(resp)
+        register_redactions.assert_called_with({'success': 1})
+
+    @no_duplicates
+    @patch('tda.debug.register_redactions', new_callable=Mock)
+    def test_register_from_request_not_okay(self, register_redactions):
+        resp = MockResponse({'success': 1}, False)
+        tda.debug.register_redactions_from_response(resp)
+        register_redactions.assert_not_called()
+
+    @no_duplicates
+    @patch('tda.debug.register_redactions', new_callable=Mock)
+    def test_register_unparseable_json(self, register_redactions):
+        class MR(MockResponse):
+            def json(self):
+                raise json.decoder.JSONDecodeError('e243rtdagew', '', 0)
+
+        resp = MR({'success': 1}, True)
+        tda.debug.register_redactions_from_response(resp)
+        register_redactions.assert_not_called()

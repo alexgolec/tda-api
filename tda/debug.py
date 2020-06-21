@@ -1,4 +1,5 @@
 import atexit
+import json
 import logging
 import sys
 import tda
@@ -25,6 +26,7 @@ class LogRedactor:
         Registers a string that should not be emitted and the label with with
         which it should be replaced.
         '''
+        string = str(string)
         if string not in self.redacted_strings:
             self.label_counts[label] += 1
             self.redacted_strings[string] = (label, self.label_counts[label])
@@ -48,7 +50,10 @@ def register_redactions_from_response(resp):
     successful response. Note this method assumes that resp has a JSON contents.
     '''
     if resp.ok:
-        register_redactions(resp.json())
+        try:
+            register_redactions(resp.json())
+        except json.decoder.JSONDecodeError:
+            pass
 
 
 def register_redactions(obj, key_path=None,
@@ -56,7 +61,8 @@ def register_redactions(obj, key_path=None,
                             'auth', 'acl', 'displayname', 'id', 'key', 'token'],
                         whitelisted=set([
                             'requestid',
-                            'token_type'])):
+                            'token_type',
+                            'legid'])):
     '''
     Recursively iterates through the leaf elements of ``obj`` and registers
     elements with keys matching a blacklist with the global ``Redactor``.
