@@ -106,6 +106,9 @@ own, the constructor looks like this:
 Orders
 ++++++
 
+
+.. _placing_new_orders:
+
 ------------------
 Placing New Orders
 ------------------
