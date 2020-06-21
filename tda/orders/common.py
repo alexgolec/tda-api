@@ -332,7 +332,7 @@ class OrderStrategyType(Enum):
 
 def one_cancels_other(order1, order2):
     '''
-    Combines the two orders so that one execution of one cancels the other.
+    If one of the orders is executed, immediately cancel the other.
     '''
     return (OrderBuilder()
             .set_order_strategy_type(OrderStrategyType.OCO)
@@ -342,7 +342,7 @@ def one_cancels_other(order1, order2):
 
 def first_triggers_second(first_order, second_order):
     '''
-
+    If ``first_order`` is executed, immediately place ``second_order``.
     '''
     return (first_order
             .set_order_strategy_type(OrderStrategyType.TRIGGER)

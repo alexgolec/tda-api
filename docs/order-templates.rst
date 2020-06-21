@@ -7,16 +7,16 @@ Order Templates
 ===============
 
 ``tda-api`` strives to be easy to use. This means making it easy to do simple 
-things while making it possible to do complicated things. Order construction is 
+things, while making it possible to do complicated things. Order construction is
 a major challenge to this mission: both simple and complicated orders use the 
 same format, meaning simple orders require a surprising amount of sophistication 
 to place. 
 
-We get around this by providing a fully-featured order builder to help build 
-arbitrarily complex orders, along with a number of templates that pre-configure 
-an order builder for common orders. This page describes the simple templates, 
-while the :ref:`order_builder` page documents the order builder in all its 
-complexity. 
+We get around this by providing templates that make it easy to place common 
+orders, while allowing advanced users to modify the orders returned from the 
+templates to create more complex ones. Very advanced users can even create their 
+own orders from scratch. This page describes the simple templates, while the 
+:ref:`order_builder` page documents the order builder in all its complexity. 
 
 
 ---------------------
@@ -27,7 +27,8 @@ These templates serve two purposes. First, they are designed to choose defaults
 so you can immediately :ref:`place them <placing_new_orders>`. These defaults 
 are:
 
- * Placed during the normal trading sessions.
+ * All orders execute during the current normal trading session. If placed 
+   outside of trading hours, the execute during the next normal trading session.
  * Time-in-force is set to ``DAY``.
  * All other fields (such as requested destination, etc.) are left unset, 
    meaning they receive default treatment from TD Ameritrade. Note this 
@@ -49,3 +50,60 @@ any time in the next six months:
    .set_session(Session.SEAMLESS))
 
 You can find a full reference for all supported fields in :ref:`order_builder`.
+
+
+----------------
+Equity Templates
+----------------
+
+++++++++++
+Buy orders
+++++++++++
+
+.. autofunction:: tda.orders.equities.equity_buy_market
+.. autofunction:: tda.orders.equities.equity_buy_limit
+
++++++++++++
+Sell orders
++++++++++++
+
+.. autofunction:: tda.orders.equities.equity_sell_market
+.. autofunction:: tda.orders.equities.equity_sell_limit
+
++++++++++++++++++
+Sell short orders
++++++++++++++++++
+
+.. autofunction:: tda.orders.equities.equity_sell_short_market
+.. autofunction:: tda.orders.equities.equity_sell_short_limit
+
++++++++++++++++++++
+Buy to cover orders
++++++++++++++++++++
+
+.. autofunction:: tda.orders.equities.equity_buy_to_cover_market
+.. autofunction:: tda.orders.equities.equity_buy_to_cover_limit
+
+
+-----------------
+Options Templates
+-----------------
+
+Due to their complexity, options order templates are pending. Templates for 
+options orders will be added in subsequent releases. 
+
+In the meantime, you can construct all supported options orders using the 
+:ref:`OrderBuilder <order_builder>`, although you will have to construct them 
+yourself.
+
+---------------
+Utility Methods
+---------------
+
+These methods return orders that represent complex multi-order strategies. Note 
+expect all their parameters to be of type ``OrderBuilder``. You can construct 
+these orders using the templates above or by 
+:ref:`creating them from scratch <order_builder>`.
+
+.. autofunction:: tda.orders.common.one_cancels_other
+.. autofunction:: tda.orders.common.first_triggers_second

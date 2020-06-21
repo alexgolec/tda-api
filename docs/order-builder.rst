@@ -2,9 +2,9 @@
 
 .. _order_builder:
 
-===============
-Building Orders
-===============
+==========================
+``OrderBuilder`` Reference
+==========================
 
 The :meth:`Client.place_order() <tda.client.Client.place_order>` method expects 
 a rather complex JSON object that describes the desired order. TDA provides some 
