@@ -11,16 +11,19 @@ assignees: ''
 
 Not following guidelines may result in your bug being ignored and/or closed. 
 
-*Description of Bug*
+**Description of Bug**
 <DESCRIPTION>
 
-*Code to Reproduce*
+**Code to Reproduce**
 Paste in the code that causes the bug to occur. 
 
 IMPORTANT: Remember to anonymize your code. Be sure to replace API keys/Client IDs with placeholders. Also, never, ever share the contents of your token file. 
 
-*Expected Behavior*
+**Expected Behavior**
 <EXPECTED BEHAVIOR>
 
-*Actual Behavior*
+**Actual Behavior**
 <ACTUAL BEHAVIOR>
+
+**Error/Exception Log, If Applicable**
+See here to learn how to turn on debug logging: https://tda-api.readthedocs.io/en/latest/help.html
