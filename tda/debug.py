@@ -132,6 +132,10 @@ def _enable_bug_report_logging(output=sys.stderr, loggers=None):
         logger.addHandler(handler)
 
     def write_logs():
+        print()
+        print(' ### BEGIN REDACTED LOGS ###')
+        print()
+
         for msg in handler.messages:
             msg = tda.LOG_REDACTOR.redact(msg)
             print(msg, file=output)
