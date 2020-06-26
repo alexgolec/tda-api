@@ -120,10 +120,10 @@ illustrate the process and provides a schema in the `place order documentation
 <https://developer.tdameritrade.com/account-access/apis/post/accounts/
 %7BaccountId%7D/orders-0>`__, but beyond that we're on our own.
 
-``tda-api`` includes some helpers, described in :ref:`orders`, which provide an 
-incomplete utility for creating various order types. While it only scratches the 
-surface of what's possible, we encourage you to use that module instead of
-creating your own order specs.
+``tda-api`` includes some helpers, described in :ref:`order_templates`, which 
+provide an incomplete utility for creating various order types. While it only 
+scratches the surface of what's possible, we encourage you to use that module 
+instead of creating your own order specs.
 
 .. _`example order specs`: https://developer.tdameritrade.com/content/place-order-samples
 
