@@ -89,12 +89,34 @@ Buy to cover orders
 Options Templates
 -----------------
 
-Due to their complexity, options order templates are pending. Templates for 
-options orders will be added in subsequent releases. 
+TD Ameritrade supports over a dozen options strategies, each of which involve a 
+precise structure in the order builder. ``tda-api`` is slowly gaining support 
+for these strategies, and they are documented here as they become ready for use. 
+As time goes on, more templates will be added here. 
 
 In the meantime, you can construct all supported options orders using the 
 :ref:`OrderBuilder <order_builder>`, although you will have to construct them 
 yourself.
+
+Note orders placed using these templates may be rejected, depending on the 
+user's options trading authorization.
+
+
+++++++++++++++
+Single Options
+++++++++++++++
+
+Buy and sell single options.
+
+.. autofunction:: tda.orders.options.option_buy_to_open_market
+.. autofunction:: tda.orders.options.option_buy_to_open_limit
+.. autofunction:: tda.orders.options.option_sell_to_open_market
+.. autofunction:: tda.orders.options.option_sell_to_open_limit
+.. autofunction:: tda.orders.options.option_buy_to_close_market
+.. autofunction:: tda.orders.options.option_buy_to_close_limit
+.. autofunction:: tda.orders.options.option_sell_to_close_market
+.. autofunction:: tda.orders.options.option_sell_to_close_limit
+
 
 ---------------
 Utility Methods
