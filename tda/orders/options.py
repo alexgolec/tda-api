@@ -4,7 +4,7 @@ from tda.orders.generic import OrderBuilder
 ##########################################################################
 # Buy to Open
 
-def buy_option_to_open_market(symbol, quantity):
+def option_buy_to_open_market(symbol, quantity):
     '''
     Returns a pre-filled :class:`~tda.orders.generic.OrderBuilder` for a
     buy-to-open market order.
@@ -20,7 +20,7 @@ def buy_option_to_open_market(symbol, quantity):
             .add_option_leg(OptionInstruction.BUY_TO_OPEN, symbol, quantity))
 
 
-def buy_option_to_open_limit(symbol, quantity, price):
+def option_buy_to_open_limit(symbol, quantity, price):
     '''
     Returns a pre-filled :class:`~tda.orders.generic.OrderBuilder` for a
     buy-to-open limit order.
@@ -41,7 +41,7 @@ def buy_option_to_open_limit(symbol, quantity, price):
 ##########################################################################
 # Sell to Open
 
-def sell_option_to_open_market(symbol, quantity):
+def option_sell_to_open_market(symbol, quantity):
     '''
     Returns a pre-filled :class:`~tda.orders.generic.OrderBuilder` for a
     sell-to-open market order.
@@ -57,7 +57,7 @@ def sell_option_to_open_market(symbol, quantity):
             .add_option_leg(OptionInstruction.SELL_TO_OPEN, symbol, quantity))
 
 
-def sell_option_to_open_limit(symbol, quantity, price):
+def option_sell_to_open_limit(symbol, quantity, price):
     '''
     Returns a pre-filled :class:`~tda.orders.generic.OrderBuilder` for a
     sell-to-open limit order.
@@ -79,7 +79,7 @@ def sell_option_to_open_limit(symbol, quantity, price):
 # Buy to Close
 
 
-def buy_option_to_close_market(symbol, quantity):
+def option_buy_to_close_market(symbol, quantity):
     '''
     Returns a pre-filled :class:`~tda.orders.generic.OrderBuilder` for a
     buy-to-close market order.
@@ -95,7 +95,7 @@ def buy_option_to_close_market(symbol, quantity):
             .add_option_leg(OptionInstruction.BUY_TO_CLOSE, symbol, quantity))
 
 
-def buy_option_to_close_limit(symbol, quantity, price):
+def option_buy_to_close_limit(symbol, quantity, price):
     '''
     Returns a pre-filled :class:`~tda.orders.generic.OrderBuilder` for a
     buy-to-close limit order.
@@ -117,7 +117,7 @@ def buy_option_to_close_limit(symbol, quantity, price):
 # Sell to Close
 
 
-def sell_option_to_close_market(symbol, quantity):
+def option_sell_to_close_market(symbol, quantity):
     '''
     Returns a pre-filled :class:`~tda.orders.generic.OrderBuilder` for a
     sell-to-close market order.
@@ -133,7 +133,7 @@ def sell_option_to_close_market(symbol, quantity):
             .add_option_leg(OptionInstruction.SELL_TO_CLOSE, symbol, quantity))
 
 
-def sell_option_to_close_limit(symbol, quantity, price):
+def option_sell_to_close_limit(symbol, quantity, price):
     '''
     Returns a pre-filled :class:`~tda.orders.generic.OrderBuilder` for a
     sell-to-close limit order.
