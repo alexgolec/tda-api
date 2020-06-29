@@ -62,7 +62,13 @@ def register_redactions(obj, key_path=None,
                         whitelisted=set([
                             'requestid',
                             'token_type',
-                            'legid'])):
+                            'legid',
+                            'bidid',
+                            'askid',
+                            'lastid',
+                            'bidsizeinlong',
+                            'bidsizeindouble',
+                            'bidpriceindouble'])):
     '''
     Recursively iterates through the leaf elements of ``obj`` and registers
     elements with keys matching a blacklist with the global ``Redactor``.
