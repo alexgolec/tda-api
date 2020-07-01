@@ -24,6 +24,11 @@ don't pollute your system installation directories:
   virtualenv -v virtualenv
   source virtualenv/bin/activate
 
+  # Note: if you switch to a new terminal this virtual environment should 
+  # not be active in the new terminal anymore. If you want to disable the loaded
+  # virtual environment in the same terminal, use the command
+  deactivate
+
 Next, install project requirements:
 
 .. code-block:: shell

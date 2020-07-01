@@ -62,6 +62,11 @@ diretory. Here we assume your virtualenv is called ``my-venv``:
   virtualenv -v my-venv
   source my-venv/bin/activate
 
+  # Note: if you switch to a new terminal this virtual environment should 
+  # not be active in the new terminal anymore. If you want to disable the loaded
+  # virtual environment in the same terminal, use the command
+  deactivate
+
 You are now ready to install ``tda-api``:
 
 .. code-block:: shell
