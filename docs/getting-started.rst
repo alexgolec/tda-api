@@ -62,11 +62,6 @@ diretory. Here we assume your virtualenv is called ``my-venv``:
   virtualenv -v my-venv
   source my-venv/bin/activate
 
-  # Note: if you switch to a new terminal this virtual environment should 
-  # not be active in the new terminal anymore. If you want to disable the loaded
-  # virtual environment in the same terminal, use the command
-  deactivate
-
 You are now ready to install ``tda-api``:
 
 .. code-block:: shell
@@ -81,6 +76,16 @@ package:
   import tda
 
 If this succeeded, you're ready to move on to :ref:`auth`.
+
+Note that if you are using a virtual environment and switch to a new terminal
+your virtual environment will not be active in the new terminal,
+and you need to run the activate command again.
+If you want to disable the loaded virtual environment in the same terminal window,
+use the command:
+
+.. code-block:: shell
+
+  deactivate
 
 ++++++++++++
 Getting Help
