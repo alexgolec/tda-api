@@ -77,6 +77,16 @@ package:
 
 If this succeeded, you're ready to move on to :ref:`auth`.
 
+Note that if you are using a virtual environment and switch to a new terminal
+your virtual environment will not be active in the new terminal,
+and you need to run the activate command again.
+If you want to disable the loaded virtual environment in the same terminal window,
+use the command:
+
+.. code-block:: shell
+
+  deactivate
+
 ++++++++++++
 Getting Help
 ++++++++++++
