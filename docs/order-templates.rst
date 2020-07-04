@@ -1,4 +1,4 @@
-.. py:module:: tda.orders.templates
+.. py:module:: tda.orders
 
 .. _order_templates:
 
@@ -45,9 +45,13 @@ any time in the next six months:
   from tda.orders.equities import equity_buy_limit
   from tda.orders.common import Duration, Session
 
-  (equity_buy_limit('GOOG', 1, 1250.0)
-   .set_duration(Duration.GOOD_TILL_CANCEL)
-   .set_session(Session.SEAMLESS))
+  client = ... # See "Authentication and Client Creation"
+
+  client.place_order(
+      equity_buy_limit('GOOG', 1, 1250.0)
+          .set_duration(Duration.GOOD_TILL_CANCEL)
+          .set_session(Session.SEAMLESS)
+          .build())
 
 You can find a full reference for all supported fields in :ref:`order_builder`.
 
@@ -102,6 +106,21 @@ Note orders placed using these templates may be rejected, depending on the
 user's options trading authorization.
 
 
+++++++++++++++++++++++++++++++++
+Where Do I Find Options Symbols?
+++++++++++++++++++++++++++++++++
+
+All templates require option symbols, which are somewhat more involved than 
+equity symbols. They encode the underlying, the expiration date, option type 
+(put or call) and the strike price. They are especially tricky to extract 
+because both the TD Ameritrade UI and the thinkorswim UI don't reveal the symbol 
+in the option chain view. 
+
+Symbols can be generated manually by plugging into the 
+``[Underlying_[Expiration][P/C][Strike]]`` pattern. They can also be found by 
+requesting the :ref:`option_chain`.
+
+
 ++++++++++++++
 Single Options
 ++++++++++++++
@@ -116,6 +135,50 @@ Buy and sell single options.
 .. autofunction:: tda.orders.options.option_buy_to_close_limit
 .. autofunction:: tda.orders.options.option_sell_to_close_market
 .. autofunction:: tda.orders.options.option_sell_to_close_limit
+
+
+.. _vertical_spreads:
+
+++++++++++++++++
+Vertical Spreads
+++++++++++++++++
+
+Vertical spreads are a complex option strategy that provides both limited upside
+and limited downside. They are constructed using by buying an option at one 
+strike while simultaneously selling another option with the same underlying and 
+expiration date, except with a different strike, and they can be constructed 
+using either puts or call. You can find more information about this strategy on 
+`Investopedia <https://www.investopedia.com/articles/active-trading/032614/
+which-vertical-option-spread-should-you-use.asp>`__
+
+``tda-api`` provides utilities for opening and closing vertical spreads in 
+various ways. It follows the standard ``(bull/bear) (put/call)`` naming 
+convention, where the name specifies the market attitude and the option type 
+used in construction. 
+
+For consistency's sake, the option with the smaller strike price is always 
+passed first, followed by the higher strike option. You can find the option 
+symbols by consulting the return value of the :ref:`option_chain` client call.
+
+
+~~~~~~~~~~~~~~
+Call Verticals
+~~~~~~~~~~~~~~
+
+.. autofunction:: tda.orders.options.bull_call_vertical_open
+.. autofunction:: tda.orders.options.bull_call_vertical_close
+.. autofunction:: tda.orders.options.bear_call_vertical_open
+.. autofunction:: tda.orders.options.bear_call_vertical_close
+
+
+~~~~~~~~~~~~~
+Put Verticals
+~~~~~~~~~~~~~
+
+.. autofunction:: tda.orders.options.bull_put_vertical_open
+.. autofunction:: tda.orders.options.bull_put_vertical_close
+.. autofunction:: tda.orders.options.bear_put_vertical_open
+.. autofunction:: tda.orders.options.bear_put_vertical_close
 
 
 ---------------

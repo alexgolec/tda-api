@@ -141,6 +141,10 @@ def option_sell_to_close_limit(symbol, quantity, price):
 
 def bull_call_vertical_open(
         long_call_symbol, short_call_symbol, quantity, net_debit):
+    '''
+    Returns a pre-filled :class:`~tda.orders.generic.OrderBuilder` that opens a 
+    bull call vertical position. See :ref:`vertical_spreads` for details.
+    '''
     from tda.orders.common import OptionInstruction, OrderType, OrderStrategyType
     from tda.orders.common import ComplexOrderStrategyType
 
@@ -157,6 +161,10 @@ def bull_call_vertical_open(
 
 def bull_call_vertical_close(
         long_call_symbol, short_call_symbol, quantity, net_credit):
+    '''
+    Returns a pre-filled :class:`~tda.orders.generic.OrderBuilder` that closes a
+    bull call vertical position. See :ref:`vertical_spreads` for details.
+    '''
     from tda.orders.common import OptionInstruction, OrderType, OrderStrategyType
     from tda.orders.common import ComplexOrderStrategyType
 
@@ -176,6 +184,10 @@ def bull_call_vertical_close(
 
 def bear_call_vertical_open(
         short_call_symbol, long_call_symbol, quantity, net_credit):
+    '''
+    Returns a pre-filled :class:`~tda.orders.generic.OrderBuilder` that opens a
+    bear call vertical position. See :ref:`vertical_spreads` for details.
+    '''
     from tda.orders.common import OptionInstruction, OrderType, OrderStrategyType
     from tda.orders.common import ComplexOrderStrategyType
 
@@ -192,6 +204,10 @@ def bear_call_vertical_open(
 
 def bear_call_vertical_close(
         short_call_symbol, long_call_symbol, quantity, net_debit):
+    '''
+    Returns a pre-filled :class:`~tda.orders.generic.OrderBuilder` that closes a
+    bear call vertical position. See :ref:`vertical_spreads` for details.
+    '''
     from tda.orders.common import OptionInstruction, OrderType, OrderStrategyType
     from tda.orders.common import ComplexOrderStrategyType
 
@@ -211,6 +227,10 @@ def bear_call_vertical_close(
 
 def bull_put_vertical_open(
         long_put_symbol, short_put_symbol, quantity, net_credit):
+    '''
+    Returns a pre-filled :class:`~tda.orders.generic.OrderBuilder` that opens a
+    bull put vertical position. See :ref:`vertical_spreads` for details.
+    '''
     from tda.orders.common import OptionInstruction, OrderType, OrderStrategyType
     from tda.orders.common import ComplexOrderStrategyType
 
@@ -227,6 +247,10 @@ def bull_put_vertical_open(
 
 def bull_put_vertical_close(
         long_put_symbol, short_put_symbol, quantity, net_debit):
+    '''
+    Returns a pre-filled :class:`~tda.orders.generic.OrderBuilder` that closes a
+    bull put vertical position. See :ref:`vertical_spreads` for details.
+    '''
     from tda.orders.common import OptionInstruction, OrderType, OrderStrategyType
     from tda.orders.common import ComplexOrderStrategyType
 
@@ -242,10 +266,14 @@ def bull_put_vertical_close(
                 OptionInstruction.BUY_TO_CLOSE, short_put_symbol, quantity))
 
 
-# Bull Call
+# Bear Pull
 
 def bear_put_vertical_open(
         short_put_symbol, long_put_symbol, quantity, net_debit):
+    '''
+    Returns a pre-filled :class:`~tda.orders.generic.OrderBuilder` that opens a
+    bear put vertical position. See :ref:`vertical_spreads` for details.
+    '''
     from tda.orders.common import OptionInstruction, OrderType, OrderStrategyType
     from tda.orders.common import ComplexOrderStrategyType
 
@@ -262,6 +290,10 @@ def bear_put_vertical_open(
 
 def bear_put_vertical_close(
         short_put_symbol, long_put_symbol, quantity, net_credit):
+    '''
+    Returns a pre-filled :class:`~tda.orders.generic.OrderBuilder` that closes a
+    bear put vertical position. See :ref:`vertical_spreads` for details.
+    '''
     from tda.orders.common import OptionInstruction, OrderType, OrderStrategyType
     from tda.orders.common import ComplexOrderStrategyType
 
@@ -275,4 +307,3 @@ def bear_put_vertical_close(
                 OptionInstruction.BUY_TO_CLOSE, short_put_symbol, quantity)
             .add_option_leg(
                 OptionInstruction.SELL_TO_CLOSE, long_put_symbol, quantity))
-
