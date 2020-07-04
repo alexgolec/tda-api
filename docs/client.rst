@@ -188,9 +188,12 @@ projection.
   :members:
   :undoc-members:
 
-+++++++++++++
-Option Chains
-+++++++++++++
+
+.. _option_chain:
+
+++++++++++++
+Option Chain
+++++++++++++
 
 Unfortunately, option chains are well beyond the ability of your humble author. 
 You are encouraged to read the official API documentation to learn more.
