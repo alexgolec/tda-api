@@ -1,4 +1,103 @@
+import datetime
+
 from tda.orders.generic import OrderBuilder
+
+
+def _parse_expiration_date(expiration_date):
+    date = None
+    try:
+        date = datetime.datetime.strptime(expiration_date, '%m%d%y')
+        return datetime.date(year=date.year, month=date.month, day=date.day)
+    except ValueError:
+        pass
+
+    raise ValueError(
+            'expiration date must follow format ' +
+            '[Month with leading zero][Day with leading zero]' +
+            '[two digit year]')
+
+
+class OptionSymbol:
+    def __init__(self, underlying_symbol, expiration_date, contract_type, 
+            strike_price_as_string):
+        self.underlying_symbol = underlying_symbol
+
+        if contract_type not in ('C', 'P'):
+            raise ValueError('Contract type must be one of \'C\' or \'P\'')
+        self.contract_type = contract_type
+
+        if isinstance(expiration_date, str):
+            self.expiration_date = _parse_expiration_date(expiration_date)
+        elif isinstance(expiration_date, datetime.datetime):
+            self.expiration_date = datetime.date(
+                    year=expiration_date.year,
+                    month=expiration_date.month,
+                    day=expiration_date.day)
+        elif isinstance(expiration_date, datetime.date):
+            self.expiration_date = expiration_date
+        else:
+            raise ValueError(
+                    'expiration_date must be a string with format %m%d%y ' +
+                    '(e.g. 01092020) or one of datetime.date or ' +
+                    'datetime.datetime')
+
+        assert(type(self.expiration_date) == datetime.date)
+
+        strike = None
+        try:
+            strike = float(strike_price_as_string)
+        except ValueError:
+            pass
+        if (strike is None or not isinstance(strike_price_as_string, str)
+                or strike <= 0):
+            raise ValueError(
+                    'Strike price must be a string representing a positive ' +
+                    'float')
+        self.strike_price = strike_price_as_string
+
+
+    @classmethod
+    def parse_symbol(cls, symbol):
+        format_error_str = (
+                'option symbol must have format ' +
+                '[Underlying]_[Expiration][P/C][Strike]')
+
+        # Underlying
+        try:
+            underlying, rest = symbol.split('_')
+        except ValueError:
+            underlying, rest = None, None
+        if underlying is None:
+            raise ValueError('option symbol missing underscore \'_\', '+
+                    format_error_str)
+
+        # Expiration
+        type_split = rest.split('P')
+        if len(type_split) == 2:
+            expiration_date, strike = type_split
+            contract_type = 'P'
+        else:
+            type_split = rest.split('C')
+            if len(type_split) == 2:
+                expiration_date, strike = type_split
+                contract_type = 'C'
+            else:
+                raise ValueError(
+                        'option must have contract type \'C\' r \'\P\', ' +
+                        format_error_str)
+
+        expiration_date = _parse_expiration_date(expiration_date)
+
+        return OptionSymbol(underlying, expiration_date, contract_type, strike)
+
+
+    def build(self):
+        return '{}_{}{}{}'.format(
+                self.underlying_symbol,
+                self.expiration_date.strftime('%m%d%y'),
+                self.contract_type,
+                self.strike_price
+        )
 
 
 def __base_builder():
