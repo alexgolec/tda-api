@@ -60,9 +60,9 @@ class Session(Enum):
     #: After-market session, from 4:00pm to 8:00pm Eastern.
     PM = 'PM'
 
-    #: Unclear what this means. If you know, please `tell us
-    #: <https://github.com/alexgolec/tda-api/issues>`__.
-    SEAMESS = 'SEAMLESS'
+    #: Orders are active during all trading sessions except the overnight 
+    #: session. This is the union of ``NORMAL``, ``AM``, and ``PM``.
+    SEAMLESS = 'SEAMLESS'
 
 
 class OrderType(Enum):
