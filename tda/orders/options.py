@@ -231,7 +231,7 @@ def option_buy_to_close_limit(symbol, quantity, price):
     '''
     from tda.orders.common import OptionInstruction, OrderType, OrderStrategyType
 
-    return (__base_builder
+    return (__base_builder()
             .set_order_type(OrderType.LIMIT)
             .set_price(price)
             .set_order_strategy_type(OrderStrategyType.SINGLE)
