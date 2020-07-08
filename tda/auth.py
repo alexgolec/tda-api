@@ -37,6 +37,7 @@ def __register_token_redactions(token):
     register_redactions(token)
 
 
+
 def client_from_token_file(token_path, api_key):
     '''
     Returns a session from an existing token file. The session will perform
@@ -50,21 +51,12 @@ def client_from_token_file(token_path, api_key):
     :param api_key: Your TD Ameritrade application's API key, also known as the
                     client ID.
     '''
-    # Load old token from secrets directory
-    with open(token_path, 'rb') as f:
-        token = pickle.load(f)
+    def load():
+        with open(token_path, 'rb') as f:
+            return pickle.load(f)
 
-    # Don't emit token details in debug logs
-    __register_token_redactions(token)
-
-    # Return a new session configured to refresh credentials
-    api_key = __normalize_api_key(api_key)
-    return Client(
-        api_key,
-        OAuth2Session(api_key, token=token,
-                      auto_refresh_url='https://api.tdameritrade.com/v1/oauth2/token',
-                      auto_refresh_kwargs={'client_id': api_key},
-                      token_updater=__token_updater(token_path)))
+    return client_from_access_functions(
+            api_key, load, __token_updater(token_path))
 
 
 def client_from_login_flow(webdriver, api_key, redirect_url, token_path,
@@ -179,3 +171,51 @@ def easy_client(api_key, redirect_uri, token_path, webdriver_func=None):
         else:
             logger.info('No webdriver_func set, returning')
             raise
+
+
+def client_from_access_functions(api_key, token_read_func, token_write_func=None):
+    '''
+    Returns a session from an existing token file, using the accessor methods to 
+    read and write the token. This is an advanced method for users who do not 
+    have access to a standard writable filesystem, such as users of AWS Lambda 
+    and other serverless products who must persist token updates on 
+    non-filesystem places, such as S3. 99.9% of users should not use this 
+    function.
+
+    Users are free to customize how they represent the token file. In theory, 
+    since they have direct access to the token, they can get creative about how 
+    they store it and fetch it. In practice, it is *highly* recommended to 
+    simply accept the token object and use ``pickle`` to serialize and 
+    deserialize it, without inspecting it in any way.
+
+    :param api_key: Your TD Ameritrade application's API key, also known as the
+                    client ID.
+    :param token_read_func: Function that takes no arguments and returns a token 
+                            object.
+    :param token_write_func: Function that a token object and writes it. Will be 
+                             called whenever the token is updated, such as when 
+                             it is refreshed. Optional, but *highly* 
+                             recommended. Note old tokens become unusable on 
+                             refresh, so not setting this parameter risks 
+                             permanently losing refreshed tokens.
+    '''
+    token = token_read_func()
+
+    # Don't emit token details in debug logs
+    __register_token_redactions(token)
+
+    # Return a new session configured to refresh credentials
+    api_key = __normalize_api_key(api_key)
+
+    session_kwargs = {
+            'token': token,
+            'auto_refresh_url': 'https://api.tdameritrade.com/v1/oauth2/token',
+            'auto_refresh_kwargs': {'client_id': api_key},
+    }
+
+    if token_write_func is not None:
+        session_kwargs['token_updater'] = token_write_func
+
+    return Client(
+        api_key,
+        OAuth2Session(api_key, **session_kwargs))

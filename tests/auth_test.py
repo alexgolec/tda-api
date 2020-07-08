@@ -49,6 +49,24 @@ class ClientFromTokenFileTest(unittest.TestCase):
     @no_duplicates
     @patch('tda.auth.Client')
     @patch('tda.auth.OAuth2Session')
+    def test_token_updater_updates_token(self, session, client):
+        self.write_token()
+
+        auth.client_from_token_file(self.pickle_path, API_KEY)
+        session.assert_called_once()
+
+        session_call = session.mock_calls[0]
+        token_updater = session_call.kwargs['token_updater']
+
+        updated_token = {'updated': 'token'}
+        token_updater(updated_token)
+        with open(self.pickle_path, 'rb') as f:
+            self.assertEqual(pickle.load(f), updated_token)
+
+
+    @no_duplicates
+    @patch('tda.auth.Client')
+    @patch('tda.auth.OAuth2Session')
     def test_api_key_is_normalized(self, session, client):
         self.write_token()
 
@@ -63,6 +81,65 @@ class ClientFromTokenFileTest(unittest.TestCase):
             auto_refresh_url=_,
             auto_refresh_kwargs=_,
             token_updater=_)
+
+
+class ClientFromAccessFunctionsTest(unittest.TestCase):
+
+    @no_duplicates
+    @patch('tda.auth.Client')
+    @patch('tda.auth.OAuth2Session')
+    def test_success_with_write_func(self, session, client):
+        token = {'token': 'yes'}
+
+        token_read_func = MagicMock()
+        token_read_func.return_value = token
+
+        token_write_func = MagicMock()
+
+        client.return_value = 'returned client'
+        self.assertEqual('returned client',
+                         auth.client_from_access_functions(
+                             'API_KEY@AMER.OAUTHAP',
+                             token_read_func,
+                             token_write_func))
+
+        session.assert_called_once_with(
+            'API_KEY@AMER.OAUTHAP',
+            token=token,
+            auto_refresh_url=_,
+            auto_refresh_kwargs=_,
+            token_updater=_)
+        token_read_func.assert_called_once()
+
+        # Verify that the write function is called when the updater is called
+        session_call = session.mock_calls[0]
+        token_updater = session_call.kwargs['token_updater']
+        token_write_func.assert_not_called()
+        token_updater()
+        token_write_func.assert_called_once()
+
+
+    @no_duplicates
+    @patch('tda.auth.Client')
+    @patch('tda.auth.OAuth2Session')
+    def test_success_no_write_func(self, session, client):
+        token = {'token': 'yes'}
+
+        token_read_func = MagicMock()
+        token_read_func.return_value = token
+
+        client.return_value = 'returned client'
+        self.assertEqual('returned client',
+                         auth.client_from_access_functions(
+                             'API_KEY@AMER.OAUTHAP',
+                             token_read_func))
+
+        session.assert_called_once_with(
+            'API_KEY@AMER.OAUTHAP',
+            token=token,
+            auto_refresh_url=_,
+            auto_refresh_kwargs=_)
+        token_read_func.assert_called_once()
 
 
 REDIRECT_URL = 'https://redirect.url.com'
