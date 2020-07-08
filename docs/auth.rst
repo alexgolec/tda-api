@@ -120,6 +120,24 @@ when appropriate:
 .. autofunction:: tda.auth.easy_client
 
 
+----------------------
+Advanced Functionality
+----------------------
+
+The default token fetcher functions are designed for ease of use. They make some 
+common assumptions, most notably a writable filesystem, which are valid for 99% 
+of users. However, some very specialized users, for instance those hoping to 
+deploy ``tda-api`` in serverless settings, require some more advanced 
+functionality. This method provides the most flexible facility for fetching 
+tokens possible. 
+
+**Important:** This is an extremely advanced method. If you read the 
+documentation and think anything other than "oh wow, this is exactly what I've 
+been looking for," you don't need this function. Please use the other helpers 
+instead.
+
+.. autofunction:: tda.auth.client_from_access_functions
+
 ---------------
 Troubleshooting
 ---------------
