@@ -5,6 +5,8 @@ import unittest
 from unittest.mock import ANY, MagicMock, Mock, patch
 
 from tda.client import Client
+from tda.orders.generic import OrderBuilder
+
 from tests.test_utils import no_duplicates
 
 # Constants
@@ -358,6 +360,15 @@ class TestClient(unittest.TestCase):
             self.make_url('/v1/accounts/{accountId}/orders'), json=order_spec)
 
     @no_duplicates
+    def test_place_order_order_builder(self):
+        order_spec = OrderBuilder(enforce_enums=False).set_order_type('LIMIT')
+        expected_spec = {'orderType': 'LIMIT'}
+        self.client.place_order(ACCOUNT_ID, order_spec)
+        self.mock_session.post.assert_called_once_with(
+            self.make_url('/v1/accounts/{accountId}/orders'),
+            json=expected_spec)
+
+    @no_duplicates
     def test_place_order_str(self):
         order_spec = {'order': 'spec'}
         self.client.place_order(str(ACCOUNT_ID), order_spec)
@@ -373,6 +384,15 @@ class TestClient(unittest.TestCase):
         self.mock_session.put.assert_called_once_with(
             self.make_url('/v1/accounts/{accountId}/orders/{orderId}'),
             json=order_spec)
+
+    @no_duplicates
+    def test_replace_order_order_builder(self):
+        order_spec = OrderBuilder(enforce_enums=False).set_order_type('LIMIT')
+        expected_spec = {'orderType': 'LIMIT'}
+        self.client.replace_order(ACCOUNT_ID, ORDER_ID, order_spec)
+        self.mock_session.put.assert_called_once_with(
+            self.make_url('/v1/accounts/{accountId}/orders/{orderId}'),
+            json=expected_spec)
 
     @no_duplicates
     def test_replace_order_str(self):
@@ -391,6 +411,15 @@ class TestClient(unittest.TestCase):
         self.mock_session.post.assert_called_once_with(
             self.make_url('/v1/accounts/{accountId}/savedorders'),
             json=order_spec)
+
+    @no_duplicates
+    def test_create_saved_order_order_builder(self):
+        order_spec = OrderBuilder(enforce_enums=False).set_order_type('LIMIT')
+        expected_spec = {'orderType': 'LIMIT'}
+        self.client.create_saved_order(ACCOUNT_ID, order_spec)
+        self.mock_session.post.assert_called_once_with(
+            self.make_url('/v1/accounts/{accountId}/savedorders'),
+            json=expected_spec)
 
     @no_duplicates
     def test_create_saved_order_str(self):
@@ -456,6 +485,16 @@ class TestClient(unittest.TestCase):
             self.make_url(
                 '/v1/accounts/{accountId}/savedorders/{savedOrderId}'),
             json=order_spec)
+
+    @no_duplicates
+    def test_replace_saved_order_order_builder(self):
+        order_spec = OrderBuilder(enforce_enums=False).set_order_type('LIMIT')
+        expected_spec = {'orderType': 'LIMIT'}
+        self.client.replace_saved_order(ACCOUNT_ID, SAVED_ORDER_ID, order_spec)
+        self.mock_session.put.assert_called_once_with(
+            self.make_url(
+                '/v1/accounts/{accountId}/savedorders/{savedOrderId}'),
+            json=expected_spec)
 
     @no_duplicates
     def test_replace_saved_order_str(self):
