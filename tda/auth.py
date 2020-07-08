@@ -96,14 +96,22 @@ def client_from_login_flow(webdriver, api_key, redirect_url, token_path,
           '#troubleshooting')
 
     webdriver.get(authorization_url)
-    callback_url = ''
-    while not callback_url.startswith(redirect_url):
-        callback_url = webdriver.current_url
+
+    # Tolerate redirects to HTTPS on the callback URL
+    if redirect_url.startswith('http://'):
+        redirect_urls = (redirect_url,)
+    else:
+        redirect_urls = (redirect_url,)
+
+    # Wait until the current URL starts with the callback URL
+    current_url = ''
+    while not any(current_url.startswith(r_url) for r_url in redirect_url):
+        current_url = webdriver.current_url
         time.sleep(redirect_wait_time_seconds)
 
     token = oauth.fetch_token(
         'https://api.tdameritrade.com/v1/oauth2/token',
-        authorization_response=callback_url,
+        authorization_response=current_url,
         access_type='offline',
         client_id=api_key,
         include_client_id=True)
