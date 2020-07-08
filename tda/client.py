@@ -12,6 +12,7 @@ import pickle
 import tda
 import time
 
+from tda.orders.generic import OrderBuilder
 from .utils import EnumEnforcer
 
 
@@ -307,6 +308,9 @@ class Client(EnumEnforcer):
         `Official documentation
         <https://developer.tdameritrade.com/account-access/apis/post/accounts/
         %7BaccountId%7D/orders-0>`__. '''
+        if isinstance(order_spec, OrderBuilder):
+            order_spec = order_spec.build()
+
         path = '/v1/accounts/{}/orders'.format(account_id)
         return self.__post_request(path, order_spec)
 
@@ -317,6 +321,9 @@ class Client(EnumEnforcer):
         `Official documentation
         <https://developer.tdameritrade.com/account-access/apis/put/accounts/
         %7BaccountId%7D/orders/%7BorderId%7D-0>`__.'''
+        if isinstance(order_spec, OrderBuilder):
+            order_spec = order_spec.build()
+
         path = '/v1/accounts/{}/orders/{}'.format(account_id, order_id)
         return self.__put_request(path, order_spec)
 
@@ -328,6 +335,9 @@ class Client(EnumEnforcer):
         `Official documentation
         <https://developer.tdameritrade.com/account-access/apis/post/accounts/
         %7BaccountId%7D/savedorders-0>`__.'''
+        if isinstance(order_spec, OrderBuilder):
+            order_spec = order_spec.build()
+
         path = '/v1/accounts/{}/savedorders'.format(account_id)
         return self.__post_request(path, order_spec)
 
@@ -361,6 +371,9 @@ class Client(EnumEnforcer):
         `Official documentation
         <https://developer.tdameritrade.com/account-access/apis/put/accounts/
         %7BaccountId%7D/savedorders/%7BsavedOrderId%7D-0>`__.'''
+        if isinstance(order_spec, OrderBuilder):
+            order_spec = order_spec.build()
+
         path = '/v1/accounts/{}/savedorders/{}'.format(account_id, order_id)
         return self.__put_request(path, order_spec)
 
