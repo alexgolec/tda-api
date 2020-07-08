@@ -62,7 +62,7 @@ class Session(Enum):
 
     #: Orders are active during all trading sessions except the overnight 
     #: session. This is the union of ``NORMAL``, ``AM``, and ``PM``.
-    SEALMESS = 'SEAMLESS'
+    SEAMLESS = 'SEAMLESS'
 
 
 class OrderType(Enum):
