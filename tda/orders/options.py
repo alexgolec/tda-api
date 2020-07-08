@@ -18,6 +18,36 @@ def _parse_expiration_date(expiration_date):
 
 
 class OptionSymbol:
+    '''
+    Construct an option symbol from its constituent parts. Options symbols 
+    have the following format: ``[Underlying]_[Two digit month][Two digit 
+    day][Two digit year]['P' or 'C'][Strike price]``. Examples include: 
+
+     * ``GOOG_012122P620``: GOOG Jan 21 2022 620 Put
+     * ``TSLA_112020C1360``: TSLA Nov 20 2020 1360 Call
+     * ``SPY_121622C335``: SPY Dec 16 2022 335 Call
+
+    Note while each of the individual parts is validated by itself, the 
+    option symbol itself may not represent a traded option:
+
+     * Some underlyings do not support options.
+     * Not all dates have valid option expiration dates. 
+     * Not all strike prices are valid options strikes. 
+
+    You can use :meth:`~tda.client.Client.get_option_chain` to obtain real 
+    option symbols for an underlying, as well as extensive data in pricing, 
+    bid/ask spread, volume, etc.
+
+    :param underlying_symbol: Symbol of the underlying. Not validated.
+    :param expiration_date: Expiration date. Accepts ``datetime.date``, 
+                            ``datetime.datetime``, or strings with the 
+                            format ``[Two digit month][Two digit day][Two 
+                            digit year]``.
+    :param contract_type: ``P`` for put or ``C`` for call.
+    :param strike_price_as_string: Strike price, represented by a string as 
+                                   you would see at the end of a real option 
+                                   symbol.
+    '''
     def __init__(self, underlying_symbol, expiration_date, contract_type, 
             strike_price_as_string):
         self.underlying_symbol = underlying_symbol
@@ -58,6 +88,10 @@ class OptionSymbol:
 
     @classmethod
     def parse_symbol(cls, symbol):
+        '''
+        Parse a string option symbol of the for ``[Underlying]_[Two digit month]
+        [Two digit day][Two digit year]['P' or 'C'][Strike price]``.
+        '''
         format_error_str = (
                 'option symbol must have format ' +
                 '[Underlying]_[Expiration][P/C][Strike]')
@@ -92,6 +126,9 @@ class OptionSymbol:
 
 
     def build(self):
+        '''
+        Returns the option symbol represented by this builder.
+        '''
         return '{}_{}{}{}'.format(
                 self.underlying_symbol,
                 self.expiration_date.strftime('%m%d%y'),

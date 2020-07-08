@@ -106,9 +106,9 @@ Note orders placed using these templates may be rejected, depending on the
 user's options trading authorization.
 
 
-++++++++++++++++++++++++++++++++
-Where Do I Find Options Symbols?
-++++++++++++++++++++++++++++++++
+++++++++++++++++++++++++
+Building Options Symbols
+++++++++++++++++++++++++
 
 All templates require option symbols, which are somewhat more involved than 
 equity symbols. They encode the underlying, the expiration date, option type 
@@ -116,9 +116,20 @@ equity symbols. They encode the underlying, the expiration date, option type
 because both the TD Ameritrade UI and the thinkorswim UI don't reveal the symbol 
 in the option chain view. 
 
-Symbols can be generated manually by plugging into the 
-``[Underlying_[Expiration][P/C][Strike]]`` pattern. They can also be found by 
-requesting the :ref:`option_chain`.
+Real trading symbols can be found by requesting the :ref:`option_chain`. They 
+can also be built using the ``OptionSymbol`` helper, which provides utilities 
+for creating options symbols. Note it only emits syntactically correct symbols 
+and does not validate whether the symbol actually represents a traded option:
+
+.. code-block:: python
+
+  from tda.order.options import OptionSymbol
+
+  symbol = OptionSymbol(
+      'TSLA', datetime.date(year=2020, month=11, day=20), 'P', '1360').build()
+
+.. autoclass:: tda.orders.options.OptionSymbol
+  :special-members:
 
 
 ++++++++++++++
