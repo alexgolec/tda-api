@@ -53,7 +53,7 @@ class Utils(EnumEnforcer):
     '''Helper for placing orders on equities. Provides easy-to-use
     implementations for common tasks such as market and limit orders.'''
 
-    def __init__(self, account_id, client):
+    def __init__(self, client, account_id):
         '''Creates a new ``Utils`` instance. For convenience, this object
         assumes the user wants to work with a single account ID at a time.'''
         super().__init__(True)
