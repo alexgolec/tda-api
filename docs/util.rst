@@ -29,7 +29,7 @@ usage:
   account_id = 123456
   r = client.place_order(account_id, order)
   assert r.ok, raise_for_status()
-  order_id = Utils(account_id, client).extract_order_id(r)
+  order_id = Utils(client, account_id).extract_order_id(r)
   assert order_id is not None
 
 .. automethod:: tda.utils.Utils.extract_order_id
