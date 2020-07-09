@@ -155,7 +155,7 @@ class ClientFromLoginFlow(unittest.TestCase):
     @no_duplicates
     @patch('tda.auth.Client')
     @patch('tda.auth.OAuth2Session')
-    def test_no_token_file(self, session_constructor, client):
+    def test_no_token_file_https(self, session_constructor, client):
         AUTH_URL = 'https://auth.url.com'
 
         session = MagicMock()
@@ -164,13 +164,69 @@ class ClientFromLoginFlow(unittest.TestCase):
         session.fetch_token.return_value = self.token
 
         webdriver = MagicMock()
-        webdriver.get.return_value = REDIRECT_URL + '/token_params'
+        webdriver.current_url = REDIRECT_URL + '/token_params'
 
         client.return_value = 'returned client'
 
         self.assertEqual('returned client',
                          auth.client_from_login_flow(
                              webdriver, API_KEY, REDIRECT_URL,
+                             self.pickle_path,
+                             redirect_wait_time_seconds=0.0))
+
+        with open(self.pickle_path, 'rb') as f:
+            self.assertEqual(self.token, pickle.load(f))
+
+    @no_duplicates
+    @patch('tda.auth.Client')
+    @patch('tda.auth.OAuth2Session')
+    def test_no_token_file_http(self, session_constructor, client):
+        AUTH_URL = 'https://auth.url.com'
+
+        redirect_url = 'http://redirect.url.com'
+
+        session = MagicMock()
+        session_constructor.return_value = session
+        session.authorization_url.return_value = AUTH_URL, None
+        session.fetch_token.return_value = self.token
+
+        webdriver = MagicMock()
+        webdriver.current_url = redirect_url + '/token_params'
+
+        client.return_value = 'returned client'
+
+        self.assertEqual('returned client',
+                         auth.client_from_login_flow(
+                             webdriver, API_KEY, redirect_url,
+                             self.pickle_path,
+                             redirect_wait_time_seconds=0.0))
+
+        with open(self.pickle_path, 'rb') as f:
+            self.assertEqual(self.token, pickle.load(f))
+
+    @no_duplicates
+    @patch('tda.auth.Client')
+    @patch('tda.auth.OAuth2Session')
+    def test_no_token_file_http_redirected_to_http(
+            self, session_constructor, client):
+        AUTH_URL = 'https://auth.url.com'
+
+        redirect_url = 'http://redirect.url.com'
+        redirect_url_https = 'https://redirect.url.com'
+
+        session = MagicMock()
+        session_constructor.return_value = session
+        session.authorization_url.return_value = AUTH_URL, None
+        session.fetch_token.return_value = self.token
+
+        webdriver = MagicMock()
+        webdriver.current_url = redirect_url_https + '/token_params'
+
+        client.return_value = 'returned client'
+
+        self.assertEqual('returned client',
+                         auth.client_from_login_flow(
+                             webdriver, API_KEY, redirect_url,
                              self.pickle_path,
                              redirect_wait_time_seconds=0.0))
 
@@ -189,7 +245,7 @@ class ClientFromLoginFlow(unittest.TestCase):
         session.fetch_token.return_value = self.token
 
         webdriver = MagicMock()
-        webdriver.get.return_value = REDIRECT_URL + '/token_params'
+        webdriver.current_url = REDIRECT_URL + '/token_params'
 
         client.return_value = 'returned client'
 
@@ -202,6 +258,30 @@ class ClientFromLoginFlow(unittest.TestCase):
         self.assertEqual(
                 'API_KEY@AMER.OAUTHAP',
                 session_constructor.call_args[0][0])
+
+
+    @no_duplicates
+    @patch('tda.auth.Client')
+    @patch('tda.auth.OAuth2Session')
+    def test_unexpected_redirect_url(self, session_constructor, client):
+        AUTH_URL = 'https://auth.url.com'
+
+        redirect_url = 'http://redirect.url.com'
+
+        session = MagicMock()
+        session_constructor.return_value = session
+        session.authorization_url.return_value = AUTH_URL, None
+        session.fetch_token.return_value = self.token
+
+        webdriver = MagicMock()
+        webdriver.current_url = 'https://bogus.com' + '/token_params'
+
+        with self.assertRaisesRegex(auth.RedirectTimeoutError,
+                'timed out waiting for redirect'):
+            auth.client_from_login_flow(
+                    webdriver, API_KEY, redirect_url,
+                    self.pickle_path,
+                    redirect_wait_time_seconds=0.0)
 
 
 class EasyClientTest(unittest.TestCase):

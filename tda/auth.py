@@ -59,8 +59,12 @@ def client_from_token_file(token_path, api_key):
             api_key, load, __token_updater(token_path))
 
 
+class RedirectTimeoutError(Exception):
+    pass
+
+
 def client_from_login_flow(webdriver, api_key, redirect_url, token_path,
-                           redirect_wait_time_seconds=0.1):
+                           redirect_wait_time_seconds=0.1, max_waits=3000):
     '''
     Uses the webdriver to perform an OAuth webapp login flow and creates a
     client wrapped around the resulting token. The client will be configured to
@@ -99,15 +103,26 @@ def client_from_login_flow(webdriver, api_key, redirect_url, token_path,
 
     # Tolerate redirects to HTTPS on the callback URL
     if redirect_url.startswith('http://'):
-        redirect_urls = (redirect_url,)
+        print(('WARNING: Your redirect URL ({}) will transmit data over HTTP, ' +
+                'which is a potentially severe security vulnerability. ' +
+                'Please go to your app\'s configuration with TDAmeritrade ' +
+                'and update your redirect URL to begin with \'https\' ' +
+                'to stop seeing this message.').format(redirect_url))
+
+        redirect_urls = (redirect_url, 'https' + redirect_url[4:])
     else:
         redirect_urls = (redirect_url,)
 
     # Wait until the current URL starts with the callback URL
     current_url = ''
-    while not any(current_url.startswith(r_url) for r_url in redirect_url):
+    num_waits = 0
+    while not any(current_url.startswith(r_url) for r_url in redirect_urls):
         current_url = webdriver.current_url
+
+        if num_waits > max_waits:
+            raise RedirectTimeoutError('timed out waiting for redirect')
         time.sleep(redirect_wait_time_seconds)
+        num_waits += 1
 
     token = oauth.fetch_token(
         'https://api.tdameritrade.com/v1/oauth2/token',
