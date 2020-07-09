@@ -207,7 +207,7 @@ class ClientFromLoginFlow(unittest.TestCase):
     @no_duplicates
     @patch('tda.auth.Client')
     @patch('tda.auth.OAuth2Session')
-    def test_no_token_file_http_redirected_to_http(
+    def test_no_token_file_http_redirected_to_https(
             self, session_constructor, client):
         AUTH_URL = 'https://auth.url.com'
 
