@@ -93,11 +93,14 @@ def client_from_login_flow(webdriver, api_key, redirect_url, token_path,
         'https://auth.tdameritrade.com/auth')
 
     # Open the login page and wait for the redirect
+    print('\n**************************************************************\n')
     print('Opening the login page in a webdriver. Please use this window to',
           'log in. Successful login will be detected automatically.')
+    print()
     print('If you encounter any issues, see here for troubleshooting: ' +
           'https://tda-api.readthedocs.io/en/stable/auth.html' +
           '#troubleshooting')
+    print('\n**************************************************************\n')
 
     webdriver.get(authorization_url)
 

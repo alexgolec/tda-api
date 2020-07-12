@@ -162,9 +162,9 @@ probably never realize they've been sent to a malicious server, especially if
 the landing page is designed to resemble the target API's landing page.
 
 TD Ameritrade correctly prevents this attack by refusing to allow a login if the
-redirect URI does not **exactly** match the redirect URI with which the app is
-configured. If you make *any* mistake in setting your API key or redirect URI,
-you'll see this instead of a login page:
+redirect URI does not **exactly** match the client ID/API key and redirect URI 
+with which the app is configured. If you make *any* mistake in setting your API 
+key or redirect URI, you'll see this instead of a login page:
 
 .. image:: _static/attempted-unauth-access.png
   :width: 600
@@ -173,7 +173,17 @@ you'll see this instead of a login page:
 
 If this happens, you almost certainly copied your API key or redirect URI 
 incorrectly. Go back to your `application list
-<https://developer.tdameritrade.com/user/me/apps>`__ and copy-paste it again.
+<https://developer.tdameritrade.com/user/me/apps>`__ and copy-paste the 
+information again. Don't manually type it out, don't visually spot-check it. 
+Copy-paste it. Make sure to include details like trailing slashes, ``https`` 
+protol specifications, and port numbers. 
+
+Note ``tda-api`` *does not* require you to suffix your client ID with 
+``@AMER.OAUTHAP``. It will accept it if you do so, but if you make even the 
+*slightest* mistake without noticing, you will end up seeing this error and will 
+be very confused. We recommend simply passing the "Client ID" field in as the 
+API key parameter without any embellishment, and letting the library handle the 
+rest. 
 
 
 ++++++++++++++++++++++++++++++++++++++++
