@@ -385,8 +385,8 @@ Level Two Order Book
 ++++++++++++++++++++
 
 Level two streams provide a view on continuous order books of various securities.
-The level two order book describes the current the current bids and asks on the 
-market, and these streams provide snapshots of that state.
+The level two order book describes the current bids and asks on the market, and 
+these streams provide snapshots of that state.
 
 Due to the lack of `official documentation <https://developer.tdameritrade.com/
 content/streaming-data#_Toc504640612>`__, these streams are largely reverse 
