@@ -7,10 +7,10 @@ import tda
 import json.decoder
 try:
     import simplejson.errors
-    json_errors = (json.decoder.JSONDecodeError,
-                   simplejson.errors.JSONDecodeError)
+    __json_errors = (json.decoder.JSONDecodeError,
+                     simplejson.errors.JSONDecodeError)
 except ImportError:
-    json_errors = (json.decoder.JSONDecodeError,)
+    __json_errors = (json.decoder.JSONDecodeError,)
 
 
 def get_logger():
@@ -60,7 +60,7 @@ def register_redactions_from_response(resp):
     if resp.ok:
         try:
             register_redactions(resp.json())
-        except json_errors:
+        except __json_errors:
             pass
 
 
