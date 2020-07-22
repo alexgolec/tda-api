@@ -3,10 +3,14 @@ import logging
 import sys
 import tda
 
+# This creates a tuple of JSONDecodeError types
+import json.decoder
 try:
-    from simplejson.errors import JSONDecodeError
+    import simplejson.errors
+    json_errors = (json.decoder.JSONDecodeError,
+                   simplejson.errors.JSONDecodeError)
 except ImportError:
-    from json.decoder import JSONDecodeError
+    json_errors = (json.decoder.JSONDecodeError,)
 
 
 def get_logger():
@@ -56,7 +60,7 @@ def register_redactions_from_response(resp):
     if resp.ok:
         try:
             register_redactions(resp.json())
-        except JSONDecodeError:
+        except json_errors:
             pass
 
 
