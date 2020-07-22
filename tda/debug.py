@@ -1,8 +1,20 @@
 import atexit
-import json
 import logging
 import sys
 import tda
+
+# This creates a tuple of JSONDecodeError types as a mechanism to catch multiple
+# errors. This is needed because currently the `requests` library either uses
+# the `simplejson` library or the builtin `json` library. This tuple-based
+# approach makes it somewhat future-proof.
+# Note: the `requests` is migrating to always use the builtin `json` library.
+import json.decoder
+try:
+    import simplejson.errors
+    __json_errors = (json.decoder.JSONDecodeError,
+                     simplejson.errors.JSONDecodeError)
+except ImportError:
+    __json_errors = (json.decoder.JSONDecodeError,)
 
 
 def get_logger():
@@ -52,7 +64,7 @@ def register_redactions_from_response(resp):
     if resp.ok:
         try:
             register_redactions(resp.json())
-        except json.decoder.JSONDecodeError:
+        except __json_errors:
             pass
 
 
