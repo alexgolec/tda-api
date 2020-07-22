@@ -3,7 +3,11 @@ import logging
 import sys
 import tda
 
-# This creates a tuple of JSONDecodeError types
+# This creates a tuple of JSONDecodeError types as a mechanism to catch multiple
+# errors. This is needed because currently the `requests` library either uses
+# the `simplejson` library or the builtin `json` library. This tuple-based
+# approach makes it somewhat future-proof.
+# Note: the `requests` is migrating to always use the builtin `json` library.
 import json.decoder
 try:
     import simplejson.errors
