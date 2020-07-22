@@ -1,8 +1,12 @@
 import atexit
-import json
 import logging
 import sys
 import tda
+
+try:
+    from simplejson.errors import JSONDecodeError
+except ImportError:
+    from json.decoder import JSONDecodeError
 
 
 def get_logger():
@@ -52,7 +56,7 @@ def register_redactions_from_response(resp):
     if resp.ok:
         try:
             register_redactions(resp.json())
-        except json.decoder.JSONDecodeError:
+        except JSONDecodeError:
             pass
 
 
