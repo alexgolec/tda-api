@@ -191,7 +191,7 @@ class Client(EnumEnforcer):
             WORKING = 'WORKING'
             REJECTED = 'REJECTED'
             PENDING_CANCEL = 'PENDING_CANCEL'
-            CANCELLED = 'CANCELLED'
+            CANCELED = 'CANCELED'
             PENDING_REPLACE = 'PENDING_REPLACE'
             REPLACED = 'REPLACED'
             FILLED = 'FILLED'
