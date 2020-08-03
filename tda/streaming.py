@@ -279,7 +279,7 @@ class StreamClient(EnumEnforcer):
         await self._send({'requests': [request]})
         await self._await_response(request_id, service, command)
 
-    async def handle_message(self):
+    async def messages(self, with_handler=False):
         msg = await self._receive()
 
         # response
@@ -292,7 +292,10 @@ class StreamClient(EnumEnforcer):
                 if d['service'] in self._handlers:
                     for handler in self._handlers[d['service']]:
                         labeled_d = handler.label_message(d)
-                        handler(labeled_d)
+                        if with_handler:
+                            yield (handler, labeled_d)
+                        else:
+                            yield labeled_d
 
         # notify
         if 'notify' in msg:
@@ -301,7 +304,14 @@ class StreamClient(EnumEnforcer):
                     pass
                 else:
                     for handler in self._handlers[d['service']]:
-                        handler(d)
+                        if with_handler:
+                            yield (handler, d)
+                        else:
+                            yield d
+
+    async def handle_message(self):
+        async for (msg, handler) in self.messages(with_handler=True):
+            handler(msg)
 
     ##########################################################################
     # LOGIN
