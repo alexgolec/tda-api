@@ -81,9 +81,10 @@ class _Handler:
 
 class StreamClient(EnumEnforcer):
 
-    def __init__(self, client, *, account_id=None, enforce_enums=True):
+    def __init__(self, client, *, account_id=None, enforce_enums=True, ssl_context=None):
         super().__init__(enforce_enums)
 
+        self._ssl_context = ssl_context
         self._client = client
 
         # If None, will be set by the login() function
@@ -189,7 +190,7 @@ class StreamClient(EnumEnforcer):
         # Initialize socket
         wss_url = 'wss://{}/ws'.format(
             principals['streamerInfo']['streamerSocketUrl'])
-        self._socket = await websockets.client.connect(wss_url)
+        self._socket = await websockets.client.connect(wss_url, ssl=self._ssl_context)
 
         # Initialize miscellaneous parameters
         self._source = principals['streamerInfo']['appId']
