@@ -4,7 +4,7 @@ import json
 import copy
 from tests.test_utils import account_principals, has_diff, MockResponse
 from tests.test_utils import no_duplicates
-from unittest import IsolatedAsyncioTestCase
+from unittest import IsolatedAsyncioTestCase, TestCase
 from unittest.mock import ANY, AsyncMock, call, MagicMock, Mock, patch
 from tda import streaming
 
@@ -3423,3 +3423,19 @@ class StreamClientTest(IsolatedAsyncioTestCase):
     async def test_subscribe_without_login(self, ws_connect):
         with self.assertRaisesRegex(ValueError, '.*Socket not open.*'):
             await self.client.chart_equity_subs(['GOOG,MSFT'])
+
+class StreamClientMiscTest(TestCase):
+    @no_duplicates
+    def test_service(self):
+        # Spot check to make sure the variable name equals the enum name
+        # equals the enum value
+        self.assertEqual(streaming.Service.LISTED_BOOK.name, 'LISTED_BOOK')
+        self.assertEqual(streaming.Service.LISTED_BOOK.value, 'LISTED_BOOK')
+        # Make sure all the names are equal to the values
+        for service in list(streaming.Service):
+            self.assertEqual(service.name, service.value)
+
+    @no_duplicates
+    def test_get_normalizers(self):
+        for service in list(streaming.Service):
+            self.assertIsNotNone(StreamClient._field_normalizer(service))
