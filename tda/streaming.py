@@ -61,14 +61,10 @@ class UnparsableMessage(Exception):
 
 
 class _Handler:
-    def __init__(self, func, field_enum_type):
-        self._func = func
+    def __init__(self, field_enum_type):
         self._field_enum_type = field_enum_type
 
-    def __call__(self, *args, **kwargs):
-        return self._func(*args, **kwargs)
-
-    def label_message(self, msg):
+    def __call__(self, msg, *args, **kwargs):
         if 'content' in msg:
             new_msg = copy.deepcopy(msg)
             for idx in range(len(msg['content'])):
@@ -85,6 +81,24 @@ class StreamClient(EnumEnforcer):
         super().__init__(enforce_enums)
 
         self._client = client
+
+        self._service_to_handler = {
+            'LISTED_BOOK': self._BookHandler(self.BookFields),
+            'NASDAQ_BOOK': self._BookHandler(self.BookFields),
+            'OPTIONS_BOOK': self._BookHandler(self.BookFields),
+            'NEWS_HEADLINE': self._BookHandler(self.NewsHeadlineFields),
+            'TIMESALE_OPTIONS': _Handler(self.TimesaleFields),
+            'TIMESALE_FUTURES': _Handler(self.TimesaleFields),
+            'TIMESALE_EQUITY': _Handler(self.TimesaleFields),
+            'LEVELONE_FUTURES_OPTIONS': _Handler(self.LevelOneFuturesOptionsFields),
+            'LEVELONE_FOREX': _Handler(self.LevelOneForexFields),
+            'LEVELONE_FUTURES': _Handler(self.LevelOneFuturesFields),
+            'OPTION': _Handler(self.LevelOneOptionFields),
+            'QUOTE': _Handler(self.LevelOneEquityFields),
+            'CHART_FUTURES': _Handler(self.ChartFuturesFields),
+            'CHART_EQUITY': _Handler(self.ChartEquityFields),
+            'ACCT_ACTIVITY': _Handler(self.AccountActivityFields),
+        }
 
         # If None, will be set by the login() function
         self._account_id = account_id
@@ -289,10 +303,13 @@ class StreamClient(EnumEnforcer):
         # data
         if 'data' in msg:
             for d in msg['data']:
-                if d['service'] in self._handlers:
-                    for handler in self._handlers[d['service']]:
-                        labeled_d = handler.label_message(d)
-                        handler(labeled_d)
+                service = d['service']
+                if service in self._handlers:
+                    # Let's first check if we need to mutate this message
+                    mutator = self._service_to_handler.get(service, lambda x: x)
+                    d2 = mutator(d)
+                    for handler in self._handlers[service]:
+                        handler(d2)
 
         # notify
         if 'notify' in msg:
@@ -456,8 +473,7 @@ class StreamClient(EnumEnforcer):
         Adds a handler to the account activity subscription. See
         :ref:`registering_handlers` for details.
         '''
-        self._handlers['ACCT_ACTIVITY'].append(_Handler(handler,
-                                                        self.AccountActivityFields))
+        self._handlers['ACCT_ACTIVITY'].append(handler)
 
     ##########################################################################
     # CHART_EQUITY
@@ -533,8 +549,7 @@ class StreamClient(EnumEnforcer):
         Adds a handler to the equity chart subscription. See
         :ref:`registering_handlers` for details.
         '''
-        self._handlers['CHART_EQUITY'].append(_Handler(handler,
-                                                       self.ChartEquityFields))
+        self._handlers['CHART_EQUITY'].append(handler)
 
     ##########################################################################
     # CHART_FUTURES
@@ -604,8 +619,7 @@ class StreamClient(EnumEnforcer):
         Adds a handler to the futures chart subscription. See
         :ref:`registering_handlers` for details.
         '''
-        self._handlers['CHART_FUTURES'].append(_Handler(handler,
-                                                        self.ChartFuturesFields))
+        self._handlers['CHART_FUTURES'].append(handler)
 
     ##########################################################################
     # QUOTE
@@ -826,8 +840,7 @@ class StreamClient(EnumEnforcer):
         Register a function to handle level one equity quotes as they are sent.
         See :ref:`registering_handlers` for details.
         '''
-        self._handlers['QUOTE'].append(_Handler(handler,
-                                                self.LevelOneEquityFields))
+        self._handlers['QUOTE'].append(handler)
 
     ##########################################################################
     # OPTION
@@ -969,8 +982,7 @@ class StreamClient(EnumEnforcer):
         Register a function to handle level one options quotes as they are sent.
         See :ref:`registering_handlers` for details.
         '''
-        self._handlers['OPTION'].append(_Handler(handler,
-                                                 self.LevelOneOptionFields))
+        self._handlers['OPTION'].append(handler)
 
     ##########################################################################
     # LEVELONE_FUTURES
@@ -1126,8 +1138,7 @@ class StreamClient(EnumEnforcer):
         Register a function to handle level one futures quotes as they are sent.
         See :ref:`registering_handlers` for details.
         '''
-        self._handlers['LEVELONE_FUTURES'].append(
-            _Handler(handler, self.LevelOneFuturesFields))
+        self._handlers['LEVELONE_FUTURES'].append(handler)
 
     ##########################################################################
     # LEVELONE_FOREX
@@ -1256,8 +1267,7 @@ class StreamClient(EnumEnforcer):
         Register a function to handle level one forex quotes as they are sent.
         See :ref:`registering_handlers` for details.
         '''
-        self._handlers['LEVELONE_FOREX'].append(_Handler(handler,
-                                                         self.LevelOneForexFields))
+        self._handlers['LEVELONE_FOREX'].append(handler)
 
     ##########################################################################
     # LEVELONE_FUTURES_OPTIONS
@@ -1405,8 +1415,7 @@ class StreamClient(EnumEnforcer):
         Register a function to handle level one futures options quotes as they
         are sent. See :ref:`registering_handlers` for details.
         '''
-        self._handlers['LEVELONE_FUTURES_OPTIONS'].append(
-            _Handler(handler, self.LevelOneFuturesOptionsFields))
+        self._handlers['LEVELONE_FUTURES_OPTIONS'].append(handler)
 
     ##########################################################################
     # TIMESALE
@@ -1451,8 +1460,7 @@ class StreamClient(EnumEnforcer):
         Register a function to handle equity trade notifications as they happen
         See :ref:`registering_handlers` for details.
         '''
-        self._handlers['TIMESALE_EQUITY'].append(_Handler(handler,
-                                                          self.TimesaleFields))
+        self._handlers['TIMESALE_EQUITY'].append(handler)
 
     async def timesale_futures_subs(self, symbols, *, fields=None):
         '''
@@ -1472,8 +1480,7 @@ class StreamClient(EnumEnforcer):
         Register a function to handle futures trade notifications as they happen
         See :ref:`registering_handlers` for details.
         '''
-        self._handlers['TIMESALE_FUTURES'].append(_Handler(handler,
-                                                           self.TimesaleFields))
+        self._handlers['TIMESALE_FUTURES'].append(handler)
 
     async def timesale_options_subs(self, symbols, *, fields=None):
         '''
@@ -1493,8 +1500,7 @@ class StreamClient(EnumEnforcer):
         Register a function to handle options trade notifications as they happen
         See :ref:`registering_handlers` for details.
         '''
-        self._handlers['TIMESALE_OPTIONS'].append(_Handler(handler,
-                                                           self.TimesaleFields))
+        self._handlers['TIMESALE_OPTIONS'].append(handler)
 
     ##########################################################################
     # Common book utilities
@@ -1528,9 +1534,9 @@ class StreamClient(EnumEnforcer):
         SEQUENCE = 2
 
     class _BookHandler(_Handler):
-        def label_message(self, msg):
+        def __call__(self, msg, *args, **kwargs):
             # Relabel top-level fields
-            new_msg = super().label_message(msg)
+            new_msg = super().__call__(msg)
 
             # Relabel bids
             for content in new_msg['content']:
@@ -1575,8 +1581,7 @@ class StreamClient(EnumEnforcer):
         Register a function to handle level two NYSE book data as it is updated
         See :ref:`registering_handlers` for details.
         '''
-        self._handlers['LISTED_BOOK'].append(
-            self._BookHandler(handler, self.BookFields))
+        self._handlers['LISTED_BOOK'].append(handler)
 
     ##########################################################################
     # NASDAQ_BOOK
@@ -1595,8 +1600,7 @@ class StreamClient(EnumEnforcer):
         Register a function to handle level two NASDAQ book data as it is
         updated See :ref:`registering_handlers` for details.
         '''
-        self._handlers['NASDAQ_BOOK'].append(
-            self._BookHandler(handler, self.BookFields))
+        self._handlers['NASDAQ_BOOK'].append(handler)
 
     ##########################################################################
     # OPTIONS_BOOK
@@ -1616,8 +1620,7 @@ class StreamClient(EnumEnforcer):
         Register a function to handle level two options book data as it is
         updated See :ref:`registering_handlers` for details.
         '''
-        self._handlers['OPTIONS_BOOK'].append(
-            self._BookHandler(handler, self.BookFields))
+        self._handlers['OPTIONS_BOOK'].append(handler)
 
     ##########################################################################
     # NEWS_HEADLINE
@@ -1666,5 +1669,4 @@ class StreamClient(EnumEnforcer):
         Register a function to handle news headlines as they are provided. See
         :ref:`registering_handlers` for details.
         '''
-        self._handlers['NEWS_HEADLINE'].append(
-            self._BookHandler(handler, self.NewsHeadlineFields))
+        self._handlers['NEWS_HEADLINE'].append(handler)
