@@ -294,6 +294,21 @@ class StreamClient(EnumEnforcer):
         await self._await_response(request_id, service, command)
 
     async def handle_message(self):
+        async for (service, data) in self._messages():
+            for handler in self._handlers.get(service, []):
+                handler(data)
+
+    async def messages(self, call_handlers=True):
+        # This should terminate upon cancellation of the
+        # coroutine
+        while True:
+            async for (service, data) in self._messages():
+                yield data
+                if call_handlers:
+                    for handler in self._handlers.get(service, []):
+                        handler(data)
+
+    async def _messages(self):
         msg = await self._receive()
 
         # response
@@ -304,12 +319,10 @@ class StreamClient(EnumEnforcer):
         if 'data' in msg:
             for d in msg['data']:
                 service = d['service']
-                if service in self._handlers:
-                    # Let's first check if we need to mutate this message
-                    mutator = self._service_to_handler.get(service, lambda x: x)
-                    d2 = mutator(d)
-                    for handler in self._handlers[service]:
-                        handler(d2)
+                # Let's first check if we need to mutate this message
+                mutator = self._service_to_handler.get(service, lambda x: x)
+                d2 = mutator(d)
+                yield (service, d2)
 
         # notify
         if 'notify' in msg:
@@ -317,6 +330,18 @@ class StreamClient(EnumEnforcer):
                 if 'heartbeat' in d:
                     pass
                 else:
+                    # Not sure where this code would be exercised as notifications
+                    # should just look like this:
+                    # {
+                    #     "notify": [
+                    #         {
+                    #             "heartbeat": "1400603717165"
+                    #         }
+                    #     ]
+                    # }
+                    #
+                    # If they are called, then they will be called with un-relabeled
+                    # fields
                     for handler in self._handlers[d['service']]:
                         handler(d)
 
