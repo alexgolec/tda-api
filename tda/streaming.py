@@ -4,6 +4,7 @@ from enum import Enum
 import asyncio
 import copy
 import datetime
+import functools
 import json
 import logging
 import tda
@@ -125,6 +126,20 @@ class StreamClient(EnumEnforcer):
         # Logging-related fields
         self.logger = get_logger()
         self.request_number = 0
+
+    @staticmethod
+    def wrap_callback_function(func, pass_copy):
+        '''
+        Returns a func. If pass copy is true, then it returns the copies all of the arguments
+        before calling that function
+        '''
+        @functools.wraps(func)
+        def call_with_copy(*args, **kwargs):
+            if pass_copy:
+                args = copy.deepcopy(args)
+                kwargs = copy.deepcopy(kwargs)
+            return func(*args, **kwargs)
+        return call_with_copy
 
     def req_num(self):
         self.request_number += 1
@@ -508,12 +523,13 @@ class StreamClient(EnumEnforcer):
             [self._stream_key], 'ACCT_ACTIVITY', 'SUBS',
             self.AccountActivityFields)
 
-    def add_account_activity_handler(self, handler):
+    def add_account_activity_handler(self, handler, copy_arguments=True):
         '''
         Adds a handler to the account activity subscription. See
         :ref:`registering_handlers` for details.
         '''
-        self._handlers['ACCT_ACTIVITY'].append(handler)
+        self._handlers['ACCT_ACTIVITY'].append(
+            StreamClient.wrap_callback_function(handler, copy_arguments))
 
     ##########################################################################
     # CHART_EQUITY
@@ -584,12 +600,13 @@ class StreamClient(EnumEnforcer):
             symbols, 'CHART_EQUITY', 'ADD', self.ChartEquityFields,
             fields=self.ChartEquityFields.all_fields())
 
-    def add_chart_equity_handler(self, handler):
+    def add_chart_equity_handler(self, handler, copy_arguments=True):
         '''
         Adds a handler to the equity chart subscription. See
         :ref:`registering_handlers` for details.
         '''
-        self._handlers['CHART_EQUITY'].append(handler)
+        self._handlers['CHART_EQUITY'].append(
+            StreamClient.wrap_callback_function(handler, copy_arguments))
 
     ##########################################################################
     # CHART_FUTURES
@@ -654,12 +671,13 @@ class StreamClient(EnumEnforcer):
             symbols, 'CHART_FUTURES', 'ADD', self.ChartFuturesFields,
             fields=self.ChartFuturesFields.all_fields())
 
-    def add_chart_futures_handler(self, handler):
+    def add_chart_futures_handler(self, handler, copy_arguments=True):
         '''
         Adds a handler to the futures chart subscription. See
         :ref:`registering_handlers` for details.
         '''
-        self._handlers['CHART_FUTURES'].append(handler)
+        self._handlers['CHART_FUTURES'].append(
+            StreamClient.wrap_callback_function(handler, copy_arguments))
 
     ##########################################################################
     # QUOTE
@@ -875,12 +893,13 @@ class StreamClient(EnumEnforcer):
             symbols, 'QUOTE', 'SUBS', self.LevelOneEquityFields,
             fields=fields)
 
-    def add_level_one_equity_handler(self, handler):
+    def add_level_one_equity_handler(self, handler, copy_arguments=True):
         '''
         Register a function to handle level one equity quotes as they are sent.
         See :ref:`registering_handlers` for details.
         '''
-        self._handlers['QUOTE'].append(handler)
+        self._handlers['QUOTE'].append(
+            StreamClient.wrap_callback_function(handler, copy_arguments))
 
     ##########################################################################
     # OPTION
@@ -1017,12 +1036,13 @@ class StreamClient(EnumEnforcer):
             symbols, 'OPTION', 'SUBS', self.LevelOneOptionFields,
             fields=fields)
 
-    def add_level_one_option_handler(self, handler):
+    def add_level_one_option_handler(self, handler, copy_arguments=True):
         '''
         Register a function to handle level one options quotes as they are sent.
         See :ref:`registering_handlers` for details.
         '''
-        self._handlers['OPTION'].append(handler)
+        self._handlers['OPTION'].append(
+            StreamClient.wrap_callback_function(handler, copy_arguments))
 
     ##########################################################################
     # LEVELONE_FUTURES
@@ -1173,12 +1193,13 @@ class StreamClient(EnumEnforcer):
             symbols, 'LEVELONE_FUTURES', 'SUBS', self.LevelOneFuturesFields,
             fields=fields)
 
-    def add_level_one_futures_handler(self, handler):
+    def add_level_one_futures_handler(self, handler, copy_arguments=True):
         '''
         Register a function to handle level one futures quotes as they are sent.
         See :ref:`registering_handlers` for details.
         '''
-        self._handlers['LEVELONE_FUTURES'].append(handler)
+        self._handlers['LEVELONE_FUTURES'].append(
+            StreamClient.wrap_callback_function(handler, copy_arguments))
 
     ##########################################################################
     # LEVELONE_FOREX
@@ -1302,12 +1323,13 @@ class StreamClient(EnumEnforcer):
             symbols, 'LEVELONE_FOREX', 'SUBS', self.LevelOneForexFields,
             fields=fields)
 
-    def add_level_one_forex_handler(self, handler):
+    def add_level_one_forex_handler(self, handler, copy_arguments=True):
         '''
         Register a function to handle level one forex quotes as they are sent.
         See :ref:`registering_handlers` for details.
         '''
-        self._handlers['LEVELONE_FOREX'].append(handler)
+        self._handlers['LEVELONE_FOREX'].append(
+            StreamClient.wrap_callback_function(handler, copy_arguments))
 
     ##########################################################################
     # LEVELONE_FUTURES_OPTIONS
@@ -1450,12 +1472,13 @@ class StreamClient(EnumEnforcer):
             symbols, 'LEVELONE_FUTURES_OPTIONS', 'SUBS',
             self.LevelOneFuturesOptionsFields, fields=fields)
 
-    def add_level_one_futures_options_handler(self, handler):
+    def add_level_one_futures_options_handler(self, handler, copy_arguments=True):
         '''
         Register a function to handle level one futures options quotes as they
         are sent. See :ref:`registering_handlers` for details.
         '''
-        self._handlers['LEVELONE_FUTURES_OPTIONS'].append(handler)
+        self._handlers['LEVELONE_FUTURES_OPTIONS'].append(
+            StreamClient.wrap_callback_function(handler, copy_arguments))
 
     ##########################################################################
     # TIMESALE
@@ -1495,12 +1518,13 @@ class StreamClient(EnumEnforcer):
             symbols, 'TIMESALE_EQUITY', 'SUBS',
             self.TimesaleFields, fields=fields)
 
-    def add_timesale_equity_handler(self, handler):
+    def add_timesale_equity_handler(self, handler, *, copy_arguments=True):
         '''
         Register a function to handle equity trade notifications as they happen
         See :ref:`registering_handlers` for details.
         '''
-        self._handlers['TIMESALE_EQUITY'].append(handler)
+        self._handlers['TIMESALE_EQUITY'].append(
+            StreamClient.wrap_callback_function(handler, copy_arguments))
 
     async def timesale_futures_subs(self, symbols, *, fields=None):
         '''
@@ -1515,12 +1539,13 @@ class StreamClient(EnumEnforcer):
             symbols, 'TIMESALE_FUTURES', 'SUBS',
             self.TimesaleFields, fields=fields)
 
-    def add_timesale_futures_handler(self, handler):
+    def add_timesale_futures_handler(self, handler, *, copy_arguments=True):
         '''
         Register a function to handle futures trade notifications as they happen
         See :ref:`registering_handlers` for details.
         '''
-        self._handlers['TIMESALE_FUTURES'].append(handler)
+        self._handlers['TIMESALE_FUTURES'].append(
+            StreamClient.wrap_callback_function(handler, copy_arguments))
 
     async def timesale_options_subs(self, symbols, *, fields=None):
         '''
@@ -1535,12 +1560,13 @@ class StreamClient(EnumEnforcer):
             symbols, 'TIMESALE_OPTIONS', 'SUBS',
             self.TimesaleFields, fields=fields)
 
-    def add_timesale_options_handler(self, handler):
+    def add_timesale_options_handler(self, handler, *, copy_arguments=True):
         '''
         Register a function to handle options trade notifications as they happen
         See :ref:`registering_handlers` for details.
         '''
-        self._handlers['TIMESALE_OPTIONS'].append(handler)
+        self._handlers['TIMESALE_OPTIONS'].append(
+            StreamClient.wrap_callback_function(handler, copy_arguments))
 
     ##########################################################################
     # Common book utilities
@@ -1616,12 +1642,13 @@ class StreamClient(EnumEnforcer):
             symbols, 'LISTED_BOOK', 'SUBS',
             self.BookFields, fields=self.BookFields.all_fields())
 
-    def add_listed_book_handler(self, handler):
+    def add_listed_book_handler(self, handler, *, copy_arguments=True):
         '''
         Register a function to handle level two NYSE book data as it is updated
         See :ref:`registering_handlers` for details.
         '''
-        self._handlers['LISTED_BOOK'].append(handler)
+        self._handlers['LISTED_BOOK'].append(
+            StreamClient.wrap_callback_function(handler, copy_arguments))
 
     ##########################################################################
     # NASDAQ_BOOK
@@ -1635,12 +1662,13 @@ class StreamClient(EnumEnforcer):
                                self.BookFields,
                                fields=self.BookFields.all_fields())
 
-    def add_nasdaq_book_handler(self, handler):
+    def add_nasdaq_book_handler(self, handler, *, copy_arguments=True):
         '''
         Register a function to handle level two NASDAQ book data as it is
         updated See :ref:`registering_handlers` for details.
         '''
-        self._handlers['NASDAQ_BOOK'].append(handler)
+        self._handlers['NASDAQ_BOOK'].append(
+            StreamClient.wrap_callback_function(handler, copy_arguments))
 
     ##########################################################################
     # OPTIONS_BOOK
@@ -1655,12 +1683,13 @@ class StreamClient(EnumEnforcer):
                                self.BookFields,
                                fields=self.BookFields.all_fields())
 
-    def add_options_book_handler(self, handler):
+    def add_options_book_handler(self, handler, *, copy_arguments=True):
         '''
         Register a function to handle level two options book data as it is
         updated See :ref:`registering_handlers` for details.
         '''
-        self._handlers['OPTIONS_BOOK'].append(handler)
+        self._handlers['OPTIONS_BOOK'].append(
+            StreamClient.wrap_callback_function(handler, copy_arguments))
 
     ##########################################################################
     # NEWS_HEADLINE
@@ -1704,9 +1733,10 @@ class StreamClient(EnumEnforcer):
                                self.NewsHeadlineFields,
                                fields=self.NewsHeadlineFields.all_fields())
 
-    def add_news_headline_handler(self, handler):
+    def add_news_headline_handler(self, handler, *, copy_arguments=True):
         '''
         Register a function to handle news headlines as they are provided. See
         :ref:`registering_handlers` for details.
         '''
-        self._handlers['NEWS_HEADLINE'].append(handler)
+        self._handlers['NEWS_HEADLINE'].append(
+            StreamClient.wrap_callback_function(handler, copy_arguments))
