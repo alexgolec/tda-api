@@ -294,11 +294,22 @@ class StreamClient(EnumEnforcer):
         await self._await_response(request_id, service, command)
 
     async def handle_message(self):
+        '''
+        Handles all of the messages received from the streaming API, and returns
+        once complete. If call backs are registered, they are called synchronously
+        '''
         async for (service, data) in self._messages():
             for handler in self._handlers.get(service, []):
                 handler(data)
 
     async def messages(self, call_handlers=True):
+        '''
+        Returns an async generator which streams all of the messages from the
+        streaming connection until cancelled, or disconnected
+
+        :param call_handlers: Whether or not to call registered handlers after
+                              yielding data, or to ignore them.
+        '''
         # This should terminate upon cancellation of the
         # coroutine
         while True:
