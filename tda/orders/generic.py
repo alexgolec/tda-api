@@ -30,8 +30,11 @@ def _build_object(obj):
         return ret
 
 
-def _truncate_float(flt):
-    return '{:.2f}'.format(float(int(flt * 100)) / 100.0)
+def truncate_float(flt):
+    if abs(flt) < 1 and flt != 0.0:
+        return '{:.4f}'.format(float(int(flt * 10000)) / 10000.0)
+    else:
+        return '{:.2f}'.format(float(int(flt * 100)) / 100.0)
 
 
 class OrderBuilder(EnumEnforcer):
@@ -177,7 +180,7 @@ class OrderBuilder(EnumEnforcer):
         '''
         Set the stop price.
         '''
-        self._stopPrice = _truncate_float(stop_price)
+        self._stopPrice = truncate_float(stop_price)
         return self
 
     def clear_stop_price(self):
@@ -296,7 +299,7 @@ class OrderBuilder(EnumEnforcer):
         '''
         Set the order price.
         '''
-        self._price = _truncate_float(price)
+        self._price = truncate_float(price)
         return self
 
     def clear_price(self):
