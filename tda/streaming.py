@@ -295,14 +295,15 @@ class StreamClient(EnumEnforcer):
                         labeled_d = handler.label_message(d)
                         handler(labeled_d)
 
-        # notify
-        if 'notify' in msg:
-            for d in msg['notify']:
-                if 'heartbeat' in d:
-                    pass
-                else:
-                    for handler in self._handlers[d['service']]:
-                        handler(d)
+        # We ignore notify messages / heartbeats
+        # The heartbeat messages look something like this:
+        # {
+        #     "notify": [
+        #         {
+        #             "heartbeat": "1400603717165"
+        #         }
+        #     ]
+        # }
 
     ##########################################################################
     # LOGIN
