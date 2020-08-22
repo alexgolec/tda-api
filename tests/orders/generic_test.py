@@ -179,6 +179,13 @@ class OrderBuilderTest(unittest.TestCase):
         self.assertFalse(has_diff({}, self.order_builder.build()))
 
     @no_duplicates
+    def test_stop_price_as_string(self):
+        self.order_builder.set_stop_price('invalid')
+        self.assertFalse(has_diff({
+            'stopPrice': 'invalid'
+        }, self.order_builder.build()))
+
+    @no_duplicates
     def test_stop_price_negative(self):
         self.order_builder.set_stop_price(-1.31)
         self.assertFalse(has_diff({
@@ -361,6 +368,13 @@ class OrderBuilderTest(unittest.TestCase):
 
         self.order_builder.clear_price()
         self.assertFalse(has_diff({}, self.order_builder.build()))
+
+    @no_duplicates
+    def test_price_success_as_string(self):
+        self.order_builder.set_price('invalid')
+        self.assertFalse(has_diff({
+            'price': 'invalid'
+        }, self.order_builder.build()))
 
     @no_duplicates
     def test_price_negative(self):

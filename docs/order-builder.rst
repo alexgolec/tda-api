@@ -267,6 +267,27 @@ position reaches certain levels. In those cases, the price of an order can drop
 below the specified price as a result of movements in multiple legs of the 
 trade. 
 
+.. _number_truncation:
+
+~~~~~~~~~~~~~~~~~~
+Note on Truncation
+~~~~~~~~~~~~~~~~~~
+
+**Important Note:** Under the hood, the TDAmeritrade API expects price as a 
+string, whereas ``tda-api`` allows setting prices as a floating point number for
+convenience. The passed value is then converted to a string under the hood, 
+which involves some truncation logic:
+
+ * If the price has absolute value less than one, truncate  (not round!) to 
+   four decimal places. For example, `0.186992` will become `0.1869`.
+ * For all other values, truncate to two decimal places. The above example would 
+   become `0.18`. 
+
+This behavior is meant as a sane heuristic, and there are almost certainly 
+situations where it is not the correct thing to do. You can sidestep this entire 
+process by passing your price as a string, although be forewarned that 
+TDAmeritrade may reject your order or even interpret it in unexpected ways. 
+
 .. automethod:: tda.orders.generic.OrderBuilder.set_price
 .. automethod:: tda.orders.generic.OrderBuilder.clear_price
 
