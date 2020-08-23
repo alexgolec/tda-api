@@ -179,6 +179,13 @@ class OrderBuilderTest(unittest.TestCase):
         self.assertFalse(has_diff({}, self.order_builder.build()))
 
     @no_duplicates
+    def test_stop_price_as_string(self):
+        self.order_builder.set_stop_price('invalid')
+        self.assertFalse(has_diff({
+            'stopPrice': 'invalid'
+        }, self.order_builder.build()))
+
+    @no_duplicates
     def test_stop_price_negative(self):
         self.order_builder.set_stop_price(-1.31)
         self.assertFalse(has_diff({
@@ -361,6 +368,13 @@ class OrderBuilderTest(unittest.TestCase):
 
         self.order_builder.clear_price()
         self.assertFalse(has_diff({}, self.order_builder.build()))
+
+    @no_duplicates
+    def test_price_success_as_string(self):
+        self.order_builder.set_price('invalid')
+        self.assertFalse(has_diff({
+            'price': 'invalid'
+        }, self.order_builder.build()))
 
     @no_duplicates
     def test_price_negative(self):
@@ -1064,3 +1078,46 @@ class OrderBuilderExamplesTest(unittest.TestCase):
         }
 
         self.assertFalse(has_diff(expected, builder.build()))
+
+
+class TruncateFloatTest(unittest.TestCase):
+
+    def test_zero(self):
+        self.assertEqual('0.00', truncate_float(0))
+
+    def test_zero_float(self):
+        self.assertEqual('0.00', truncate_float(0.0))
+
+    # positive numbers
+
+    def test_integer(self):
+        self.assertEqual('12.00', truncate_float(12))
+
+    def test_integer_as_float(self):
+        self.assertEqual('12.00', truncate_float(12.0))
+
+    def test_three_digits(self):
+        self.assertEqual('12.12', truncate_float(12.123))
+
+    def test_three_digits_truncate_not_round(self):
+        self.assertEqual('12.12', truncate_float(12.129))
+
+    def test_less_than_one(self):
+        self.assertEqual('0.1212', truncate_float(.12121))
+
+    # same as above, except with negative numbers
+
+    def test_negative_integer(self):
+        self.assertEqual('-12.00', truncate_float(-12))
+
+    def test_negative_integer_as_float(self):
+        self.assertEqual('-12.00', truncate_float(-12.0))
+
+    def test_negative_three_digits(self):
+        self.assertEqual('-12.12', truncate_float(-12.123))
+
+    def test_negative_three_digits_truncate_not_round(self):
+        self.assertEqual('-12.12', truncate_float(-12.129))
+
+    def test_negative_less_than_one(self):
+        self.assertEqual('-0.1212', truncate_float(-.12121))
