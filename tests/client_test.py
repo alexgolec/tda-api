@@ -833,7 +833,7 @@ class TestClient(unittest.TestCase):
             self.make_url('/v1/marketdata/chains'), params={
                 'apikey': API_KEY,
                 'symbol': 'AAPL',
-                'range': 'ITM'})
+                'range': 'IN_THE_MONEY'})
 
     @no_duplicates
     def test_get_option_chain_strike_range_unchecked(self):

@@ -593,12 +593,12 @@ class Client(EnumEnforcer):
             ROLL = 'ROLL'
 
         class StrikeRange(Enum):
-            IN_THE_MONEY = 'ITM'
-            NEAR_THE_MONEY = 'NTM'
-            OUT_OF_THE_MONEY = 'OTM'
-            STRIKES_ABOVE_MARKET = 'SAK'
-            STRIKES_BELOW_MARKET = 'SBK'
-            STRIKES_NEAR_MARKET = 'SNK'
+            IN_THE_MONEY = 'IN_THE_MONEY'
+            NEAR_THE_MONEY = 'NEAR_THE_MONEY'
+            OUT_OF_THE_MONEY = 'OUT_OF_THE_MONEY'
+            STRIKES_ABOVE_MARKET = 'STRIKES_ABOVE_MARKET'
+            STRIKES_BELOW_MARKET = 'STRIKES_BELOW_MARKET'
+            STRIKES_NEAR_MARKET = 'STRIKES_NEAR_MARKET'
             ALL = 'ALL'
 
         class Type(Enum):
