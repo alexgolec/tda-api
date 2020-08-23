@@ -49,6 +49,21 @@ class EnumEnforcer:
         self.enforce_enums = enforce_enums
 
 
+class UnsuccessfulOrderException(ValueError):
+    '''
+    Raised by :meth:`Utils.extract_order_id` when attempting to extract an 
+    order ID from a :meth:`Client.place_order` response that was not successful.
+    '''
+
+
+class AccountIdMismatchException(ValueError):
+    '''
+    Raised by :meth:`Utils.extract_order_id` when attempting to extract an 
+    order ID from a :meth:`Client.place_order` with a different account ID than 
+    the one with which the :class:`Utils` was initialized.
+    '''
+
+
 class Utils(EnumEnforcer):
     '''Helper for placing orders on equities. Provides easy-to-use
     implementations for common tasks such as market and limit orders.'''
@@ -82,7 +97,7 @@ class Utils(EnumEnforcer):
 
         '''
         if not place_order_response.ok:
-            raise ValueError('order not successful')
+            raise UnsuccessfulOrderException('order not successful')
 
         try:
             location = place_order_response.headers['Location']
@@ -98,6 +113,7 @@ class Utils(EnumEnforcer):
         account_id, order_id = int(m.group(1)), int(m.group(2))
 
         if str(account_id) != str(self.account_id):
-            raise ValueError('order request account ID != Utils.account_id')
+            raise AccountIdMismatchException(
+                    'order request account ID != Utils.account_id')
 
         return order_id

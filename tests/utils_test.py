@@ -5,7 +5,8 @@ import json
 import unittest
 
 from tda.orders import EquityOrderBuilder
-from tda.utils import Utils
+from tda.utils import AccountIdMismatchException, Utils
+from tda.utils import UnsuccessfulOrderException
 from . import test_utils
 from .test_utils import no_duplicates, MockResponse
 
@@ -27,7 +28,8 @@ class UtilsTest(unittest.TestCase):
     @no_duplicates
     def test_extract_order_id_order_not_ok(self):
         response = MockResponse({}, False)
-        with self.assertRaises(ValueError, msg='order not successful'):
+        with self.assertRaises(
+                UnsuccessfulOrderException, msg='order not successful'):
             self.utils.extract_order_id(response)
 
     @no_duplicates
@@ -48,7 +50,8 @@ class UtilsTest(unittest.TestCase):
             'https://api.tdameritrade.com/v1/accounts/{}/orders/456'.format(
                 self.account_id + 1)})
         with self.assertRaises(
-                ValueError, msg='order request account ID != Utils.account_id'):
+                AccountIdMismatchException,
+                msg='order request account ID != Utils.account_id'):
             self.utils.extract_order_id(response)
 
     @no_duplicates
@@ -60,7 +63,8 @@ class UtilsTest(unittest.TestCase):
             'https://api.tdameritrade.com/v1/accounts/{}/orders/456'.format(
                 self.account_id + 1)})
         with self.assertRaises(
-                ValueError, msg='order request account ID != Utils.account_id'):
+                AccountIdMismatchException,
+                msg='order request account ID != Utils.account_id'):
             self.utils.extract_order_id(response)
 
     @no_duplicates
