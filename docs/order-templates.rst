@@ -202,6 +202,14 @@ expect all their parameters to be of type ``OrderBuilder``. You can construct
 these orders using the templates above or by 
 :ref:`creating them from scratch <order_builder>`.
 
+**Note:** It appears that using these methods requires disabling Advanced 
+Features on your account. It is not entirely clear why this is the case, but 
+we've seen numerous reports of issues with OCO and trigger orders being resolved 
+by this method. You can disable advanced features by calling TDAmeritrade 
+support and requesting that they be turned off. If you need more help, we 
+recommend `joining our discord <https://discord.gg/M3vjtHj>`__ to ask the 
+community for help. 
+
 .. autofunction:: tda.orders.common.one_cancels_other
 .. autofunction:: tda.orders.common.first_triggers_second
 
