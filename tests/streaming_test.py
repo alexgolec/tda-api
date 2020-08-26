@@ -262,6 +262,42 @@ class StreamClientTest(IsolatedAsyncioTestCase):
 
     @no_duplicates
     @patch('tda.streaming.websockets.client.connect', new_callable=AsyncMock)
+    async def test_login_no_ssl_context(self, ws_connect):
+        self.client = StreamClient(self.http_client)
+
+        self.http_client.get_user_principals.return_value = MockResponse(
+            account_principals(), True)
+        socket = AsyncMock()
+        ws_connect.return_value = socket
+
+        socket.recv.side_effect = [json.dumps(self.success_response(
+            0, 'ADMIN', 'LOGIN'))]
+
+        await self.client.login()
+
+        ws_connect.assert_awaited_once_with(ANY)
+
+
+    @no_duplicates
+    @patch('tda.streaming.websockets.client.connect', new_callable=AsyncMock)
+    async def test_login_ssl_context(self, ws_connect):
+        self.client = StreamClient(self.http_client, ssl_context='ssl_context')
+
+        self.http_client.get_user_principals.return_value = MockResponse(
+            account_principals(), True)
+        socket = AsyncMock()
+        ws_connect.return_value = socket
+
+        socket.recv.side_effect = [json.dumps(self.success_response(
+            0, 'ADMIN', 'LOGIN'))]
+
+        await self.client.login()
+
+        ws_connect.assert_awaited_once_with(ANY, ssl='ssl_context')
+
+
+    @no_duplicates
+    @patch('tda.streaming.websockets.client.connect', new_callable=AsyncMock)
     async def test_login_unexpected_request_id(self, ws_connect):
         principals = account_principals()
         principals['accounts'].clear()
