@@ -7,7 +7,7 @@
 
 .. image:: _static/discord-logo.png
    :width: 50
-   :target: https://discord.gg/nfrd9gh
+   :target: https://discord.gg/M3vjtHj
 
 .. toctree::
   :maxdepth: 2

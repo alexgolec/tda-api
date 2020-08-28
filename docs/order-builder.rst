@@ -419,7 +419,7 @@ so rather than make stuff up, I'm putting them here in the hopes that someone
 will come along and shed some light on them. You can make suggestions by filing 
 an issue on our 
 `GitHub issues page <https://github.com/alexgolec/tda-api/issues>`__, 
-or by joining our `Discord server <https://discord.gg/nfrd9gh>`__.
+or by joining our `Discord server <https://discord.gg/M3vjtHj>`__.
 
 
 .. _undocumented_quantity:

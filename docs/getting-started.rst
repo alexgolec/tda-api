@@ -92,6 +92,6 @@ Getting Help
 ++++++++++++
 
 If you are ever stuck, feel free to  `join our Discord server
-<https://discord.gg/nfrd9gh>`__ to ask questions, get advice, and chat with 
+<https://discord.gg/M3vjtHj>`__ to ask questions, get advice, and chat with 
 like-minded people. If you feel you've found a bug, you can :ref:`fill out a bug 
 report <help>`.
