@@ -303,7 +303,10 @@ class Client(EnumEnforcer):
     def place_order(self, account_id, order_spec):
         '''Place an order for a specific account. If order creation was
         successful, the response will contain the ID of the generated order. See
-        :meth:`tda.utils.Utils.extract_order_id` for more details.
+        :meth:`tda.utils.Utils.extract_order_id` for more details. Note unlike 
+        most methods in this library, responses for successful calls to this 
+        method typically do not contain ``json()`` data, and attempting to 
+        extract it will likely result in an exception.
 
         `Official documentation
         <https://developer.tdameritrade.com/account-access/apis/post/accounts/
