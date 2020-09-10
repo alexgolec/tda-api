@@ -28,7 +28,7 @@ for Apple stock:
           period=Client.PriceHistory.Period.TWENTY_YEARS,
           frequency_type=Client.PriceHistory.FrequencyType.DAILY,
           frequency=Client.PriceHistory.Frequency.DAILY)
-  assert resp.ok
+  assert resp.status_code == 200
   history = resp.json()
 
 Note we we create a new client using the ``auth`` package as described in
@@ -67,7 +67,7 @@ users can simply use the following pattern:
 .. code-block:: python
 
   r = client.some_endpoint()
-  assert r.ok, r.raise_for_status()
+  assert r.status_code == 200, r.raise_for_status()
   data = r.json()
 
 The API indicates errors using the response status code, and this pattern will 
