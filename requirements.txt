@@ -1,7 +1,8 @@
 colorama
 coverage
 nose
-requests_oauthlib
+authlib
+httpx
 python-dateutil
 pytz
 selenium

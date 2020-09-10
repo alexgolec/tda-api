@@ -3,8 +3,8 @@ from tests.test_utils import no_duplicates
 from unittest.mock import patch, ANY, MagicMock
 from unittest.mock import ANY as _
 
+import json
 import os
-import pickle
 import tempfile
 import unittest
 
@@ -16,78 +16,78 @@ class ClientFromTokenFileTest(unittest.TestCase):
 
     def setUp(self):
         self.tmp_dir = tempfile.TemporaryDirectory()
-        self.pickle_path = os.path.join(self.tmp_dir.name, 'token.pickle')
+        self.json_path = os.path.join(self.tmp_dir.name, 'token.json')
         self.token = {'token': 'yes'}
 
     def write_token(self):
-        with open(self.pickle_path, 'wb') as f:
-            pickle.dump(self.token, f)
+        with open(self.json_path, 'w') as f:
+            json.dump(self.token, f)
 
     @no_duplicates
     def test_no_such_file(self):
         with self.assertRaises(FileNotFoundError):
-            auth.client_from_token_file(self.pickle_path, API_KEY)
+            auth.client_from_token_file(self.json_path, API_KEY)
 
     @no_duplicates
-    @patch('tda.auth.Client')
-    @patch('tda.auth.OAuth2Session')
+    @patch('tda.auth.SyncClient')
+    @patch('tda.auth.OAuth2Client')
     def test_file_exists(self, session, client):
         self.write_token()
 
         client.return_value = 'returned client'
 
         self.assertEqual('returned client',
-                         auth.client_from_token_file(self.pickle_path, API_KEY))
+                         auth.client_from_token_file(self.json_path, API_KEY))
         client.assert_called_once_with(API_KEY, _)
         session.assert_called_once_with(
             API_KEY,
             token=self.token,
             auto_refresh_url=_,
             auto_refresh_kwargs=_,
-            token_updater=_)
+            update_token=_)
 
     @no_duplicates
-    @patch('tda.auth.Client')
-    @patch('tda.auth.OAuth2Session')
-    def test_token_updater_updates_token(self, session, client):
+    @patch('tda.auth.SyncClient')
+    @patch('tda.auth.OAuth2Client')
+    def test_update_token_updates_token(self, session, client):
         self.write_token()
 
-        auth.client_from_token_file(self.pickle_path, API_KEY)
+        auth.client_from_token_file(self.json_path, API_KEY)
         session.assert_called_once()
 
         session_call = session.mock_calls[0]
-        token_updater = session_call.kwargs['token_updater']
+        update_token = session_call.kwargs['update_token']
 
         updated_token = {'updated': 'token'}
-        token_updater(updated_token)
-        with open(self.pickle_path, 'rb') as f:
-            self.assertEqual(pickle.load(f), updated_token)
+        update_token(updated_token)
+        with open(self.json_path, 'rb') as f:
+            self.assertEqual(json.load(f), updated_token)
 
 
     @no_duplicates
-    @patch('tda.auth.Client')
-    @patch('tda.auth.OAuth2Session')
+    @patch('tda.auth.SyncClient')
+    @patch('tda.auth.OAuth2Client')
     def test_api_key_is_normalized(self, session, client):
         self.write_token()
 
         client.return_value = 'returned client'
 
         self.assertEqual('returned client',
-                         auth.client_from_token_file(self.pickle_path, 'API_KEY'))
+                         auth.client_from_token_file(self.json_path, 'API_KEY'))
         client.assert_called_once_with('API_KEY@AMER.OAUTHAP', _)
         session.assert_called_once_with(
             'API_KEY@AMER.OAUTHAP',
             token=self.token,
             auto_refresh_url=_,
             auto_refresh_kwargs=_,
-            token_updater=_)
+            update_token=_)
 
 
 class ClientFromAccessFunctionsTest(unittest.TestCase):
 
     @no_duplicates
-    @patch('tda.auth.Client')
-    @patch('tda.auth.OAuth2Session')
+    @patch('tda.auth.SyncClient')
+    @patch('tda.auth.OAuth2Client')
     def test_success_with_write_func(self, session, client):
         token = {'token': 'yes'}
 
@@ -108,20 +108,20 @@ class ClientFromAccessFunctionsTest(unittest.TestCase):
             token=token,
             auto_refresh_url=_,
             auto_refresh_kwargs=_,
-            token_updater=_)
+            update_token=_)
         token_read_func.assert_called_once()
 
         # Verify that the write function is called when the updater is called
         session_call = session.mock_calls[0]
-        token_updater = session_call.kwargs['token_updater']
+        update_token = session_call.kwargs['update_token']
         token_write_func.assert_not_called()
-        token_updater()
+        update_token()
         token_write_func.assert_called_once()
 
 
     @no_duplicates
-    @patch('tda.auth.Client')
-    @patch('tda.auth.OAuth2Session')
+    @patch('tda.auth.SyncClient')
+    @patch('tda.auth.OAuth2Client')
     def test_success_no_write_func(self, session, client):
         token = {'token': 'yes'}
 
@@ -149,18 +149,18 @@ class ClientFromLoginFlow(unittest.TestCase):
 
     def setUp(self):
         self.tmp_dir = tempfile.TemporaryDirectory()
-        self.pickle_path = os.path.join(self.tmp_dir.name, 'token.pickle')
+        self.json_path = os.path.join(self.tmp_dir.name, 'token.json')
         self.token = {'token': 'yes'}
 
     @no_duplicates
-    @patch('tda.auth.Client')
-    @patch('tda.auth.OAuth2Session')
+    @patch('tda.auth.SyncClient')
+    @patch('tda.auth.OAuth2Client')
     def test_no_token_file_https(self, session_constructor, client):
         AUTH_URL = 'https://auth.url.com'
 
         session = MagicMock()
         session_constructor.return_value = session
-        session.authorization_url.return_value = AUTH_URL, None
+        session.create_authorization_url.return_value = AUTH_URL, None
         session.fetch_token.return_value = self.token
 
         webdriver = MagicMock()
@@ -171,15 +171,15 @@ class ClientFromLoginFlow(unittest.TestCase):
         self.assertEqual('returned client',
                          auth.client_from_login_flow(
                              webdriver, API_KEY, REDIRECT_URL,
-                             self.pickle_path,
+                             self.json_path,
                              redirect_wait_time_seconds=0.0))
 
-        with open(self.pickle_path, 'rb') as f:
-            self.assertEqual(self.token, pickle.load(f))
+        with open(self.json_path, 'rb') as f:
+            self.assertEqual(self.token, json.load(f))
 
     @no_duplicates
-    @patch('tda.auth.Client')
-    @patch('tda.auth.OAuth2Session')
+    @patch('tda.auth.SyncClient')
+    @patch('tda.auth.OAuth2Client')
     def test_no_token_file_http(self, session_constructor, client):
         AUTH_URL = 'https://auth.url.com'
 
@@ -187,7 +187,7 @@ class ClientFromLoginFlow(unittest.TestCase):
 
         session = MagicMock()
         session_constructor.return_value = session
-        session.authorization_url.return_value = AUTH_URL, None
+        session.create_authorization_url.return_value = AUTH_URL, None
         session.fetch_token.return_value = self.token
 
         webdriver = MagicMock()
@@ -198,15 +198,15 @@ class ClientFromLoginFlow(unittest.TestCase):
         self.assertEqual('returned client',
                          auth.client_from_login_flow(
                              webdriver, API_KEY, redirect_url,
-                             self.pickle_path,
+                             self.json_path,
                              redirect_wait_time_seconds=0.0))
 
-        with open(self.pickle_path, 'rb') as f:
-            self.assertEqual(self.token, pickle.load(f))
+        with open(self.json_path, 'rb') as f:
+            self.assertEqual(self.token, json.load(f))
 
     @no_duplicates
-    @patch('tda.auth.Client')
-    @patch('tda.auth.OAuth2Session')
+    @patch('tda.auth.SyncClient')
+    @patch('tda.auth.OAuth2Client')
     def test_no_token_file_http_redirected_to_https(
             self, session_constructor, client):
         AUTH_URL = 'https://auth.url.com'
@@ -216,7 +216,7 @@ class ClientFromLoginFlow(unittest.TestCase):
 
         session = MagicMock()
         session_constructor.return_value = session
-        session.authorization_url.return_value = AUTH_URL, None
+        session.create_authorization_url.return_value = AUTH_URL, None
         session.fetch_token.return_value = self.token
 
         webdriver = MagicMock()
@@ -227,21 +227,21 @@ class ClientFromLoginFlow(unittest.TestCase):
         self.assertEqual('returned client',
                          auth.client_from_login_flow(
                              webdriver, API_KEY, redirect_url,
-                             self.pickle_path,
+                             self.json_path,
                              redirect_wait_time_seconds=0.0))
 
-        with open(self.pickle_path, 'rb') as f:
-            self.assertEqual(self.token, pickle.load(f))
+        with open(self.json_path, 'rb') as f:
+            self.assertEqual(self.token, json.load(f))
 
     @no_duplicates
-    @patch('tda.auth.Client')
-    @patch('tda.auth.OAuth2Session')
+    @patch('tda.auth.SyncClient')
+    @patch('tda.auth.OAuth2Client')
     def test_normalize_api_key(self, session_constructor, client):
         AUTH_URL = 'https://auth.url.com'
 
         session = MagicMock()
         session_constructor.return_value = session
-        session.authorization_url.return_value = AUTH_URL, None
+        session.create_authorization_url.return_value = AUTH_URL, None
         session.fetch_token.return_value = self.token
 
         webdriver = MagicMock()
@@ -252,7 +252,7 @@ class ClientFromLoginFlow(unittest.TestCase):
         self.assertEqual('returned client',
                          auth.client_from_login_flow(
                              webdriver, 'API_KEY', REDIRECT_URL,
-                             self.pickle_path,
+                             self.json_path,
                              redirect_wait_time_seconds=0.0))
 
         self.assertEqual(
@@ -261,8 +261,8 @@ class ClientFromLoginFlow(unittest.TestCase):
 
 
     @no_duplicates
-    @patch('tda.auth.Client')
-    @patch('tda.auth.OAuth2Session')
+    @patch('tda.auth.SyncClient')
+    @patch('tda.auth.OAuth2Client')
     def test_unexpected_redirect_url(self, session_constructor, client):
         AUTH_URL = 'https://auth.url.com'
 
@@ -270,7 +270,7 @@ class ClientFromLoginFlow(unittest.TestCase):
 
         session = MagicMock()
         session_constructor.return_value = session
-        session.authorization_url.return_value = AUTH_URL, None
+        session.create_authorization_url.return_value = AUTH_URL, None
         session.fetch_token.return_value = self.token
 
         webdriver = MagicMock()
@@ -280,7 +280,7 @@ class ClientFromLoginFlow(unittest.TestCase):
                 'timed out waiting for redirect'):
             auth.client_from_login_flow(
                     webdriver, API_KEY, redirect_url,
-                    self.pickle_path,
+                    self.json_path,
                     redirect_wait_time_seconds=0.0)
 
 
@@ -288,12 +288,12 @@ class EasyClientTest(unittest.TestCase):
 
     def setUp(self):
         self.tmp_dir = tempfile.TemporaryDirectory()
-        self.pickle_path = os.path.join(self.tmp_dir.name, 'token.pickle')
+        self.json_path = os.path.join(self.tmp_dir.name, 'token.json')
         self.token = {'token': 'yes'}
 
     def write_token(self):
-        with open(self.pickle_path, 'wb') as f:
-            pickle.dump(self.token, f)
+        with open(self.json_path, 'w') as f:
+            json.dump(self.token, f)
 
     @no_duplicates
     @patch('tda.auth.client_from_token_file')
@@ -302,7 +302,7 @@ class EasyClientTest(unittest.TestCase):
         client_from_token_file.side_effect = FileNotFoundError()
 
         with self.assertRaises(FileNotFoundError):
-            auth.easy_client(API_KEY, REDIRECT_URL, self.pickle_path)
+            auth.easy_client(API_KEY, REDIRECT_URL, self.json_path)
 
     @no_duplicates
     @patch('tda.auth.client_from_token_file')
@@ -311,7 +311,7 @@ class EasyClientTest(unittest.TestCase):
         client_from_token_file.return_value = self.token
 
         self.assertEquals(self.token,
-                          auth.easy_client(API_KEY, REDIRECT_URL, self.pickle_path))
+                          auth.easy_client(API_KEY, REDIRECT_URL, self.json_path))
 
     @no_duplicates
     @patch('tda.auth.client_from_login_flow')
@@ -327,7 +327,7 @@ class EasyClientTest(unittest.TestCase):
 
         self.assertEquals('returned client',
                           auth.easy_client(
-                              API_KEY, REDIRECT_URL, self.pickle_path,
+                              API_KEY, REDIRECT_URL, self.json_path,
                               webdriver_func=webdriver_func))
 
         webdriver_func.assert_called_once()

@@ -65,9 +65,9 @@ def real_order():
 
 
 class MockResponse:
-    def __init__(self, json, ok, headers=None):
+    def __init__(self, json, status_code, headers=None):
         self._json = json
-        self.ok = ok
+        self.status_code = status_code
         self.headers = headers if headers is not None else {}
 
     def json(self):

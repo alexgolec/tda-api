@@ -1,13 +1,13 @@
 ##########################################################################
 # Authentication Wrappers
 
-from requests_oauthlib import OAuth2Session
-
+from authlib.integrations.httpx_client.oauth2_client import AsyncOAuth2Client, OAuth2Client
 import logging
+import json
 import pickle
 import time
 
-from tda.client import Client
+from tda.client import AsyncClient, SyncClient
 from tda.debug import register_redactions
 
 
@@ -15,12 +15,12 @@ def get_logger():
     return logging.getLogger(__name__)
 
 
-def __token_updater(token_path):
-    def update_token(t):
+def __update_token(token_path):
+    def update_token(t, *args, **kwargs):
         get_logger().info('Updating token to file {}'.format(token_path))
 
-        with open(token_path, 'wb') as f:
-            pickle.dump(t, f)
+        with open(token_path, 'w') as f:
+            json.dump(t, f)
     return update_token
 
 
@@ -38,7 +38,7 @@ def __register_token_redactions(token):
 
 
 
-def client_from_token_file(token_path, api_key):
+def client_from_token_file(token_path, api_key, asyncio=False):
     '''
     Returns a session from an existing token file. The session will perform
     an auth refresh as needed. It will also update the token on disk whenever
@@ -53,10 +53,16 @@ def client_from_token_file(token_path, api_key):
     '''
     def load():
         with open(token_path, 'rb') as f:
-            return pickle.load(f)
+            token_data = f.read()
+            try:
+                return json.loads(token_data)
+            except:
+                token = pickle.loads(token_data)
+                get_logger().warning("Legacy token file detected.")
+                return token
 
     return client_from_access_functions(
-            api_key, load, __token_updater(token_path))
+            api_key, load, __update_token(token_path), asyncio=asyncio)
 
 
 class RedirectTimeoutError(Exception):
@@ -64,7 +70,8 @@ class RedirectTimeoutError(Exception):
 
 
 def client_from_login_flow(webdriver, api_key, redirect_url, token_path,
-                           redirect_wait_time_seconds=0.1, max_waits=3000):
+                           redirect_wait_time_seconds=0.1, max_waits=3000,
+                           asyncio=False):
     '''
     Uses the webdriver to perform an OAuth webapp login flow and creates a
     client wrapped around the resulting token. The client will be configured to
@@ -88,9 +95,9 @@ def client_from_login_flow(webdriver, api_key, redirect_url, token_path,
 
     api_key = __normalize_api_key(api_key)
 
-    oauth = OAuth2Session(api_key, redirect_uri=redirect_url)
-    authorization_url, state = oauth.authorization_url(
-        'https://auth.tdameritrade.com/auth')
+    oauth = OAuth2Client(api_key, redirect_uri=redirect_url)
+    authorization_url, state = oauth.create_authorization_url(
+            'https://auth.tdameritrade.com/auth')
 
     # Open the login page and wait for the redirect
     print('\n**************************************************************\n')
@@ -138,19 +145,27 @@ def client_from_login_flow(webdriver, api_key, redirect_url, token_path,
     __register_token_redactions(token)
 
     # Record the token
-    update_token = __token_updater(token_path)
+    update_token = __update_token(token_path)
     update_token(token)
 
+    if asyncio:
+        session_class = AsyncOAuth2Client
+        client_class  = AsyncClient
+    else:
+        session_class = OAuth2Client
+        client_class  = SyncClient
+
     # Return a new session configured to refresh credentials
-    return Client(
+    return client_class(
         api_key,
-        OAuth2Session(api_key, token=token,
+        session_class(api_key, token=token,
                       auto_refresh_url='https://api.tdameritrade.com/v1/oauth2/token',
                       auto_refresh_kwargs={'client_id': api_key},
-                      token_updater=update_token))
+                      update_token=update_token))
 
 
-def easy_client(api_key, redirect_uri, token_path, webdriver_func=None):
+def easy_client(api_key, redirect_uri, token_path, webdriver_func=None,
+                asyncio=False):
     '''Convenient wrapper around :func:`client_from_login_flow` and
     :func:`client_from_token_file`. If ``token_path`` exists, loads the token
     from it. Otherwise open a login flow to fetch a new token. Returns a client
@@ -179,7 +194,7 @@ def easy_client(api_key, redirect_uri, token_path, webdriver_func=None):
     logger = get_logger()
 
     try:
-        c = client_from_token_file(token_path, api_key)
+        c = client_from_token_file(token_path, api_key, asyncio=asyncio)
         logger.info('Returning client loaded from token file \'{}\''.format(
             token_path))
         return c
@@ -189,7 +204,7 @@ def easy_client(api_key, redirect_uri, token_path, webdriver_func=None):
         if webdriver_func is not None:
             with webdriver_func() as driver:
                 c = client_from_login_flow(
-                    driver, api_key, redirect_uri, token_path)
+                    driver, api_key, redirect_uri, token_path, asyncio=asyncio)
                 logger.info(
                     'Returning client fetched using webdriver, writing' +
                     'token to \'{}\''.format(token_path))
@@ -199,7 +214,8 @@ def easy_client(api_key, redirect_uri, token_path, webdriver_func=None):
             raise
 
 
-def client_from_access_functions(api_key, token_read_func, token_write_func=None):
+def client_from_access_functions(api_key, token_read_func,
+                                 token_write_func=None, asyncio=False):
     '''
     Returns a session from an existing token file, using the accessor methods to 
     read and write the token. This is an advanced method for users who do not 
@@ -240,8 +256,15 @@ def client_from_access_functions(api_key, token_read_func, token_write_func=None
     }
 
     if token_write_func is not None:
-        session_kwargs['token_updater'] = token_write_func
+        session_kwargs['update_token'] = token_write_func
 
-    return Client(
+    if asyncio:
+        session_class = AsyncOAuth2Client
+        client_class  = AsyncClient
+    else:
+        session_class = OAuth2Client
+        client_class  = SyncClient
+
+    return client_class(
         api_key,
-        OAuth2Session(api_key, **session_kwargs))
+        session_class(api_key, **session_kwargs))

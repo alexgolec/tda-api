@@ -2,6 +2,7 @@
 completely unopinionated, and provides an easy-to-use wrapper around the TD
 Ameritrade HTTP API.'''
 
+from abc import ABC, abstractmethod
 from enum import Enum
 from requests_oauthlib import OAuth2Session
 
@@ -23,7 +24,7 @@ def get_logger():
 ##########################################################################
 # Client
 
-class Client(EnumEnforcer):
+class BaseClient(EnumEnforcer):
     # This docstring will appears as documentation for __init__
     '''A basic, completely unopinionated client. This client provides the most
     direct access to the API possible. All methods return the raw response which
@@ -51,15 +52,15 @@ class Client(EnumEnforcer):
     _DATETIME = datetime.datetime
     _DATE = datetime.date
 
-    def __log_response(self, resp, req_num):
+    def _log_response(self, resp, req_num):
         self.logger.debug('Req {}: GET response: {}, content={}'.format(
             req_num, resp.status_code, resp.text))
 
-    def __req_num(self):
+    def _req_num(self):
         self.request_number += 1
         return self.request_number
 
-    def __assert_type(self, name, value, exp_types):
+    def _assert_type(self, name, value, exp_types):
         value_type = type(value)
         value_type_name = '{}.{}'.format(
             value_type.__module__, value_type.__name__)
@@ -74,89 +75,34 @@ class Client(EnumEnforcer):
                     ', '.join(exp_type_names), name, value_type_name)
             raise ValueError(error_str)
 
-    def __format_datetime(self, var_name, dt):
+    def _format_datetime(self, var_name, dt):
         '''Formats datetime objects appropriately, depending on whether they are
         naive or timezone-aware'''
-        self.__assert_type(var_name, dt, [self._DATETIME])
+        self._assert_type(var_name, dt, [self._DATETIME])
 
         tz_offset = dt.strftime('%z')
         tz_offset = tz_offset if tz_offset else '+0000'
 
         return dt.strftime('%Y-%m-%dT%H:%M:%S') + tz_offset
 
-    def __format_date(self, var_name, dt):
+    def _format_date(self, var_name, dt):
         '''Formats datetime objects appropriately, depending on whether they are
         naive or timezone-aware'''
-        self.__assert_type(var_name, dt, [self._DATE, self._DATETIME])
+        self._assert_type(var_name, dt, [self._DATE, self._DATETIME])
 
         d = datetime.date(year=dt.year, month=dt.month, day=dt.day)
 
         return d.isoformat()
 
-    def __datetime_as_millis(self, var_name, dt):
+    def _datetime_as_millis(self, var_name, dt):
         'Converts datetime objects to compatible millisecond values'
-        self.__assert_type(var_name, dt, [self._DATETIME])
+        self._assert_type(var_name, dt, [self._DATETIME])
 
         return int(dt.timestamp() * 1000)
 
-    def __get_request(self, path, params):
-        dest = 'https://api.tdameritrade.com' + path
-
-        req_num = self.__req_num()
-        self.logger.debug('Req {}: GET to {}, params={}'.format(
-            req_num, dest, json.dumps(params, indent=4)))
-
-        resp = self.session.get(dest, params=params)
-        self.__log_response(resp, req_num)
-        tda.debug.register_redactions_from_response(resp)
-        return resp
-
-    def __post_request(self, path, data):
-        dest = 'https://api.tdameritrade.com' + path
-
-        req_num = self.__req_num()
-        self.logger.debug('Req {}: POST to {}, json={}'.format(
-            req_num, dest, json.dumps(data, indent=4)))
-
-        resp = self.session.post(dest, json=data)
-        self.__log_response(resp, req_num)
-        tda.debug.register_redactions_from_response(resp)
-        return resp
-
-    def __put_request(self, path, data):
-        dest = 'https://api.tdameritrade.com' + path
-
-        req_num = self.__req_num()
-        self.logger.debug('Req {}: PUT to {}, json={}'.format(
-            req_num, dest, json.dumps(data, indent=4)))
-
-        resp = self.session.put(dest, json=data)
-        self.__log_response(resp, req_num)
-        tda.debug.register_redactions_from_response(resp)
-        return resp
-
-    def __patch_request(self, path, data):
-        dest = 'https://api.tdameritrade.com' + path
-
-        req_num = self.__req_num()
-        self.logger.debug('Req {}: PATCH to {}, json={}'.format(
-            req_num, dest, json.dumps(data, indent=4)))
-
-        resp = self.session.patch(dest, json=data)
-        self.__log_response(resp, req_num)
-        tda.debug.register_redactions_from_response(resp)
-        return resp
-
-    def __delete_request(self, path):
-        dest = 'https://api.tdameritrade.com' + path
-
-        req_num = self.__req_num()
-        self.logger.debug('Req {}: DELETE to {}'.format(req_num, dest))
-
-        resp = self.session.delete(dest)
-        self.__log_response(resp, req_num)
-        tda.debug.register_redactions_from_response(resp)
-        return resp
+    @abstractmethod
+    def _get_request(self, *args, **kwargs):
+        return
 
     ##########################################################################
     # Orders
@@ -165,17 +111,17 @@ class Client(EnumEnforcer):
         '''Cancel a specific order for a specific account.
         `Official documentation
         <https://developer.tdameritrade.com/account-access/apis/delete/
-        accounts/%7BaccountId%7D/orders/%7BorderId%7D-0>`__.'''
+        accounts/%7BaccountId%7D/orders/%7BorderId%7D-0>`_.'''
         path = '/v1/accounts/{}/orders/{}'.format(account_id, order_id)
-        return self.__delete_request(path)
+        return self._delete_request(path)
 
     def get_order(self, order_id, account_id):
         '''Get a specific order for a specific account by its order ID.
         `Official documentation
         <https://developer.tdameritrade.com/account-access/apis/get/accounts/
-        %7BaccountId%7D/orders/%7BorderId%7D-0>`__.'''
+        %7BaccountId%7D/orders/%7BorderId%7D-0>`_.'''
         path = '/v1/accounts/{}/orders/{}'.format(account_id, order_id)
-        return self.__get_request(path, {})
+        return self._get_request(path, {})
 
     class Order:
         class Status(Enum):
@@ -197,7 +143,7 @@ class Client(EnumEnforcer):
             FILLED = 'FILLED'
             EXPIRED = 'EXPIRED'
 
-    def __make_order_query(self,
+    def _make_order_query(self,
                            *,
                            max_results=None,
                            from_entered_datetime=None,
@@ -217,9 +163,9 @@ class Client(EnumEnforcer):
             to_entered_datetime = datetime.datetime.utcnow()
 
         params = {
-            'fromEnteredTime': self.__format_datetime(
+            'fromEnteredTime': self._format_datetime(
                 'from_entered_datetime', from_entered_datetime),
-            'toEnteredTime': self.__format_datetime(
+            'toEnteredTime': self._format_datetime(
                 'to_entered_datetime', to_entered_datetime),
         }
 
@@ -244,7 +190,7 @@ class Client(EnumEnforcer):
         '''Orders for a specific account. At most one of ``status`` and
         ``statuses`` may be set. `Official documentation
         <https://developer.tdameritrade.com/account-access/apis/get/accounts/
-        %7BaccountId%7D/orders-0>`__.
+        %7BaccountId%7D/orders-0>`_.
 
         :param max_results: The maximum number of orders to retrieve.
         :param from_entered_datetime: Specifies that no orders entered before
@@ -260,7 +206,7 @@ class Client(EnumEnforcer):
                          See :class:`Order.Status` for options.
         '''
         path = '/v1/accounts/{}/orders'.format(account_id)
-        return self.__get_request(path, self.__make_order_query(
+        return self._get_request(path, self._make_order_query(
             max_results=max_results,
             from_entered_datetime=from_entered_datetime,
             to_entered_datetime=to_entered_datetime,
@@ -277,7 +223,7 @@ class Client(EnumEnforcer):
         '''Orders for all linked accounts. At most one of ``status`` and
         ``statuses`` may be set.
         `Official documentation
-        <https://developer.tdameritrade.com/account-access/apis/get/orders-0>`__.
+        <https://developer.tdameritrade.com/account-access/apis/get/orders-0>`_.
 
         :param max_results: The maximum number of orders to retrieve.
         :param from_entered_datetime: Specifies that no orders entered before
@@ -293,7 +239,7 @@ class Client(EnumEnforcer):
                          See :class:`Order.Status` for options.
         '''
         path = '/v1/orders'
-        return self.__get_request(path, self.__make_order_query(
+        return self._get_request(path, self._make_order_query(
             max_results=max_results,
             from_entered_datetime=from_entered_datetime,
             to_entered_datetime=to_entered_datetime,
@@ -310,12 +256,12 @@ class Client(EnumEnforcer):
 
         `Official documentation
         <https://developer.tdameritrade.com/account-access/apis/post/accounts/
-        %7BaccountId%7D/orders-0>`__. '''
+        %7BaccountId%7D/orders-0>`_. '''
         if isinstance(order_spec, OrderBuilder):
             order_spec = order_spec.build()
 
         path = '/v1/accounts/{}/orders'.format(account_id)
-        return self.__post_request(path, order_spec)
+        return self._post_request(path, order_spec)
 
     def replace_order(self, account_id, order_id, order_spec):
         '''Replace an existing order for an account. The existing order will be
@@ -323,12 +269,12 @@ class Client(EnumEnforcer):
         and a new order will be created.
         `Official documentation
         <https://developer.tdameritrade.com/account-access/apis/put/accounts/
-        %7BaccountId%7D/orders/%7BorderId%7D-0>`__.'''
+        %7BaccountId%7D/orders/%7BorderId%7D-0>`_.'''
         if isinstance(order_spec, OrderBuilder):
             order_spec = order_spec.build()
 
         path = '/v1/accounts/{}/orders/{}'.format(account_id, order_id)
-        return self.__put_request(path, order_spec)
+        return self._put_request(path, order_spec)
 
     ##########################################################################
     # Saved Orders
@@ -337,48 +283,48 @@ class Client(EnumEnforcer):
         '''Save an order for a specific account.
         `Official documentation
         <https://developer.tdameritrade.com/account-access/apis/post/accounts/
-        %7BaccountId%7D/savedorders-0>`__.'''
+        %7BaccountId%7D/savedorders-0>`_.'''
         if isinstance(order_spec, OrderBuilder):
             order_spec = order_spec.build()
 
         path = '/v1/accounts/{}/savedorders'.format(account_id)
-        return self.__post_request(path, order_spec)
+        return self._post_request(path, order_spec)
 
     def delete_saved_order(self, account_id, order_id):
         '''Delete a specific saved order for a specific account.
         `Official documentation
         <https://developer.tdameritrade.com/account-access/apis/delete/
-        accounts/%7BaccountId%7D/savedorders/%7BsavedOrderId%7D-0>`__.'''
+        accounts/%7BaccountId%7D/savedorders/%7BsavedOrderId%7D-0>`_.'''
         path = '/v1/accounts/{}/savedorders/{}'.format(account_id, order_id)
-        return self.__delete_request(path)
+        return self._delete_request(path)
 
     def get_saved_order(self, account_id, order_id):
         '''Specific saved order by its ID, for a specific account.
         `Official documentation
         <https://developer.tdameritrade.com/account-access/apis/get/accounts/
-        %7BaccountId%7D/savedorders/%7BsavedOrderId%7D-0>`__.'''
+        %7BaccountId%7D/savedorders/%7BsavedOrderId%7D-0>`_.'''
         path = '/v1/accounts/{}/savedorders/{}'.format(account_id, order_id)
-        return self.__get_request(path, {})
+        return self._get_request(path, {})
 
     def get_saved_orders_by_path(self, account_id):
         '''Saved orders for a specific account.
         `Official documentation
         <https://developer.tdameritrade.com/account-access/apis/get/accounts/
-        %7BaccountId%7D/savedorders-0>`__.'''
+        %7BaccountId%7D/savedorders-0>`_.'''
         path = '/v1/accounts/{}/savedorders'.format(account_id)
-        return self.__get_request(path, {})
+        return self._get_request(path, {})
 
     def replace_saved_order(self, account_id, order_id, order_spec):
         '''Replace an existing saved order for an account. The existing saved
         order will be replaced by the new order.
         `Official documentation
         <https://developer.tdameritrade.com/account-access/apis/put/accounts/
-        %7BaccountId%7D/savedorders/%7BsavedOrderId%7D-0>`__.'''
+        %7BaccountId%7D/savedorders/%7BsavedOrderId%7D-0>`_.'''
         if isinstance(order_spec, OrderBuilder):
             order_spec = order_spec.build()
 
         path = '/v1/accounts/{}/savedorders/{}'.format(account_id, order_id)
-        return self.__put_request(path, order_spec)
+        return self._put_request(path, order_spec)
 
     ##########################################################################
     # Accounts
@@ -394,7 +340,7 @@ class Client(EnumEnforcer):
         '''Account balances, positions, and orders for a specific account.
         `Official documentation
         <https://developer.tdameritrade.com/account-access/apis/get/accounts/
-        %7BaccountId%7D-0>`__.
+        %7BaccountId%7D-0>`_.
 
         :param fields: Balances displayed by default, additional fields can be
                        added here by adding values from :class:`Account.Fields`.
@@ -406,13 +352,13 @@ class Client(EnumEnforcer):
             params['fields'] = ','.join(fields)
 
         path = '/v1/accounts/{}'.format(account_id)
-        return self.__get_request(path, params)
+        return self._get_request(path, params)
 
     def get_accounts(self, *, fields=None):
         '''Account balances, positions, and orders for all linked accounts.
         `Official documentation
         <https://developer.tdameritrade.com/account-access/apis/get/
-        accounts-0>`__.
+        accounts-0>`_.
 
         :param fields: Balances displayed by default, additional fields can be
                        added here by adding values from :class:`Account.Fields`.
@@ -424,7 +370,7 @@ class Client(EnumEnforcer):
             params['fields'] = ','.join(fields)
 
         path = '/v1/accounts'
-        return self.__get_request(path, params)
+        return self._get_request(path, params)
 
     ##########################################################################
     # Instruments
@@ -434,7 +380,7 @@ class Client(EnumEnforcer):
             '''Search query type for :func:`search_instruments`. See the
             `official documentation
             <https://developer.tdameritrade.com/instruments/apis/get/
-            instruments>`__ for details on the semantics of each.'''
+            instruments>`_ for details on the semantics of each.'''
             SYMBOL_SEARCH = 'symbol-search'
             SYMBOL_REGEX = 'symbol-regex'
             DESC_SEARCH = 'desc-search'
@@ -445,7 +391,7 @@ class Client(EnumEnforcer):
         '''Search or retrieve instrument data, including fundamental data.
         `Official documentation
         <https://developer.tdameritrade.com/instruments/apis/get/
-        instruments>`__.
+        instruments>`_.
 
         :param projection: Query type. See :class:`Instrument.Projection` for
                             options.
@@ -463,13 +409,13 @@ class Client(EnumEnforcer):
         }
 
         path = '/v1/instruments'
-        return self.__get_request(path, params)
+        return self._get_request(path, params)
 
     def get_instrument(self, cusip):
         '''Get an instrument by CUSIP.
         `Official documentation
         <https://developer.tdameritrade.com/instruments/apis/get/instruments/
-        %7Bcusip%7D>`__.'''
+        %7Bcusip%7D>`_.'''
         if not isinstance(cusip, str):
             raise ValueError('CUSIPs must be passed as strings to preserve ' +
                              'leading zeroes')
@@ -479,7 +425,7 @@ class Client(EnumEnforcer):
         }
 
         path = '/v1/instruments/{}'.format(cusip)
-        return self.__get_request(path, params)
+        return self._get_request(path, params)
 
     ##########################################################################
     # Market Hours
@@ -497,7 +443,7 @@ class Client(EnumEnforcer):
         '''Retrieve market hours for specified markets.
         `Official documentation
         <https://developer.tdameritrade.com/market-hours/apis/get/marketdata/
-        hours>`__.
+        hours>`_.
 
         :param markets: Market to return hours for. Iterable of
                         :class:`Markets`.
@@ -509,17 +455,17 @@ class Client(EnumEnforcer):
         params = {
             'apikey': self.api_key,
             'markets': ','.join(markets),
-            'date': self.__format_date('date', date),
+            'date': self._format_date('date', date),
         }
 
         path = '/v1/marketdata/hours'
-        return self.__get_request(path, params)
+        return self._get_request(path, params)
 
     def get_hours_for_single_market(self, market, date):
         '''Retrieve market hours for specified single market.
         `Official documentation
         <https://developer.tdameritrade.com/market-hours/apis/get/marketdata/
-        %7Bmarket%7D/hours>`__.
+        %7Bmarket%7D/hours>`_.
 
         :param markets: Market to return hours for. Instance of
                         :class:`Markets`.
@@ -530,11 +476,11 @@ class Client(EnumEnforcer):
 
         params = {
             'apikey': self.api_key,
-            'date': self.__format_date('date', date),
+            'date': self._format_date('date', date),
         }
 
         path = '/v1/marketdata/{}/hours'.format(market)
-        return self.__get_request(path, params)
+        return self._get_request(path, params)
 
     ##########################################################################
     # Movers
@@ -555,7 +501,7 @@ class Client(EnumEnforcer):
         market.
         `Official documentation
         <https://developer.tdameritrade.com/movers/apis/get/marketdata/
-        %7Bindex%7D/movers>`__.
+        %7Bindex%7D/movers>`_.
 
         :param direction: See :class:`Movers.Direction`
         :param change: See :class:`Movers.Change`
@@ -570,7 +516,7 @@ class Client(EnumEnforcer):
         }
 
         path = '/v1/marketdata/{}/movers'.format(index)
-        return self.__get_request(path, params)
+        return self._get_request(path, params)
 
     ##########################################################################
     # Option Chains
@@ -645,7 +591,7 @@ class Client(EnumEnforcer):
         '''Get option chain for an optionable Symbol.
         `Official documentation
         <https://developer.tdameritrade.com/option-chains/apis/get/marketdata/
-        chains>`__.
+        chains>`_.
 
         :param contract_type: Type of contracts to return in the chain. See
                               :class:`Options.ContractType` for choices.
@@ -709,10 +655,10 @@ class Client(EnumEnforcer):
         if strike_range is not None:
             params['range'] = strike_range
         if strike_from_date is not None:
-            params['fromDate'] = self.__format_date(
+            params['fromDate'] = self._format_date(
                 'strike_from_date', strike_from_date)
         if strike_to_date is not None:
-            params['toDate'] = self.__format_date(
+            params['toDate'] = self._format_date(
                 'strike_to_date', strike_to_date)
         if volatility is not None:
             params['volatility'] = volatility
@@ -728,7 +674,7 @@ class Client(EnumEnforcer):
             params['optionType'] = option_type
 
         path = '/v1/marketdata/chains'
-        return self.__get_request(path, params)
+        return self._get_request(path, params)
 
     ##########################################################################
     # Price History
@@ -800,7 +746,7 @@ class Client(EnumEnforcer):
         '''Get price history for a symbol.
         `Official documentation
         <https://developer.tdameritrade.com/price-history/apis/get/marketdata/
-        %7Bsymbol%7D/pricehistory>`__.
+        %7Bsymbol%7D/pricehistory>`_.
 
         :param period_type: The type of period to show.
         :param period: The number of periods to show. Should not be provided if
@@ -836,16 +782,16 @@ class Client(EnumEnforcer):
         if frequency is not None:
             params['frequency'] = frequency
         if start_datetime is not None:
-            params['startDate'] = self.__datetime_as_millis(
+            params['startDate'] = self._datetime_as_millis(
                 'start_datetime', start_datetime)
         if end_datetime is not None:
-            params['endDate'] = self.__datetime_as_millis(
+            params['endDate'] = self._datetime_as_millis(
                 'end_datetime', end_datetime)
         if need_extended_hours_data is not None:
             params['needExtendedHoursData'] = need_extended_hours_data
 
         path = '/v1/marketdata/{}/pricehistory'.format(symbol)
-        return self.__get_request(path, params)
+        return self._get_request(path, params)
 
     ##########################################################################
     # Quotes
@@ -859,7 +805,7 @@ class Client(EnumEnforcer):
 
         `Official documentation
         <https://developer.tdameritrade.com/quotes/apis/get/marketdata/
-        %7Bsymbol%7D/quotes>`__.
+        %7Bsymbol%7D/quotes>`_.
         '''
         params = {
             'apikey': self.api_key,
@@ -867,14 +813,14 @@ class Client(EnumEnforcer):
 
         import urllib
         path = '/v1/marketdata/{}/quotes'.format(symbol)
-        return self.__get_request(path, params)
+        return self._get_request(path, params)
 
     def get_quotes(self, symbols):
         '''Get quote for a symbol. This method supports all symbols, including
         those containing non-alphanumeric characters like ``/ES``.
         `Official documentation
         <https://developer.tdameritrade.com/quotes/apis/get/marketdata/
-        quotes>`__.'''
+        quotes>`_.'''
         if isinstance(symbols, str):
             symbols = [symbols]
 
@@ -884,7 +830,7 @@ class Client(EnumEnforcer):
         }
 
         path = '/v1/marketdata/quotes'
-        return self.__get_request(path, params)
+        return self._get_request(path, params)
 
     ##########################################################################
     # Transaction History
@@ -893,14 +839,14 @@ class Client(EnumEnforcer):
         '''Transaction for a specific account.
         `Official documentation
         <https://developer.tdameritrade.com/transaction-history/apis/get/
-        accounts/%7BaccountId%7D/transactions/%7BtransactionId%7D-0>`__.'''
+        accounts/%7BaccountId%7D/transactions/%7BtransactionId%7D-0>`_.'''
         params = {
             'apikey': self.api_key,
         }
 
         path = '/v1/accounts/{}/transactions/{}'.format(
             account_id, transaction_id)
-        return self.__get_request(path, params)
+        return self._get_request(path, params)
 
     class Transactions:
         class TransactionType(Enum):
@@ -926,7 +872,7 @@ class Client(EnumEnforcer):
         '''Transaction for a specific account.
         `Official documentation
         <https://developer.tdameritrade.com/transaction-history/apis/get/
-        accounts/%7BaccountId%7D/transactions-0>`__.
+        accounts/%7BaccountId%7D/transactions-0>`_.
 
         :param transaction_type: Only transactions with the specified type will
                                   be returned.
@@ -951,12 +897,12 @@ class Client(EnumEnforcer):
         if symbol is not None:
             params['symbol'] = symbol
         if start_date is not None:
-            params['startDate'] = self.__format_date('start_date', start_date)
+            params['startDate'] = self._format_date('start_date', start_date)
         if end_date is not None:
-            params['endDate'] = self.__format_date('end_date', end_date)
+            params['endDate'] = self._format_date('end_date', end_date)
 
         path = '/v1/accounts/{}/transactions'.format(account_id)
-        return self.__get_request(path, params)
+        return self._get_request(path, params)
 
     ##########################################################################
     # User Info and Preferences
@@ -965,19 +911,19 @@ class Client(EnumEnforcer):
         '''Preferences for a specific account.
         `Official documentation
         <https://developer.tdameritrade.com/user-principal/apis/get/accounts/
-        %7BaccountId%7D/preferences-0>`__.'''
+        %7BaccountId%7D/preferences-0>`_.'''
         params = {
             'apikey': self.api_key,
         }
 
         path = '/v1/accounts/{}/preferences'.format(account_id)
-        return self.__get_request(path, params)
+        return self._get_request(path, params)
 
     def get_streamer_subscription_keys(self, account_ids):
         '''SubscriptionKey for provided accounts or default accounts.
         `Official documentation
         <https://developer.tdameritrade.com/user-principal/apis/get/
-        userprincipals/streamersubscriptionkeys-0>`__.'''
+        userprincipals/streamersubscriptionkeys-0>`_.'''
         if isinstance(account_ids, int) or isinstance(account_ids, str):
             account_ids = [account_ids]
 
@@ -987,7 +933,7 @@ class Client(EnumEnforcer):
         }
 
         path = '/v1/userprincipals/streamersubscriptionkeys'
-        return self.__get_request(path, params)
+        return self._get_request(path, params)
 
     class UserPrincipals:
         class Fields(Enum):
@@ -1000,7 +946,7 @@ class Client(EnumEnforcer):
         '''User Principal details.
         `Official documentation
         <https://developer.tdameritrade.com/user-principal/apis/get/
-        userprincipals-0>`__.'''
+        userprincipals-0>`_.'''
         fields = self.convert_enum_iterable(
             fields, self.UserPrincipals.Fields)
 
@@ -1012,7 +958,7 @@ class Client(EnumEnforcer):
             params['fields'] = ','.join(fields)
 
         path = '/v1/userprincipals'
-        return self.__get_request(path, params)
+        return self._get_request(path, params)
 
     def update_preferences(self, account_id, preferences):
         '''Update preferences for a specific account.
@@ -1021,9 +967,9 @@ class Client(EnumEnforcer):
         cannot be modified via this operation.
         `Official documentation
         <https://developer.tdameritrade.com/user-principal/apis/put/accounts/
-        %7BaccountId%7D/preferences-0>`__.'''
+        %7BaccountId%7D/preferences-0>`_.'''
         path = '/v1/accounts/{}/preferences'.format(account_id)
-        return self.__put_request(path, preferences)
+        return self._put_request(path, preferences)
 
     ##########################################################################
     # Watchlist
@@ -1033,50 +979,50 @@ class Client(EnumEnforcer):
         that the symbol or asset type are valid.
         `Official documentation
         <https://developer.tdameritrade.com/watchlist/apis/post/accounts/
-        %7BaccountId%7D/watchlists-0>`__.'''
+        %7BaccountId%7D/watchlists-0>`_.'''
         path = '/v1/accounts/{}/watchlists'.format(account_id)
-        return self.__post_request(path, watchlist_spec)
+        return self._post_request(path, watchlist_spec)
 
     def delete_watchlist(self, account_id, watchlist_id):
         '''Delete watchlist for a specific account.
         `Official documentation
         <https://developer.tdameritrade.com/watchlist/apis/delete/accounts/
-        %7BaccountId%7D/watchlists/%7BwatchlistId%7D-0>`__.'''
+        %7BaccountId%7D/watchlists/%7BwatchlistId%7D-0>`_.'''
         path = '/v1/accounts/{}/watchlists/{}'.format(account_id, watchlist_id)
-        return self.__delete_request(path)
+        return self._delete_request(path)
 
     def get_watchlist(self, account_id, watchlist_id):
         '''Specific watchlist for a specific account.
         `Official documentation
         <https://developer.tdameritrade.com/watchlist/apis/get/accounts/
-        %7BaccountId%7D/watchlists/%7BwatchlistId%7D-0>`__.'''
+        %7BaccountId%7D/watchlists/%7BwatchlistId%7D-0>`_.'''
         path = '/v1/accounts/{}/watchlists/{}'.format(account_id, watchlist_id)
-        return self.__get_request(path, params={})
+        return self._get_request(path, params={})
 
     def get_watchlists_for_multiple_accounts(self):
         '''All watchlists for all of the user\'s linked accounts.
         `Official documentation
         <https://developer.tdameritrade.com/watchlist/apis/get/accounts/
-        watchlists-0>`__.'''
+        watchlists-0>`_.'''
         path = '/v1/accounts/watchlists'
-        return self.__get_request(path, params={})
+        return self._get_request(path, params={})
 
     def get_watchlists_for_single_account(self, account_id):
         '''All watchlists of an account.
         `Official documentation
         <https://developer.tdameritrade.com/watchlist/apis/get/accounts/
-        %7BaccountId%7D/watchlists-0>`__.'''
+        %7BaccountId%7D/watchlists-0>`_.'''
         path = '/v1/accounts/{}/watchlists'.format(account_id)
-        return self.__get_request(path, params={})
+        return self._get_request(path, params={})
 
     def replace_watchlist(self, account_id, watchlist_id, watchlist_spec):
         '''Replace watchlist for a specific account. This method does not verify
         that the symbol or asset type are valid.
         `Official documentation
         <https://developer.tdameritrade.com/watchlist/apis/put/accounts/
-        %7BaccountId%7D/watchlists/%7BwatchlistId%7D-0>`__.'''
+        %7BaccountId%7D/watchlists/%7BwatchlistId%7D-0>`_.'''
         path = '/v1/accounts/{}/watchlists/{}'.format(account_id, watchlist_id)
-        return self.__put_request(path, watchlist_spec)
+        return self._put_request(path, watchlist_spec)
 
     def update_watchlist(self, account_id, watchlist_id, watchlist_spec):
         '''Partially update watchlist for a specific account: change watchlist
@@ -1085,6 +1031,128 @@ class Client(EnumEnforcer):
         are valid.
         `Official documentation
         <https://developer.tdameritrade.com/watchlist/apis/patch/accounts/
-        %7BaccountId%7D/watchlists/%7BwatchlistId%7D-0>`__.'''
+        %7BaccountId%7D/watchlists/%7BwatchlistId%7D-0>`_.'''
         path = '/v1/accounts/{}/watchlists/{}'.format(account_id, watchlist_id)
-        return self.__patch_request(path, watchlist_spec)
+        return self._patch_request(path, watchlist_spec)
+
+class SyncClient(BaseClient):
+    def _get_request(self, path, params):
+        dest = 'https://api.tdameritrade.com' + path
+
+        req_num = self._req_num()
+        self.logger.debug('Req {}: GET to {}, params={}'.format(
+            req_num, dest, json.dumps(params, indent=4)))
+
+        resp = self.session.get(dest, params=params)
+        self._log_response(resp, req_num)
+        tda.debug.register_redactions_from_response(resp)
+        return resp
+
+    def _post_request(self, path, data):
+        dest = 'https://api.tdameritrade.com' + path
+
+        req_num = self._req_num()
+        self.logger.debug('Req {}: POST to {}, json={}'.format(
+            req_num, dest, json.dumps(data, indent=4)))
+
+        resp = self.session.post(dest, json=data)
+        self._log_response(resp, req_num)
+        tda.debug.register_redactions_from_response(resp)
+        return resp
+
+    def _put_request(self, path, data):
+        dest = 'https://api.tdameritrade.com' + path
+
+        req_num = self._req_num()
+        self.logger.debug('Req {}: PUT to {}, json={}'.format(
+            req_num, dest, json.dumps(data, indent=4)))
+
+        resp = self.session.put(dest, json=data)
+        self._log_response(resp, req_num)
+        tda.debug.register_redactions_from_response(resp)
+        return resp
+
+    def _patch_request(self, path, data):
+        dest = 'https://api.tdameritrade.com' + path
+
+        req_num = self._req_num()
+        self.logger.debug('Req {}: PATCH to {}, json={}'.format(
+            req_num, dest, json.dumps(data, indent=4)))
+
+        resp = self.session.patch(dest, json=data)
+        self._log_response(resp, req_num)
+        tda.debug.register_redactions_from_response(resp)
+        return resp
+
+    def _delete_request(self, path):
+        dest = 'https://api.tdameritrade.com' + path
+
+        req_num = self._req_num()
+        self.logger.debug('Req {}: DELETE to {}'.format(req_num, dest))
+
+        resp = self.session.delete(dest)
+        self._log_response(resp, req_num)
+        tda.debug.register_redactions_from_response(resp)
+        return resp
+Client = SyncClient # legacy support
+
+class AsyncClient(BaseClient):
+
+    async def _get_request(self, path, params):
+        dest = 'https://api.tdameritrade.com' + path
+
+        req_num = self._req_num()
+        self.logger.debug('Req {}: GET to {}, params={}'.format(
+            req_num, dest, json.dumps(params, indent=4)))
+
+        resp = await self.session.get(dest, params=params)
+        self._log_response(resp, req_num)
+        tda.debug.register_redactions_from_response(resp)
+        return resp
+
+    async def _post_request(self, path, data):
+        dest = 'https://api.tdameritrade.com' + path
+
+        req_num = self._req_num()
+        self.logger.debug('Req {}: POST to {}, json={}'.format(
+            req_num, dest, json.dumps(data, indent=4)))
+
+        resp = await self.session.post(dest, json=data)
+        self._log_response(resp, req_num)
+        tda.debug.register_redactions_from_response(resp)
+        return resp
+
+    async def _put_request(self, path, data):
+        dest = 'https://api.tdameritrade.com' + path
+
+        req_num = self._req_num()
+        self.logger.debug('Req {}: PUT to {}, json={}'.format(
+            req_num, dest, json.dumps(data, indent=4)))
+
+        resp = await self.session.put(dest, json=data)
+        self._log_response(resp, req_num)
+        tda.debug.register_redactions_from_response(resp)
+        return resp
+
+    async def _patch_request(self, path, data):
+        dest = 'https://api.tdameritrade.com' + path
+
+        req_num = self._req_num()
+        self.logger.debug('Req {}: PATCH to {}, json={}'.format(
+            req_num, dest, json.dumps(data, indent=4)))
+
+        resp = await self.session.patch(dest, json=data)
+        self._log_response(resp, req_num)
+        tda.debug.register_redactions_from_response(resp)
+        return resp
+
+    async def _delete_request(self, path):
+        dest = 'https://api.tdameritrade.com' + path
+
+        req_num = self._req_num()
+        self.logger.debug('Req {}: DELETE to {}'.format(req_num, dest))
+
+        resp = await self.session.delete(dest)
+        self._log_response(resp, req_num)
+        tda.debug.register_redactions_from_response(resp)
+        return resp

@@ -27,25 +27,25 @@ class UtilsTest(unittest.TestCase):
 
     @no_duplicates
     def test_extract_order_id_order_not_ok(self):
-        response = MockResponse({}, False)
+        response = MockResponse({}, 403)
         with self.assertRaises(
                 UnsuccessfulOrderException, msg='order not successful'):
             self.utils.extract_order_id(response)
 
     @no_duplicates
     def test_extract_order_id_no_location(self):
-        response = MockResponse({}, True, headers={})
+        response = MockResponse({}, 200, headers={})
         self.assertIsNone(self.utils.extract_order_id(response))
 
     @no_duplicates
     def test_extract_order_id_no_pattern_match(self):
-        response = MockResponse({}, True, headers={
+        response = MockResponse({}, 200, headers={
             'Location': 'https://api.tdameritrade.com/v1/accounts/12345'})
         self.assertIsNone(self.utils.extract_order_id(response))
 
     @no_duplicates
     def test_get_order_nonmatching_account_id(self):
-        response = MockResponse({}, True, headers={
+        response = MockResponse({}, 200, headers={
             'Location':
             'https://api.tdameritrade.com/v1/accounts/{}/orders/456'.format(
                 self.account_id + 1)})
@@ -58,7 +58,7 @@ class UtilsTest(unittest.TestCase):
     def test_get_order_nonmatching_account_id_str(self):
         self.utils = Utils(self.mock_client, str(self.account_id))
 
-        response = MockResponse({}, True, headers={
+        response = MockResponse({}, 200, headers={
             'Location':
             'https://api.tdameritrade.com/v1/accounts/{}/orders/456'.format(
                 self.account_id + 1)})
@@ -70,7 +70,7 @@ class UtilsTest(unittest.TestCase):
     @no_duplicates
     def test_get_order_success(self):
         order_id = self.account_id + 100
-        response = MockResponse({}, True, headers={
+        response = MockResponse({}, 200, headers={
             'Location':
             'https://api.tdameritrade.com/v1/accounts/{}/orders/{}'.format(
                 self.account_id, order_id)})
@@ -81,7 +81,7 @@ class UtilsTest(unittest.TestCase):
         self.utils = Utils(self.mock_client, str(self.account_id))
 
         order_id = self.account_id + 100
-        response = MockResponse({}, True, headers={
+        response = MockResponse({}, 200, headers={
             'Location':
             'https://api.tdameritrade.com/v1/accounts/{}/orders/{}'.format(
                 self.account_id, order_id)})

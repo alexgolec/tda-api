@@ -86,7 +86,7 @@ class StreamClientTest(IsolatedAsyncioTestCase):
         principals = account_principals()
 
         self.http_client.get_user_principals.return_value = MockResponse(
-            principals, True)
+            principals, 200)
         socket = AsyncMock()
         ws_connect.return_value = socket
 
@@ -112,7 +112,7 @@ class StreamClientTest(IsolatedAsyncioTestCase):
             self.stream_key(1))
 
         self.http_client.get_user_principals.return_value = MockResponse(
-            principals, True)
+            principals, 200)
         socket = AsyncMock()
         ws_connect.return_value = socket
 
@@ -159,7 +159,7 @@ class StreamClientTest(IsolatedAsyncioTestCase):
             self.stream_key(2))
 
         self.http_client.get_user_principals.return_value = MockResponse(
-            principals, True)
+            principals, 200)
 
         with self.assertRaisesRegex(ValueError,
                                     '.*initialized with unspecified account_id.*'):
@@ -180,7 +180,7 @@ class StreamClientTest(IsolatedAsyncioTestCase):
             self.stream_key(2))
 
         self.http_client.get_user_principals.return_value = MockResponse(
-            principals, True)
+            principals, 200)
         socket = AsyncMock()
         ws_connect.return_value = socket
 
@@ -228,7 +228,7 @@ class StreamClientTest(IsolatedAsyncioTestCase):
             self.stream_key(2))
 
         self.http_client.get_user_principals.return_value = MockResponse(
-            principals, True)
+            principals, 200)
 
         self.client = StreamClient(self.http_client, account_id=999999)
 
@@ -248,7 +248,7 @@ class StreamClientTest(IsolatedAsyncioTestCase):
             self.stream_key(1))
 
         self.http_client.get_user_principals.return_value = MockResponse(
-            principals, True)
+            principals, 200)
         socket = AsyncMock()
         ws_connect.return_value = socket
 
@@ -266,7 +266,7 @@ class StreamClientTest(IsolatedAsyncioTestCase):
         self.client = StreamClient(self.http_client)
 
         self.http_client.get_user_principals.return_value = MockResponse(
-            account_principals(), True)
+            account_principals(), 200)
         socket = AsyncMock()
         ws_connect.return_value = socket
 
@@ -284,7 +284,7 @@ class StreamClientTest(IsolatedAsyncioTestCase):
         self.client = StreamClient(self.http_client, ssl_context='ssl_context')
 
         self.http_client.get_user_principals.return_value = MockResponse(
-            account_principals(), True)
+            account_principals(), 200)
         socket = AsyncMock()
         ws_connect.return_value = socket
 
@@ -307,7 +307,7 @@ class StreamClientTest(IsolatedAsyncioTestCase):
             self.stream_key(1))
 
         self.http_client.get_user_principals.return_value = MockResponse(
-            principals, True)
+            principals, 200)
         socket = AsyncMock()
         ws_connect.return_value = socket
 
@@ -330,7 +330,7 @@ class StreamClientTest(IsolatedAsyncioTestCase):
             self.stream_key(1))
 
         self.http_client.get_user_principals.return_value = MockResponse(
-            principals, True)
+            principals, 200)
         socket = AsyncMock()
         ws_connect.return_value = socket
 
@@ -352,7 +352,7 @@ class StreamClientTest(IsolatedAsyncioTestCase):
             self.stream_key(1))
 
         self.http_client.get_user_principals.return_value = MockResponse(
-            principals, True)
+            principals, 200)
         socket = AsyncMock()
         ws_connect.return_value = socket
 

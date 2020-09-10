@@ -4,7 +4,7 @@ import pytz
 import unittest
 from unittest.mock import ANY, MagicMock, Mock, patch
 
-from tda.client import Client
+from tda.client import SyncClient as Client
 from tda.orders.generic import OrderBuilder
 
 from tests.test_utils import no_duplicates
@@ -65,6 +65,7 @@ class TestClient(unittest.TestCase):
     # get_order
 
     @no_duplicates
+    @oytest.mark.asyncio
     def test_get_order(self):
         self.client.get_order(ORDER_ID, ACCOUNT_ID)
         self.mock_session.get.assert_called_once_with(
