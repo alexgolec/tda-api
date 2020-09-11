@@ -4,6 +4,7 @@ from enum import Enum
 import asyncio
 import copy
 import datetime
+import inspect
 import json
 import logging
 import tda
@@ -287,6 +288,8 @@ class StreamClient(EnumEnforcer):
     async def handle_message(self):
         msg = await self._receive()
 
+        coroutines = []
+
         # response
         if 'response' in msg:
             raise UnexpectedResponse(msg)
@@ -297,7 +300,8 @@ class StreamClient(EnumEnforcer):
                 if d['service'] in self._handlers:
                     for handler in self._handlers[d['service']]:
                         labeled_d = handler.label_message(d)
-                        handler(labeled_d)
+                        _ = handler(labeled_d)
+                        if inspect.isawaitable(_): coroutines.append(_)
 
         # notify
         if 'notify' in msg:
@@ -306,7 +310,11 @@ class StreamClient(EnumEnforcer):
                     pass
                 else:
                     for handler in self._handlers[d['service']]:
-                        handler(d)
+                        _ = handler(d)
+                        if inspect.isawaitable(_): coroutines.append(_)
+
+        if coroutines:
+            asyncio.ensure_future(*coroutines)
 
     ##########################################################################
     # LOGIN
