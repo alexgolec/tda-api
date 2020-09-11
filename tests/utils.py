@@ -4,7 +4,8 @@ import inspect
 
 class AsyncResync:
     """
-    Re-synchronizes every async function on a given object
+    Re-synchronizes every async function on a given object.
+    NOTE: Every method runs on a new loop
     """
 
     class _AsyncResyncMethod:
@@ -25,12 +26,20 @@ class AsyncResync:
     __getattribute__ = __getattr__
 
 
-class ResyncFactory:
+class ResyncProxy:
+    """
+    Proxies the underlying class, replacing coroutine methods
+    with an auto-executing one
+    """
     def __init__(self, cls):
         self.cls = cls
 
     def __call__(self, *args, **kwargs):
         class DynamicResync(AsyncResync, self.cls):
+            """
+            Forces a mixin of the underlying class and the AsyncResync
+            class
+            """
             pass
         return DynamicResync(*args, **kwargs)
 
@@ -40,6 +49,10 @@ class ResyncFactory:
         return getattr(self.cls, key)
 
 class AsyncMagicMock:
+    """
+    Simple mock that returns a CoroutineMock instance for every
+    attribute. Useful for mocking async libraries
+    """
     def __init__(self):
         self.__attr_cache = {}
 
@@ -66,6 +79,6 @@ if __name__ == '__main__':
             return self.heh()
         def heh(self):
             return 3
-    factory = ResyncFactory(TestClass)
+    factory = ResyncProxy(TestClass)
     obj = factory()
     print(obj.meh())

@@ -11,7 +11,7 @@ from tda.orders.generic import OrderBuilder
 
 from tests.test_utils import no_duplicates
 
-from .utils import AsyncMagicMock, ResyncFactory
+from .utils import AsyncMagicMock, ResyncProxy
 
 # Constants
 
@@ -1452,5 +1452,5 @@ class SyncClientTest(_TestClient, unittest.TestCase):
     magicmock_class = MagicMock
 
 class AsyncClientTest(_TestClient, unittest.TestCase):
-    client_class    = ResyncFactory(AsyncClient)
+    client_class    = ResyncProxy(AsyncClient)
     magicmock_class = AsyncMagicMock
