@@ -47,6 +47,9 @@ EARLIER_MILLIS = 978422405000
 EARLIER_DATE_STR = '2001-01-02'
 
 class _TestClient:
+    """
+    Test suite used for both SyncClient and AsyncClient
+    """
 
     def setUp(self):
         self.mock_session = self.magicmock_class()
@@ -1448,9 +1451,15 @@ class _TestClient:
             json=watchlist)
 
 class SyncClientTest(_TestClient, unittest.TestCase):
+    """
+    Subclass set to use SyncClient and MagicMock
+    """
     client_class    = SyncClient
     magicmock_class = MagicMock
 
 class AsyncClientTest(_TestClient, unittest.TestCase):
+    """
+    Subclass set to resync AsyncClient and use AsyncMagicMock
+    """
     client_class    = ResyncProxy(AsyncClient)
     magicmock_class = AsyncMagicMock
