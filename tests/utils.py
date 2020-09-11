@@ -1,6 +1,6 @@
 import asyncio
-import asynctest
 import inspect
+from unittest.mock import AsyncMock
 
 class AsyncResync:
     """
@@ -50,7 +50,7 @@ class ResyncProxy:
 
 class AsyncMagicMock:
     """
-    Simple mock that returns a CoroutineMock instance for every
+    Simple mock that returns a AsyncMock instance for every
     attribute. Useful for mocking async libraries
     """
     def __init__(self):
@@ -60,7 +60,7 @@ class AsyncMagicMock:
         attr_cache = super().__getattribute__('_AsyncMagicMock__attr_cache')
         if key == '_AsyncMagicMock__attr_cache': return attr_cache
         if key not in attr_cache:
-            attr_cache[key] = asynctest.CoroutineMock()
+            attr_cache[key] = AsyncMock()
         return attr_cache[key]
 
     def __setattr__(self, key, val):
