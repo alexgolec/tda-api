@@ -288,8 +288,6 @@ class StreamClient(EnumEnforcer):
     async def handle_message(self):
         msg = await self._receive()
 
-        coroutines = []
-
         # response
         if 'response' in msg:
             raise UnexpectedResponse(msg)
@@ -301,7 +299,8 @@ class StreamClient(EnumEnforcer):
                     for handler in self._handlers[d['service']]:
                         labeled_d = handler.label_message(d)
                         _ = handler(labeled_d)
-                        if inspect.isawaitable(_): coroutines.append(_)
+                        if inspect.isawaitable(_):
+                            asyncio.ensure_future(_)
 
         # notify
         if 'notify' in msg:
@@ -311,10 +310,9 @@ class StreamClient(EnumEnforcer):
                 else:
                     for handler in self._handlers[d['service']]:
                         _ = handler(d)
-                        if inspect.isawaitable(_): coroutines.append(_)
+                        if inspect.isawaitable(_):
+                            asyncio.ensure_future(_)
 
-        if coroutines:
-            asyncio.ensure_future(*coroutines)
 
     ##########################################################################
     # LOGIN
