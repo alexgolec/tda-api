@@ -7,6 +7,7 @@ from tests.test_utils import no_duplicates
 from unittest import IsolatedAsyncioTestCase, TestCase
 from unittest.mock import ANY, AsyncMock, call, MagicMock, Mock, patch
 from tda import streaming
+from tda.streaming import services
 
 StreamClient = streaming.StreamClient
 
@@ -102,7 +103,7 @@ class StreamClientTest(IsolatedAsyncioTestCase):
     # Login
 
     @no_duplicates
-    @patch('tda.streaming.websockets.client.connect', new_callable=AsyncMock)
+    @patch('tda.streaming.client.websockets.client.connect', new_callable=AsyncMock)
     async def test_login_single_account_success(self, ws_connect):
         principals = account_principals()
         principals['accounts'].clear()
@@ -146,7 +147,7 @@ class StreamClientTest(IsolatedAsyncioTestCase):
         self.assertEqual(request['command'], 'LOGIN')
 
     @no_duplicates
-    @patch('tda.streaming.websockets.client.connect', new_callable=AsyncMock)
+    @patch('tda.streaming.client.websockets.client.connect', new_callable=AsyncMock)
     async def test_login_multiple_accounts_require_account_id(self, ws_connect):
         principals = account_principals()
         principals['accounts'].clear()
@@ -167,7 +168,7 @@ class StreamClientTest(IsolatedAsyncioTestCase):
         ws_connect.assert_not_called()
 
     @no_duplicates
-    @patch('tda.streaming.websockets.client.connect', new_callable=AsyncMock)
+    @patch('tda.streaming.client.websockets.client.connect', new_callable=AsyncMock)
     async def test_login_multiple_accounts_with_account_id(self, ws_connect):
         principals = account_principals()
         principals['accounts'].clear()
@@ -215,7 +216,7 @@ class StreamClientTest(IsolatedAsyncioTestCase):
         self.assertEqual(request['command'], 'LOGIN')
 
     @no_duplicates
-    @patch('tda.streaming.websockets.client.connect', new_callable=AsyncMock)
+    @patch('tda.streaming.client.websockets.client.connect', new_callable=AsyncMock)
     async def test_login_unrecognized_account_id(self, ws_connect):
         principals = account_principals()
         principals['accounts'].clear()
@@ -238,7 +239,7 @@ class StreamClientTest(IsolatedAsyncioTestCase):
         ws_connect.assert_not_called()
 
     @no_duplicates
-    @patch('tda.streaming.websockets.client.connect', new_callable=AsyncMock)
+    @patch('tda.streaming.client.websockets.client.connect', new_callable=AsyncMock)
     async def test_login_bad_response(self, ws_connect):
         principals = account_principals()
         principals['accounts'].clear()
@@ -257,11 +258,11 @@ class StreamClientTest(IsolatedAsyncioTestCase):
         response['response'][0]['content']['msg'] = 'failed for some reason'
         socket.recv.side_effect = [json.dumps(response)]
 
-        with self.assertRaises(tda.streaming.UnexpectedResponseCode):
+        with self.assertRaises(tda.streaming.exceptions.UnexpectedResponseCode):
             await self.client.login()
 
     @no_duplicates
-    @patch('tda.streaming.websockets.client.connect', new_callable=AsyncMock)
+    @patch('tda.streaming.client.websockets.client.connect', new_callable=AsyncMock)
     async def test_login_no_ssl_context(self, ws_connect):
         self.client = StreamClient(self.http_client)
 
@@ -279,7 +280,7 @@ class StreamClientTest(IsolatedAsyncioTestCase):
 
 
     @no_duplicates
-    @patch('tda.streaming.websockets.client.connect', new_callable=AsyncMock)
+    @patch('tda.streaming.client.websockets.client.connect', new_callable=AsyncMock)
     async def test_login_ssl_context(self, ws_connect):
         self.client = StreamClient(self.http_client, ssl_context='ssl_context')
 
@@ -297,7 +298,7 @@ class StreamClientTest(IsolatedAsyncioTestCase):
 
 
     @no_duplicates
-    @patch('tda.streaming.websockets.client.connect', new_callable=AsyncMock)
+    @patch('tda.streaming.client.websockets.client.connect', new_callable=AsyncMock)
     async def test_login_unexpected_request_id(self, ws_connect):
         principals = account_principals()
         principals['accounts'].clear()
@@ -315,12 +316,12 @@ class StreamClientTest(IsolatedAsyncioTestCase):
         response['response'][0]['requestid'] = 9999
         socket.recv.side_effect = [json.dumps(response)]
 
-        with self.assertRaisesRegex(tda.streaming.UnexpectedResponse,
+        with self.assertRaisesRegex(tda.streaming.exceptions.UnexpectedResponse,
                                     'unexpected requestid: 9999'):
             await self.client.login()
 
     @no_duplicates
-    @patch('tda.streaming.websockets.client.connect', new_callable=AsyncMock)
+    @patch('tda.streaming.client.websockets.client.connect', new_callable=AsyncMock)
     async def test_login_unexpected_service(self, ws_connect):
         principals = account_principals()
         principals['accounts'].clear()
@@ -337,12 +338,12 @@ class StreamClientTest(IsolatedAsyncioTestCase):
         response = self.success_response(0, 'NOT_ADMIN', 'LOGIN')
         socket.recv.side_effect = [json.dumps(response)]
 
-        with self.assertRaisesRegex(tda.streaming.UnexpectedResponse,
+        with self.assertRaisesRegex(tda.streaming.exceptions.UnexpectedResponse,
                                     'unexpected service: NOT_ADMIN'):
             await self.client.login()
 
     @no_duplicates
-    @patch('tda.streaming.websockets.client.connect', new_callable=AsyncMock)
+    @patch('tda.streaming.client.websockets.client.connect', new_callable=AsyncMock)
     async def test_login_unexpected_command(self, ws_connect):
         principals = account_principals()
         principals['accounts'].clear()
@@ -359,7 +360,7 @@ class StreamClientTest(IsolatedAsyncioTestCase):
         response = self.success_response(0, 'ADMIN', 'NOT_LOGIN')
         socket.recv.side_effect = [json.dumps(response)]
 
-        with self.assertRaisesRegex(tda.streaming.UnexpectedResponse,
+        with self.assertRaisesRegex(tda.streaming.exceptions.UnexpectedResponse,
                                     'unexpected command: NOT_LOGIN'):
             await self.client.login()
 
@@ -367,7 +368,7 @@ class StreamClientTest(IsolatedAsyncioTestCase):
     # QOS
 
     @no_duplicates
-    @patch('tda.streaming.websockets.client.connect', new_callable=AsyncMock)
+    @patch('tda.streaming.client.websockets.client.connect', new_callable=AsyncMock)
     async def test_qos_success(self, ws_connect):
         socket = await self.login_and_get_socket(ws_connect)
 
@@ -390,7 +391,7 @@ class StreamClientTest(IsolatedAsyncioTestCase):
         })
 
     @no_duplicates
-    @patch('tda.streaming.websockets.client.connect', new_callable=AsyncMock)
+    @patch('tda.streaming.client.websockets.client.connect', new_callable=AsyncMock)
     async def test_qos_failure(self, ws_connect):
         socket = await self.login_and_get_socket(ws_connect)
 
@@ -398,7 +399,7 @@ class StreamClientTest(IsolatedAsyncioTestCase):
         response['response'][0]['content']['code'] = 21
         socket.recv.side_effect = [json.dumps(response)]
 
-        with self.assertRaises(tda.streaming.UnexpectedResponseCode):
+        with self.assertRaises(tda.streaming.exceptions.UnexpectedResponseCode):
             await self.client.quality_of_service(StreamClient.QOSLevel.EXPRESS)
         socket.recv.assert_awaited_once()
 
@@ -406,7 +407,7 @@ class StreamClientTest(IsolatedAsyncioTestCase):
     # ACCT_ACTIVITY
 
     @no_duplicates
-    @patch('tda.streaming.websockets.client.connect', new_callable=AsyncMock)
+    @patch('tda.streaming.client.websockets.client.connect', new_callable=AsyncMock)
     async def test_account_activity_subs_success(self, ws_connect):
         socket = await self.login_and_get_socket(ws_connect)
 
@@ -430,7 +431,7 @@ class StreamClientTest(IsolatedAsyncioTestCase):
         })
 
     @no_duplicates
-    @patch('tda.streaming.websockets.client.connect', new_callable=AsyncMock)
+    @patch('tda.streaming.client.websockets.client.connect', new_callable=AsyncMock)
     async def test_account_activity_subs_failure(self, ws_connect):
         socket = await self.login_and_get_socket(ws_connect)
 
@@ -438,11 +439,11 @@ class StreamClientTest(IsolatedAsyncioTestCase):
         response['response'][0]['content']['code'] = 21
         socket.recv.side_effect = [json.dumps(response)]
 
-        with self.assertRaises(tda.streaming.UnexpectedResponseCode):
+        with self.assertRaises(tda.streaming.exceptions.UnexpectedResponseCode):
             await self.client.account_activity_sub()
 
     @no_duplicates
-    @patch('tda.streaming.websockets.client.connect', new_callable=AsyncMock)
+    @patch('tda.streaming.client.websockets.client.connect', new_callable=AsyncMock)
     async def test_account_activity_handler(self, ws_connect):
         socket = await self.login_and_get_socket(ws_connect)
 
@@ -498,7 +499,7 @@ class StreamClientTest(IsolatedAsyncioTestCase):
     # CHART_EQUITY
 
     @no_duplicates
-    @patch('tda.streaming.websockets.client.connect', new_callable=AsyncMock)
+    @patch('tda.streaming.client.websockets.client.connect', new_callable=AsyncMock)
     async def test_chart_equity_subs_and_add_success(self, ws_connect):
         socket = await self.login_and_get_socket(ws_connect)
 
@@ -543,7 +544,7 @@ class StreamClientTest(IsolatedAsyncioTestCase):
         })
 
     @no_duplicates
-    @patch('tda.streaming.websockets.client.connect', new_callable=AsyncMock)
+    @patch('tda.streaming.client.websockets.client.connect', new_callable=AsyncMock)
     async def test_chart_equity_subs_failure(self, ws_connect):
         socket = await self.login_and_get_socket(ws_connect)
 
@@ -551,11 +552,11 @@ class StreamClientTest(IsolatedAsyncioTestCase):
         response['response'][0]['content']['code'] = 21
         socket.recv.side_effect = [json.dumps(response)]
 
-        with self.assertRaises(tda.streaming.UnexpectedResponseCode):
+        with self.assertRaises(tda.streaming.exceptions.UnexpectedResponseCode):
             await self.client.chart_equity_subs(['GOOG', 'MSFT'])
 
     @no_duplicates
-    @patch('tda.streaming.websockets.client.connect', new_callable=AsyncMock)
+    @patch('tda.streaming.client.websockets.client.connect', new_callable=AsyncMock)
     async def test_chart_equity_add_failure(self, ws_connect):
         socket = await self.login_and_get_socket(ws_connect)
 
@@ -569,11 +570,11 @@ class StreamClientTest(IsolatedAsyncioTestCase):
 
         await self.client.chart_equity_subs(['GOOG', 'MSFT'])
 
-        with self.assertRaises(tda.streaming.UnexpectedResponseCode):
+        with self.assertRaises(tda.streaming.exceptions.UnexpectedResponseCode):
             await self.client.chart_equity_add(['INTC'])
 
     @no_duplicates
-    @patch('tda.streaming.websockets.client.connect', new_callable=AsyncMock)
+    @patch('tda.streaming.client.websockets.client.connect', new_callable=AsyncMock)
     async def test_chart_equity_handler(self, ws_connect):
         socket = await self.login_and_get_socket(ws_connect)
 
@@ -663,7 +664,7 @@ class StreamClientTest(IsolatedAsyncioTestCase):
     # CHART_FUTURES
 
     @no_duplicates
-    @patch('tda.streaming.websockets.client.connect', new_callable=AsyncMock)
+    @patch('tda.streaming.client.websockets.client.connect', new_callable=AsyncMock)
     async def test_chart_futures_subs_and_add_success(self, ws_connect):
         socket = await self.login_and_get_socket(ws_connect)
 
@@ -708,7 +709,7 @@ class StreamClientTest(IsolatedAsyncioTestCase):
         })
 
     @no_duplicates
-    @patch('tda.streaming.websockets.client.connect', new_callable=AsyncMock)
+    @patch('tda.streaming.client.websockets.client.connect', new_callable=AsyncMock)
     async def test_chart_futures_subs_failure(self, ws_connect):
         socket = await self.login_and_get_socket(ws_connect)
 
@@ -716,11 +717,11 @@ class StreamClientTest(IsolatedAsyncioTestCase):
         response['response'][0]['content']['code'] = 21
         socket.recv.side_effect = [json.dumps(response)]
 
-        with self.assertRaises(tda.streaming.UnexpectedResponseCode):
+        with self.assertRaises(tda.streaming.exceptions.UnexpectedResponseCode):
             await self.client.chart_futures_subs(['/ES', '/CL'])
 
     @no_duplicates
-    @patch('tda.streaming.websockets.client.connect', new_callable=AsyncMock)
+    @patch('tda.streaming.client.websockets.client.connect', new_callable=AsyncMock)
     async def test_chart_futures_add_failure(self, ws_connect):
         socket = await self.login_and_get_socket(ws_connect)
 
@@ -734,11 +735,11 @@ class StreamClientTest(IsolatedAsyncioTestCase):
 
         await self.client.chart_futures_subs(['/ES', '/CL'])
 
-        with self.assertRaises(tda.streaming.UnexpectedResponseCode):
+        with self.assertRaises(tda.streaming.exceptions.UnexpectedResponseCode):
             await self.client.chart_futures_add(['/ZC'])
 
     @no_duplicates
-    @patch('tda.streaming.websockets.client.connect', new_callable=AsyncMock)
+    @patch('tda.streaming.client.websockets.client.connect', new_callable=AsyncMock)
     async def test_chart_futures_handler(self, ws_connect):
         socket = await self.login_and_get_socket(ws_connect)
 
@@ -817,7 +818,7 @@ class StreamClientTest(IsolatedAsyncioTestCase):
     # QUOTE
 
     @no_duplicates
-    @patch('tda.streaming.websockets.client.connect', new_callable=AsyncMock)
+    @patch('tda.streaming.client.websockets.client.connect', new_callable=AsyncMock)
     async def test_level_one_equity_subs_success_all_fields(self, ws_connect):
         socket = await self.login_and_get_socket(ws_connect)
 
@@ -844,7 +845,7 @@ class StreamClientTest(IsolatedAsyncioTestCase):
         })
 
     @no_duplicates
-    @patch('tda.streaming.websockets.client.connect', new_callable=AsyncMock)
+    @patch('tda.streaming.client.websockets.client.connect', new_callable=AsyncMock)
     async def test_level_one_equity_subs_success_some_fields(self, ws_connect):
         socket = await self.login_and_get_socket(ws_connect)
 
@@ -852,10 +853,10 @@ class StreamClientTest(IsolatedAsyncioTestCase):
             1, 'QUOTE', 'SUBS'))]
 
         await self.client.level_one_equity_subs(['GOOG', 'MSFT'], fields=[
-            StreamClient.LevelOneEquityFields.SYMBOL,
-            StreamClient.LevelOneEquityFields.BID_PRICE,
-            StreamClient.LevelOneEquityFields.ASK_PRICE,
-            StreamClient.LevelOneEquityFields.QUOTE_TIME,
+            services.QUOTE.Fields.SYMBOL,
+            services.QUOTE.Fields.BID_PRICE,
+            services.QUOTE.Fields.ASK_PRICE,
+            services.QUOTE.Fields.QUOTE_TIME,
         ])
         socket.recv.assert_awaited_once()
         request = self.request_from_socket_mock(socket)
@@ -873,7 +874,7 @@ class StreamClientTest(IsolatedAsyncioTestCase):
         })
 
     @no_duplicates
-    @patch('tda.streaming.websockets.client.connect', new_callable=AsyncMock)
+    @patch('tda.streaming.client.websockets.client.connect', new_callable=AsyncMock)
     async def test_level_one_equity_subs_failure(self, ws_connect):
         socket = await self.login_and_get_socket(ws_connect)
 
@@ -881,11 +882,11 @@ class StreamClientTest(IsolatedAsyncioTestCase):
         response['response'][0]['content']['code'] = 21
         socket.recv.side_effect = [json.dumps(response)]
 
-        with self.assertRaises(tda.streaming.UnexpectedResponseCode):
+        with self.assertRaises(tda.streaming.exceptions.UnexpectedResponseCode):
             await self.client.level_one_equity_subs(['GOOG', 'MSFT'])
 
     @no_duplicates
-    @patch('tda.streaming.websockets.client.connect', new_callable=AsyncMock)
+    @patch('tda.streaming.client.websockets.client.connect', new_callable=AsyncMock)
     async def test_level_one_quote_handler(self, ws_connect):
         socket = await self.login_and_get_socket(ws_connect)
 
@@ -1151,7 +1152,7 @@ class StreamClientTest(IsolatedAsyncioTestCase):
     # OPTION
 
     @no_duplicates
-    @patch('tda.streaming.websockets.client.connect', new_callable=AsyncMock)
+    @patch('tda.streaming.client.websockets.client.connect', new_callable=AsyncMock)
     async def test_level_one_option_subs_success_all_fields(self, ws_connect):
         socket = await self.login_and_get_socket(ws_connect)
 
@@ -1178,7 +1179,7 @@ class StreamClientTest(IsolatedAsyncioTestCase):
         })
 
     @no_duplicates
-    @patch('tda.streaming.websockets.client.connect', new_callable=AsyncMock)
+    @patch('tda.streaming.client.websockets.client.connect', new_callable=AsyncMock)
     async def test_level_one_option_subs_success_some_fields(self, ws_connect):
         socket = await self.login_and_get_socket(ws_connect)
 
@@ -1187,10 +1188,10 @@ class StreamClientTest(IsolatedAsyncioTestCase):
 
         await self.client.level_one_option_subs(
             ['GOOG_052920C620', 'MSFT_052920C145'], fields=[
-                StreamClient.LevelOneOptionFields.SYMBOL,
-                StreamClient.LevelOneOptionFields.BID_PRICE,
-                StreamClient.LevelOneOptionFields.ASK_PRICE,
-                StreamClient.LevelOneOptionFields.VOLATILITY,
+                services.OPTION.Fields.SYMBOL,
+                services.OPTION.Fields.BID_PRICE,
+                services.OPTION.Fields.ASK_PRICE,
+                services.OPTION.Fields.VOLATILITY,
             ])
         socket.recv.assert_awaited_once()
         request = self.request_from_socket_mock(socket)
@@ -1208,7 +1209,7 @@ class StreamClientTest(IsolatedAsyncioTestCase):
         })
 
     @no_duplicates
-    @patch('tda.streaming.websockets.client.connect', new_callable=AsyncMock)
+    @patch('tda.streaming.client.websockets.client.connect', new_callable=AsyncMock)
     async def test_level_one_option_subs_failure(self, ws_connect):
         socket = await self.login_and_get_socket(ws_connect)
 
@@ -1216,12 +1217,12 @@ class StreamClientTest(IsolatedAsyncioTestCase):
         response['response'][0]['content']['code'] = 21
         socket.recv.side_effect = [json.dumps(response)]
 
-        with self.assertRaises(tda.streaming.UnexpectedResponseCode):
+        with self.assertRaises(tda.streaming.exceptions.UnexpectedResponseCode):
             await self.client.level_one_option_subs(
                 ['GOOG_052920C620', 'MSFT_052920C145'])
 
     @no_duplicates
-    @patch('tda.streaming.websockets.client.connect', new_callable=AsyncMock)
+    @patch('tda.streaming.client.websockets.client.connect', new_callable=AsyncMock)
     async def test_level_one_option_handler(self, ws_connect):
         socket = await self.login_and_get_socket(ws_connect)
 
@@ -1421,7 +1422,7 @@ class StreamClientTest(IsolatedAsyncioTestCase):
     # LEVELONE_FUTURES
 
     @no_duplicates
-    @patch('tda.streaming.websockets.client.connect', new_callable=AsyncMock)
+    @patch('tda.streaming.client.websockets.client.connect', new_callable=AsyncMock)
     async def test_level_one_futures_subs_success_all_fields(self, ws_connect):
         socket = await self.login_and_get_socket(ws_connect)
 
@@ -1446,7 +1447,7 @@ class StreamClientTest(IsolatedAsyncioTestCase):
         })
 
     @no_duplicates
-    @patch('tda.streaming.websockets.client.connect', new_callable=AsyncMock)
+    @patch('tda.streaming.client.websockets.client.connect', new_callable=AsyncMock)
     async def test_level_one_futures_subs_success_some_fields(self, ws_connect):
         socket = await self.login_and_get_socket(ws_connect)
 
@@ -1454,10 +1455,10 @@ class StreamClientTest(IsolatedAsyncioTestCase):
             1, 'LEVELONE_FUTURES', 'SUBS'))]
 
         await self.client.level_one_futures_subs(['/ES', '/CL'], fields=[
-            StreamClient.LevelOneFuturesFields.SYMBOL,
-            StreamClient.LevelOneFuturesFields.BID_PRICE,
-            StreamClient.LevelOneFuturesFields.ASK_PRICE,
-            StreamClient.LevelOneFuturesFields.FUTURE_PRICE_FORMAT,
+            services.LEVELONE_FUTURES.Fields.SYMBOL,
+            services.LEVELONE_FUTURES.Fields.BID_PRICE,
+            services.LEVELONE_FUTURES.Fields.ASK_PRICE,
+            services.LEVELONE_FUTURES.Fields.FUTURE_PRICE_FORMAT,
         ])
         socket.recv.assert_awaited_once()
         request = self.request_from_socket_mock(socket)
@@ -1475,7 +1476,7 @@ class StreamClientTest(IsolatedAsyncioTestCase):
         })
 
     @no_duplicates
-    @patch('tda.streaming.websockets.client.connect', new_callable=AsyncMock)
+    @patch('tda.streaming.client.websockets.client.connect', new_callable=AsyncMock)
     async def test_level_one_futures_subs_failure(self, ws_connect):
         socket = await self.login_and_get_socket(ws_connect)
 
@@ -1483,11 +1484,11 @@ class StreamClientTest(IsolatedAsyncioTestCase):
         response['response'][0]['content']['code'] = 21
         socket.recv.side_effect = [json.dumps(response)]
 
-        with self.assertRaises(tda.streaming.UnexpectedResponseCode):
+        with self.assertRaises(tda.streaming.exceptions.UnexpectedResponseCode):
             await self.client.level_one_futures_subs(['/ES', '/CL'])
 
     @no_duplicates
-    @patch('tda.streaming.websockets.client.connect', new_callable=AsyncMock)
+    @patch('tda.streaming.client.websockets.client.connect', new_callable=AsyncMock)
     async def test_level_one_futures_handler(self, ws_connect):
         socket = await self.login_and_get_socket(ws_connect)
 
@@ -1685,7 +1686,7 @@ class StreamClientTest(IsolatedAsyncioTestCase):
     # LEVELONE_FOREX
 
     @no_duplicates
-    @patch('tda.streaming.websockets.client.connect', new_callable=AsyncMock)
+    @patch('tda.streaming.client.websockets.client.connect', new_callable=AsyncMock)
     async def test_level_one_forex_subs_success_all_fields(self, ws_connect):
         socket = await self.login_and_get_socket(ws_connect)
 
@@ -1710,7 +1711,7 @@ class StreamClientTest(IsolatedAsyncioTestCase):
         })
 
     @no_duplicates
-    @patch('tda.streaming.websockets.client.connect', new_callable=AsyncMock)
+    @patch('tda.streaming.client.websockets.client.connect', new_callable=AsyncMock)
     async def test_level_one_forex_subs_success_some_fields(self, ws_connect):
         socket = await self.login_and_get_socket(ws_connect)
 
@@ -1718,10 +1719,10 @@ class StreamClientTest(IsolatedAsyncioTestCase):
             1, 'LEVELONE_FOREX', 'SUBS'))]
 
         await self.client.level_one_forex_subs(['EUR/USD', 'EUR/GBP'], fields=[
-            StreamClient.LevelOneForexFields.SYMBOL,
-            StreamClient.LevelOneForexFields.HIGH_PRICE,
-            StreamClient.LevelOneForexFields.LOW_PRICE,
-            StreamClient.LevelOneForexFields.MARKET_MAKER,
+            services.LEVELONE_FOREX.Fields.SYMBOL,
+            services.LEVELONE_FOREX.Fields.HIGH_PRICE,
+            services.LEVELONE_FOREX.Fields.LOW_PRICE,
+            services.LEVELONE_FOREX.Fields.MARKET_MAKER,
         ])
         socket.recv.assert_awaited_once()
         request = self.request_from_socket_mock(socket)
@@ -1739,7 +1740,7 @@ class StreamClientTest(IsolatedAsyncioTestCase):
         })
 
     @no_duplicates
-    @patch('tda.streaming.websockets.client.connect', new_callable=AsyncMock)
+    @patch('tda.streaming.client.websockets.client.connect', new_callable=AsyncMock)
     async def test_level_one_forex_subs_failure(self, ws_connect):
         socket = await self.login_and_get_socket(ws_connect)
 
@@ -1747,11 +1748,11 @@ class StreamClientTest(IsolatedAsyncioTestCase):
         response['response'][0]['content']['code'] = 21
         socket.recv.side_effect = [json.dumps(response)]
 
-        with self.assertRaises(tda.streaming.UnexpectedResponseCode):
+        with self.assertRaises(tda.streaming.exceptions.UnexpectedResponseCode):
             await self.client.level_one_forex_subs(['EUR/USD', 'EUR/GBP'])
 
     @no_duplicates
-    @patch('tda.streaming.websockets.client.connect', new_callable=AsyncMock)
+    @patch('tda.streaming.client.websockets.client.connect', new_callable=AsyncMock)
     async def test_level_one_forex_handler(self, ws_connect):
         socket = await self.login_and_get_socket(ws_connect)
 
@@ -1917,7 +1918,7 @@ class StreamClientTest(IsolatedAsyncioTestCase):
     # LEVELONE_FUTURES_OPTIONS
 
     @no_duplicates
-    @patch('tda.streaming.websockets.client.connect', new_callable=AsyncMock)
+    @patch('tda.streaming.client.websockets.client.connect', new_callable=AsyncMock)
     async def test_level_one_futures_options_subs_success_all_fields(
             self, ws_connect):
         socket = await self.login_and_get_socket(ws_connect)
@@ -1944,7 +1945,7 @@ class StreamClientTest(IsolatedAsyncioTestCase):
         })
 
     @no_duplicates
-    @patch('tda.streaming.websockets.client.connect', new_callable=AsyncMock)
+    @patch('tda.streaming.client.websockets.client.connect', new_callable=AsyncMock)
     async def test_level_one_futures_options_subs_success_some_fields(
             self, ws_connect):
         socket = await self.login_and_get_socket(ws_connect)
@@ -1954,10 +1955,10 @@ class StreamClientTest(IsolatedAsyncioTestCase):
 
         await self.client.level_one_futures_options_subs(
             ['NQU20_C6500', 'NQU20_P6500'], fields=[
-                StreamClient.LevelOneFuturesOptionsFields.SYMBOL,
-                StreamClient.LevelOneFuturesOptionsFields.BID_SIZE,
-                StreamClient.LevelOneFuturesOptionsFields.ASK_SIZE,
-                StreamClient.LevelOneFuturesOptionsFields.FUTURE_PRICE_FORMAT,
+                services.LEVELONE_FUTURES_OPTIONS.Fields.SYMBOL,
+                services.LEVELONE_FUTURES_OPTIONS.Fields.BID_SIZE,
+                services.LEVELONE_FUTURES_OPTIONS.Fields.ASK_SIZE,
+                services.LEVELONE_FUTURES_OPTIONS.Fields.FUTURE_PRICE_FORMAT,
             ])
         socket.recv.assert_awaited_once()
         request = self.request_from_socket_mock(socket)
@@ -1975,7 +1976,7 @@ class StreamClientTest(IsolatedAsyncioTestCase):
         })
 
     @no_duplicates
-    @patch('tda.streaming.websockets.client.connect', new_callable=AsyncMock)
+    @patch('tda.streaming.client.websockets.client.connect', new_callable=AsyncMock)
     async def test_level_one_futures_options_subs_failure(self, ws_connect):
         socket = await self.login_and_get_socket(ws_connect)
 
@@ -1983,13 +1984,13 @@ class StreamClientTest(IsolatedAsyncioTestCase):
         response['response'][0]['content']['code'] = 21
         socket.recv.side_effect = [json.dumps(response)]
 
-        with self.assertRaises(tda.streaming.UnexpectedResponseCode):
+        with self.assertRaises(tda.streaming.exceptions.UnexpectedResponseCode):
             await self.client.level_one_futures_options_subs(
                 ['NQU20_C6500', 'NQU20_P6500'])
 
     @no_duplicates
     # TODO: Replace this with real messages
-    @patch('tda.streaming.websockets.client.connect', new_callable=AsyncMock)
+    @patch('tda.streaming.client.websockets.client.connect', new_callable=AsyncMock)
     async def test_level_one_futures_options_handler(self, ws_connect):
         socket = await self.login_and_get_socket(ws_connect)
 
@@ -2193,7 +2194,7 @@ class StreamClientTest(IsolatedAsyncioTestCase):
     # TIMESALE_EQUITY
 
     @no_duplicates
-    @patch('tda.streaming.websockets.client.connect', new_callable=AsyncMock)
+    @patch('tda.streaming.client.websockets.client.connect', new_callable=AsyncMock)
     async def test_timesale_equity_subs_success_all_fields(self, ws_connect):
         socket = await self.login_and_get_socket(ws_connect)
 
@@ -2217,7 +2218,7 @@ class StreamClientTest(IsolatedAsyncioTestCase):
         })
 
     @no_duplicates
-    @patch('tda.streaming.websockets.client.connect', new_callable=AsyncMock)
+    @patch('tda.streaming.client.websockets.client.connect', new_callable=AsyncMock)
     async def test_timesale_equity_subs_success_some_fields(self, ws_connect):
         socket = await self.login_and_get_socket(ws_connect)
 
@@ -2225,9 +2226,9 @@ class StreamClientTest(IsolatedAsyncioTestCase):
             1, 'TIMESALE_EQUITY', 'SUBS'))]
 
         await self.client.timesale_equity_subs(['GOOG', 'MSFT'], fields=[
-            StreamClient.TimesaleFields.SYMBOL,
-            StreamClient.TimesaleFields.TRADE_TIME,
-            StreamClient.TimesaleFields.LAST_SIZE,
+            services.fields.TimesaleFields.SYMBOL,
+            services.fields.TimesaleFields.TRADE_TIME,
+            services.fields.TimesaleFields.LAST_SIZE,
         ])
         socket.recv.assert_awaited_once()
         request = self.request_from_socket_mock(socket)
@@ -2245,7 +2246,7 @@ class StreamClientTest(IsolatedAsyncioTestCase):
         })
 
     @no_duplicates
-    @patch('tda.streaming.websockets.client.connect', new_callable=AsyncMock)
+    @patch('tda.streaming.client.websockets.client.connect', new_callable=AsyncMock)
     async def test_timesale_equity_subs_failure(self, ws_connect):
         socket = await self.login_and_get_socket(ws_connect)
 
@@ -2253,11 +2254,11 @@ class StreamClientTest(IsolatedAsyncioTestCase):
         response['response'][0]['content']['code'] = 21
         socket.recv.side_effect = [json.dumps(response)]
 
-        with self.assertRaises(tda.streaming.UnexpectedResponseCode):
+        with self.assertRaises(tda.streaming.exceptions.UnexpectedResponseCode):
             await self.client.timesale_equity_subs(['GOOG', 'MSFT'])
 
     @no_duplicates
-    @patch('tda.streaming.websockets.client.connect', new_callable=AsyncMock)
+    @patch('tda.streaming.client.websockets.client.connect', new_callable=AsyncMock)
     async def test_timesale_equity_handler(self, ws_connect):
         socket = await self.login_and_get_socket(ws_connect)
 
@@ -2323,7 +2324,7 @@ class StreamClientTest(IsolatedAsyncioTestCase):
     # TIMESALE_FUTURES
 
     @no_duplicates
-    @patch('tda.streaming.websockets.client.connect', new_callable=AsyncMock)
+    @patch('tda.streaming.client.websockets.client.connect', new_callable=AsyncMock)
     async def test_timesale_futures_subs_success_all_fields(self, ws_connect):
         socket = await self.login_and_get_socket(ws_connect)
 
@@ -2347,7 +2348,7 @@ class StreamClientTest(IsolatedAsyncioTestCase):
         })
 
     @no_duplicates
-    @patch('tda.streaming.websockets.client.connect', new_callable=AsyncMock)
+    @patch('tda.streaming.client.websockets.client.connect', new_callable=AsyncMock)
     async def test_timesale_futures_subs_success_some_fields(self, ws_connect):
         socket = await self.login_and_get_socket(ws_connect)
 
@@ -2355,9 +2356,9 @@ class StreamClientTest(IsolatedAsyncioTestCase):
             1, 'TIMESALE_FUTURES', 'SUBS'))]
 
         await self.client.timesale_futures_subs(['/ES', '/CL'], fields=[
-            StreamClient.TimesaleFields.SYMBOL,
-            StreamClient.TimesaleFields.TRADE_TIME,
-            StreamClient.TimesaleFields.LAST_SIZE,
+            services.fields.TimesaleFields.SYMBOL,
+            services.fields.TimesaleFields.TRADE_TIME,
+            services.fields.TimesaleFields.LAST_SIZE,
         ])
         socket.recv.assert_awaited_once()
         request = self.request_from_socket_mock(socket)
@@ -2375,7 +2376,7 @@ class StreamClientTest(IsolatedAsyncioTestCase):
         })
 
     @no_duplicates
-    @patch('tda.streaming.websockets.client.connect', new_callable=AsyncMock)
+    @patch('tda.streaming.client.websockets.client.connect', new_callable=AsyncMock)
     async def test_timesale_futures_subs_failure(self, ws_connect):
         socket = await self.login_and_get_socket(ws_connect)
 
@@ -2383,11 +2384,11 @@ class StreamClientTest(IsolatedAsyncioTestCase):
         response['response'][0]['content']['code'] = 21
         socket.recv.side_effect = [json.dumps(response)]
 
-        with self.assertRaises(tda.streaming.UnexpectedResponseCode):
+        with self.assertRaises(tda.streaming.exceptions.UnexpectedResponseCode):
             await self.client.timesale_futures_subs(['/ES', '/CL'])
 
     @no_duplicates
-    @patch('tda.streaming.websockets.client.connect', new_callable=AsyncMock)
+    @patch('tda.streaming.client.websockets.client.connect', new_callable=AsyncMock)
     async def test_timesale_futures_handler(self, ws_connect):
         socket = await self.login_and_get_socket(ws_connect)
 
@@ -2452,7 +2453,7 @@ class StreamClientTest(IsolatedAsyncioTestCase):
     # TIMESALE_OPTIONS
 
     @no_duplicates
-    @patch('tda.streaming.websockets.client.connect', new_callable=AsyncMock)
+    @patch('tda.streaming.client.websockets.client.connect', new_callable=AsyncMock)
     async def test_timesale_options_subs_success_all_fields(self, ws_connect):
         socket = await self.login_and_get_socket(ws_connect)
 
@@ -2476,7 +2477,7 @@ class StreamClientTest(IsolatedAsyncioTestCase):
         })
 
     @no_duplicates
-    @patch('tda.streaming.websockets.client.connect', new_callable=AsyncMock)
+    @patch('tda.streaming.client.websockets.client.connect', new_callable=AsyncMock)
     async def test_timesale_options_subs_success_some_fields(self, ws_connect):
         socket = await self.login_and_get_socket(ws_connect)
 
@@ -2485,9 +2486,9 @@ class StreamClientTest(IsolatedAsyncioTestCase):
 
         await self.client.timesale_options_subs(
             ['GOOG_052920C620', 'MSFT_052920C145'], fields=[
-                StreamClient.TimesaleFields.SYMBOL,
-                StreamClient.TimesaleFields.TRADE_TIME,
-                StreamClient.TimesaleFields.LAST_SIZE,
+                services.fields.TimesaleFields.SYMBOL,
+                services.fields.TimesaleFields.TRADE_TIME,
+                services.fields.TimesaleFields.LAST_SIZE,
             ])
         socket.recv.assert_awaited_once()
         request = self.request_from_socket_mock(socket)
@@ -2505,7 +2506,7 @@ class StreamClientTest(IsolatedAsyncioTestCase):
         })
 
     @no_duplicates
-    @patch('tda.streaming.websockets.client.connect', new_callable=AsyncMock)
+    @patch('tda.streaming.client.websockets.client.connect', new_callable=AsyncMock)
     async def test_timesale_options_subs_failure(self, ws_connect):
         socket = await self.login_and_get_socket(ws_connect)
 
@@ -2513,13 +2514,13 @@ class StreamClientTest(IsolatedAsyncioTestCase):
         response['response'][0]['content']['code'] = 21
         socket.recv.side_effect = [json.dumps(response)]
 
-        with self.assertRaises(tda.streaming.UnexpectedResponseCode):
+        with self.assertRaises(tda.streaming.exceptions.UnexpectedResponseCode):
             await self.client.timesale_options_subs(
                 ['GOOG_052920C620', 'MSFT_052920C145'])
 
     @no_duplicates
     # TODO: Replace this with real messages
-    @patch('tda.streaming.websockets.client.connect', new_callable=AsyncMock)
+    @patch('tda.streaming.client.websockets.client.connect', new_callable=AsyncMock)
     async def test_timesale_options_handler(self, ws_connect):
         socket = await self.login_and_get_socket(ws_connect)
 
@@ -2586,7 +2587,7 @@ class StreamClientTest(IsolatedAsyncioTestCase):
     # LISTED_BOOK
 
     @no_duplicates
-    @patch('tda.streaming.websockets.client.connect', new_callable=AsyncMock)
+    @patch('tda.streaming.client.websockets.client.connect', new_callable=AsyncMock)
     async def test_listed_book_subs_success_all_fields(self, ws_connect):
         socket = await self.login_and_get_socket(ws_connect)
 
@@ -2610,7 +2611,7 @@ class StreamClientTest(IsolatedAsyncioTestCase):
         })
 
     @no_duplicates
-    @patch('tda.streaming.websockets.client.connect', new_callable=AsyncMock)
+    @patch('tda.streaming.client.websockets.client.connect', new_callable=AsyncMock)
     async def test_listed_book_subs_failure(self, ws_connect):
         socket = await self.login_and_get_socket(ws_connect)
 
@@ -2618,14 +2619,14 @@ class StreamClientTest(IsolatedAsyncioTestCase):
         response['response'][0]['content']['code'] = 21
         socket.recv.side_effect = [json.dumps(response)]
 
-        with self.assertRaises(tda.streaming.UnexpectedResponseCode):
+        with self.assertRaises(tda.streaming.exceptions.UnexpectedResponseCode):
             await self.client.listed_book_subs(['GOOG', 'MSFT'])
 
     ##########################################################################
     # NASDAQ_BOOK
 
     @no_duplicates
-    @patch('tda.streaming.websockets.client.connect', new_callable=AsyncMock)
+    @patch('tda.streaming.client.websockets.client.connect', new_callable=AsyncMock)
     async def test_nasdaq_book_subs_success_all_fields(self, ws_connect):
         socket = await self.login_and_get_socket(ws_connect)
 
@@ -2649,7 +2650,7 @@ class StreamClientTest(IsolatedAsyncioTestCase):
         })
 
     @no_duplicates
-    @patch('tda.streaming.websockets.client.connect', new_callable=AsyncMock)
+    @patch('tda.streaming.client.websockets.client.connect', new_callable=AsyncMock)
     async def test_nasdaq_book_subs_failure(self, ws_connect):
         socket = await self.login_and_get_socket(ws_connect)
 
@@ -2657,14 +2658,14 @@ class StreamClientTest(IsolatedAsyncioTestCase):
         response['response'][0]['content']['code'] = 21
         socket.recv.side_effect = [json.dumps(response)]
 
-        with self.assertRaises(tda.streaming.UnexpectedResponseCode):
+        with self.assertRaises(tda.streaming.exceptions.UnexpectedResponseCode):
             await self.client.nasdaq_book_subs(['GOOG', 'MSFT'])
 
     ##########################################################################
     # OPTIONS_BOOK
 
     @no_duplicates
-    @patch('tda.streaming.websockets.client.connect', new_callable=AsyncMock)
+    @patch('tda.streaming.client.websockets.client.connect', new_callable=AsyncMock)
     async def test_options_book_subs_success_all_fields(self, ws_connect):
         socket = await self.login_and_get_socket(ws_connect)
 
@@ -2689,7 +2690,7 @@ class StreamClientTest(IsolatedAsyncioTestCase):
         })
 
     @no_duplicates
-    @patch('tda.streaming.websockets.client.connect', new_callable=AsyncMock)
+    @patch('tda.streaming.client.websockets.client.connect', new_callable=AsyncMock)
     async def test_options_book_subs_failure(self, ws_connect):
         socket = await self.login_and_get_socket(ws_connect)
 
@@ -2697,7 +2698,7 @@ class StreamClientTest(IsolatedAsyncioTestCase):
         response['response'][0]['content']['code'] = 21
         socket.recv.side_effect = [json.dumps(response)]
 
-        with self.assertRaises(tda.streaming.UnexpectedResponseCode):
+        with self.assertRaises(tda.streaming.exceptions.UnexpectedResponseCode):
             await self.client.options_book_subs(
                 ['GOOG_052920C620', 'MSFT_052920C145'])
 
@@ -2705,7 +2706,7 @@ class StreamClientTest(IsolatedAsyncioTestCase):
     # Common book handler functionality
 
     @no_duplicates
-    @patch('tda.streaming.websockets.client.connect', new_callable=AsyncMock)
+    @patch('tda.streaming.client.websockets.client.connect', new_callable=AsyncMock)
     async def test_listed_book_handler(self, ws_connect):
         async def subs():
             await self.client.listed_book_subs(['GOOG', 'MSFT'])
@@ -2721,7 +2722,7 @@ class StreamClientTest(IsolatedAsyncioTestCase):
             ws_connect, 'LISTED_BOOK', subs, register_handler)
 
     @no_duplicates
-    @patch('tda.streaming.websockets.client.connect', new_callable=AsyncMock)
+    @patch('tda.streaming.client.websockets.client.connect', new_callable=AsyncMock)
     async def test_nasdaq_book_handler(self, ws_connect):
         async def subs():
             await self.client.nasdaq_book_subs(['GOOG', 'MSFT'])
@@ -2737,7 +2738,7 @@ class StreamClientTest(IsolatedAsyncioTestCase):
             ws_connect, 'NASDAQ_BOOK', subs, register_handler)
 
     @no_duplicates
-    @patch('tda.streaming.websockets.client.connect', new_callable=AsyncMock)
+    @patch('tda.streaming.client.websockets.client.connect', new_callable=AsyncMock)
     async def test_options_book_handler(self, ws_connect):
         async def subs():
             await self.client.options_book_subs(['GOOG', 'MSFT'])
@@ -3156,7 +3157,7 @@ class StreamClientTest(IsolatedAsyncioTestCase):
     # NEWS_HEADLINE
 
     @no_duplicates
-    @patch('tda.streaming.websockets.client.connect', new_callable=AsyncMock)
+    @patch('tda.streaming.client.websockets.client.connect', new_callable=AsyncMock)
     async def test_news_headline_subs_success(self, ws_connect):
         socket = await self.login_and_get_socket(ws_connect)
 
@@ -3180,7 +3181,7 @@ class StreamClientTest(IsolatedAsyncioTestCase):
         })
 
     @no_duplicates
-    @patch('tda.streaming.websockets.client.connect', new_callable=AsyncMock)
+    @patch('tda.streaming.client.websockets.client.connect', new_callable=AsyncMock)
     async def test_news_headline_subs_failure(self, ws_connect):
         socket = await self.login_and_get_socket(ws_connect)
 
@@ -3188,12 +3189,12 @@ class StreamClientTest(IsolatedAsyncioTestCase):
         response['response'][0]['content']['code'] = 21
         socket.recv.side_effect = [json.dumps(response)]
 
-        with self.assertRaises(tda.streaming.UnexpectedResponseCode):
+        with self.assertRaises(tda.streaming.exceptions.UnexpectedResponseCode):
             await self.client.news_headline_subs(['GOOG', 'MSFT'])
 
     @no_duplicates
     # TODO: Replace this with real messages.
-    @patch('tda.streaming.websockets.client.connect', new_callable=AsyncMock)
+    @patch('tda.streaming.client.websockets.client.connect', new_callable=AsyncMock)
     async def test_news_headline_handler(self, ws_connect):
         socket = await self.login_and_get_socket(ws_connect)
 
@@ -3280,7 +3281,7 @@ class StreamClientTest(IsolatedAsyncioTestCase):
         self.assert_handler_called_once_with(async_handler, expected_item)
 
     @no_duplicates
-    @patch('tda.streaming.websockets.client.connect', new_callable=AsyncMock)
+    @patch('tda.streaming.client.websockets.client.connect', new_callable=AsyncMock)
     async def test_news_headline_not_authorized_notification(self, ws_connect):
         socket = await self.login_and_get_socket(ws_connect)
 
@@ -3328,7 +3329,7 @@ class StreamClientTest(IsolatedAsyncioTestCase):
     # If this were to ever change, these tests will have to be revisited.
 
     @no_duplicates
-    @patch('tda.streaming.websockets.client.connect', new_callable=AsyncMock)
+    @patch('tda.streaming.client.websockets.client.connect', new_callable=AsyncMock)
     async def test_messages_received_while_awaiting_response(self, ws_connect):
         socket = await self.login_and_get_socket(ws_connect)
 
@@ -3351,7 +3352,7 @@ class StreamClientTest(IsolatedAsyncioTestCase):
         async_handler.assert_called_once_with(stream_item['data'][0])
 
     @no_duplicates
-    @patch('tda.streaming.websockets.client.connect', new_callable=AsyncMock)
+    @patch('tda.streaming.client.websockets.client.connect', new_callable=AsyncMock)
     async def test_messages_received_while_awaiting_failed_response_bad_code(
             self, ws_connect):
         socket = await self.login_and_get_socket(ws_connect)
@@ -3367,7 +3368,7 @@ class StreamClientTest(IsolatedAsyncioTestCase):
             json.dumps(failed_add_response)]
 
         await self.client.chart_equity_subs(['GOOG,MSFT'])
-        with self.assertRaises(tda.streaming.UnexpectedResponseCode):
+        with self.assertRaises(tda.streaming.exceptions.UnexpectedResponseCode):
             await self.client.chart_equity_add(['INTC'])
 
         handler = Mock()
@@ -3379,7 +3380,7 @@ class StreamClientTest(IsolatedAsyncioTestCase):
         async_handler.assert_called_once_with(stream_item['data'][0])
 
     @no_duplicates
-    @patch('tda.streaming.websockets.client.connect', new_callable=AsyncMock)
+    @patch('tda.streaming.client.websockets.client.connect', new_callable=AsyncMock)
     async def test_messages_received_while_receiving_unexpected_response(
             self, ws_connect):
         socket = await self.login_and_get_socket(ws_connect)
@@ -3395,7 +3396,7 @@ class StreamClientTest(IsolatedAsyncioTestCase):
             json.dumps(failed_add_response)]
 
         await self.client.chart_equity_subs(['GOOG,MSFT'])
-        with self.assertRaises(tda.streaming.UnexpectedResponse):
+        with self.assertRaises(tda.streaming.exceptions.UnexpectedResponse):
             await self.client.chart_equity_add(['INTC'])
 
         handler = Mock()
@@ -3407,7 +3408,7 @@ class StreamClientTest(IsolatedAsyncioTestCase):
         async_handler.assert_called_once_with(stream_item['data'][0])
 
     @no_duplicates
-    @patch('tda.streaming.websockets.client.connect', new_callable=AsyncMock)
+    @patch('tda.streaming.client.websockets.client.connect', new_callable=AsyncMock)
     async def test_handle_heartbeat_messages(self, ws_connect):
         socket = await self.login_and_get_socket(ws_connect)
 
@@ -3435,7 +3436,7 @@ class StreamClientTest(IsolatedAsyncioTestCase):
         self.assert_handler_called_once_with(async_handler, expected_item)
 
     @no_duplicates
-    @patch('tda.streaming.websockets.client.connect', new_callable=AsyncMock)
+    @patch('tda.streaming.client.websockets.client.connect', new_callable=AsyncMock)
     async def test_handle_message_unexpected_response(self, ws_connect):
         socket = await self.login_and_get_socket(ws_connect)
 
@@ -3445,11 +3446,11 @@ class StreamClientTest(IsolatedAsyncioTestCase):
 
         await self.client.chart_equity_subs(['GOOG,MSFT'])
 
-        with self.assertRaises(tda.streaming.UnexpectedResponse):
+        with self.assertRaises(tda.streaming.exceptions.UnexpectedResponse):
             await self.client.handle_message()
 
     @no_duplicates
-    @patch('tda.streaming.websockets.client.connect', new_callable=AsyncMock)
+    @patch('tda.streaming.client.websockets.client.connect', new_callable=AsyncMock)
     async def test_handle_message_unparsable_message(self, ws_connect):
         socket = await self.login_and_get_socket(ws_connect)
 
@@ -3465,11 +3466,11 @@ class StreamClientTest(IsolatedAsyncioTestCase):
 
         await self.client.chart_equity_subs(['GOOG,MSFT'])
 
-        with self.assertRaises(tda.streaming.UnparsableMessage):
+        with self.assertRaises(tda.streaming.client.UnparsableMessage):
             await self.client.handle_message()
 
     @no_duplicates
-    @patch('tda.streaming.websockets.client.connect', new_callable=AsyncMock)
+    @patch('tda.streaming.client.websockets.client.connect', new_callable=AsyncMock)
     async def test_handle_message_multiple_handlers(self, ws_connect):
         socket = await self.login_and_get_socket(ws_connect)
 
@@ -3491,7 +3492,7 @@ class StreamClientTest(IsolatedAsyncioTestCase):
         async_handler.assert_called_once_with(stream_item_1['data'][0])
 
     @no_duplicates
-    @patch('tda.streaming.websockets.client.connect', new_callable=AsyncMock)
+    @patch('tda.streaming.client.websockets.client.connect', new_callable=AsyncMock)
     async def test_multiple_data_per_message(self, ws_connect):
         socket = await self.login_and_get_socket(ws_connect)
 
@@ -3518,29 +3519,14 @@ class StreamClientTest(IsolatedAsyncioTestCase):
             [call(stream_item['data'][0]), call(stream_item['data'][1])])
 
     @no_duplicates
-    @patch('tda.streaming.websockets.client.connect', new_callable=AsyncMock)
+    @patch('tda.streaming.client.websockets.client.connect', new_callable=AsyncMock)
     async def test_handle_message_without_login(self, ws_connect):
         with self.assertRaisesRegex(ValueError, '.*Socket not open.*'):
             await self.client.handle_message()
 
     @no_duplicates
-    @patch('tda.streaming.websockets.client.connect', new_callable=AsyncMock)
+    @patch('tda.streaming.client.websockets.client.connect', new_callable=AsyncMock)
     async def test_subscribe_without_login(self, ws_connect):
         with self.assertRaisesRegex(ValueError, '.*Socket not open.*'):
             await self.client.chart_equity_subs(['GOOG,MSFT'])
 
-class StreamClientMiscTest(TestCase):
-    @no_duplicates
-    def test_service(self):
-        # Spot check to make sure the variable name equals the enum name
-        # equals the enum value
-        self.assertEqual(streaming.Service.LISTED_BOOK.name, 'LISTED_BOOK')
-        self.assertEqual(streaming.Service.LISTED_BOOK.value, 'LISTED_BOOK')
-        # Make sure all the names are equal to the values
-        for service in list(streaming.Service):
-            self.assertEqual(service.name, service.value)
-
-    @no_duplicates
-    def test_get_normalizers(self):
-        for service in list(streaming.Service):
-            self.assertIsNotNone(StreamClient._field_normalizer(service))
