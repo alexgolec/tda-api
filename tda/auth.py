@@ -3,6 +3,7 @@
 
 from requests_oauthlib import OAuth2Session
 
+import json
 import logging
 import pickle
 import time
@@ -19,9 +20,26 @@ def __token_updater(token_path):
     def update_token(t):
         get_logger().info('Updating token to file {}'.format(token_path))
 
-        with open(token_path, 'wb') as f:
-            pickle.dump(t, f)
+        with open(token_path, 'w') as f:
+            json.dump(t, f)
     return update_token
+
+
+def __token_loader(token_path):
+    def load_token():
+        get_logger().info('Loading token from file {}'.format(token_path))
+
+        with open(token_path, 'rb') as f:
+            token_data = f.read()
+            try:
+                return json.loads(token_data.decode())
+            except ValueError:
+                get_logger().warning(
+                    "Unable to load JSON token from file {}, falling back to pickle"\
+                    .format(token_path)
+                )
+                return pickle.loads(token_data)
+    return load_token
 
 
 def __normalize_api_key(api_key):
@@ -51,9 +69,8 @@ def client_from_token_file(token_path, api_key):
     :param api_key: Your TD Ameritrade application's API key, also known as the
                     client ID.
     '''
-    def load():
-        with open(token_path, 'rb') as f:
-            return pickle.load(f)
+    
+    load = __token_loader(token_path)
 
     return client_from_access_functions(
             api_key, load, __token_updater(token_path))
