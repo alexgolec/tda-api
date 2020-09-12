@@ -40,7 +40,7 @@ class StreamClient(EnumEnforcer):
         self._request_id = 0
         # Construct a dict for all services
         self._handlers = dict(
-            [(svc, []) for svc in services.get_service_classes()])
+            [(svc, set()) for svc in services.get_service_classes()])
 
         # When listening for responses, we sometimes encounter non-response
         # messages. Since this happens outside the context of the handler
@@ -361,11 +361,48 @@ class StreamClient(EnumEnforcer):
         await self._send({'requests': [request]})
         await self._await_response(request_id, 'ADMIN', 'QOS')
 
-    #########################################################################
+    ##########################################################################
+    # Streaming API v2.0
+
+    async def subscribe(self, service, symbols=None, fields=None):
+        if service == services.ACCT_ACTIVITY:
+            # Special case where ACCT_ACTIVITY wants our stream key
+            symbols = [self._stream_key]
+        if fields is None:
+            fields = service.Fields.all_fields()
+        await self._service_op(
+              symbols, service.__name__, 'SUBS', service.Fields,
+              fields=fields)
+
+    async def append_subscription(self, service, symbols, fields=None):
+        if service == services.ACCT_ACTIVITY:
+            # Special case where ACCT_ACTIVITY wants our stream key
+            symbols = [self._stream_key]
+        if fields is None:
+            fields = service.Fields.all_fields()
+        await self._service_op(
+              symbols, service.__name__, 'ADD', service.Fields,
+              fields=service.Fields.all_fields())
+
+    async def unsubscribe(self, service, symbols):
+        if service == services.ACCT_ACTIVITY:
+            # Special case where ACCT_ACTIVITY wants our stream key
+            symbols = [self._stream_key]
+        await self._service_op(
+            symbols, service.__name__, 'UNSUBS', service.Fields,
+            fields=service.Fields.all_fields())
+
+    def add_handler(self, service, handler):
+        self._handlers[service].add(handler)
+
+    def remove_handler(self, service, handler):
+        self._handlers[services].remove(handler)
+
+    ##########################################################################
     # HEARTBEAT
 
     def add_heartbeat_handler(self, handler):
-        self._handlers[services.HEARTBEAT].append(handler)
+        self.add_handler(services.HEARTBEAT, handler)
 
     ##########################################################################
     # ACCT_ACTIVITY
@@ -378,16 +415,14 @@ class StreamClient(EnumEnforcer):
         Subscribe to account activity for the account id associated with this
         streaming client. See :class:`AccountActivityFields` for more info.
         '''
-        await self._service_op(
-            [self._stream_key], 'ACCT_ACTIVITY', 'SUBS',
-            services.ACCT_ACTIVITY.Fields)
+        await self.subscribe(services.ACCT_ACTIVITY)
 
     def add_account_activity_handler(self, handler):
         '''
         Adds a handler to the account activity subscription. See
         :ref:`registering_handlers` for details.
         '''
-        self._handlers[services.ACCT_ACTIVITY].append(handler)
+        self.add_handler(services.ACCT_ACTIVITY, handler)
 
     ##########################################################################
     # CHART_EQUITY
@@ -401,9 +436,7 @@ class StreamClient(EnumEnforcer):
         times.
 
         :param symbols: Equity symbols to subscribe to.'''
-        await self._service_op(
-            symbols, 'CHART_EQUITY', 'SUBS', services.CHART_EQUITY.Fields,
-            fields=services.CHART_EQUITY.Fields.all_fields())
+        await self.subscribe(services.CHART_EQUITY, symbols)
 
     async def chart_equity_add(self, symbols):
         '''
@@ -415,16 +448,14 @@ class StreamClient(EnumEnforcer):
 
         :param symbols: Equity symbols to add to the subscription.
         '''
-        await self._service_op(
-            symbols, 'CHART_EQUITY', 'ADD', services.CHART_EQUITY.Fields,
-            fields=services.CHART_EQUITY.Fields.all_fields())
+        await self.append_subscription(services.CHART_EQUITY, symbols)
 
     def add_chart_equity_handler(self, handler):
         '''
         Adds a handler to the equity chart subscription. See
         :ref:`registering_handlers` for details.
         '''
-        self._handlers[services.CHART_EQUITY].append(handler)
+        self.add_handler(services.CHART_EQUITY, handler)
 
     ##########################################################################
     # CHART_FUTURES
@@ -439,9 +470,7 @@ class StreamClient(EnumEnforcer):
 
         :param symbols: Futures symbols to subscribe to.
         '''
-        await self._service_op(
-            symbols, 'CHART_FUTURES', 'SUBS', services.CHART_FUTURES.Fields,
-            fields=services.CHART_FUTURES.Fields.all_fields())
+        await self.subscribe(services.CHART_FUTURES, symbols)
 
     async def chart_futures_add(self, symbols):
         '''
@@ -453,16 +482,14 @@ class StreamClient(EnumEnforcer):
 
         :param symbols: Futures symbols to add to the subscription.
         '''
-        await self._service_op(
-            symbols, 'CHART_FUTURES', 'ADD', services.CHART_FUTURES.Fields,
-            fields=services.CHART_FUTURES.Fields.all_fields())
+        await self.append_subscription(services.CHART_FUTURES, symbols)
 
     def add_chart_futures_handler(self, handler):
         '''
         Adds a handler to the futures chart subscription. See
         :ref:`registering_handlers` for details.
         '''
-        self._handlers[services.CHART_FUTURES].append(handler)
+        self.add_handler(services.CHART_FUTURES, handler)
 
     ##########################################################################
     # QUOTE
@@ -479,16 +506,14 @@ class StreamClient(EnumEnforcer):
                        the fields to return in streaming entries. If unset, all
                        fields will be requested.
         '''
-        await self._service_op(
-            symbols, 'QUOTE', 'SUBS', services.QUOTE.Fields,
-            fields=fields)
+        await self.subscribe(services.QUOTE, symbols, fields)
 
     def add_level_one_equity_handler(self, handler):
         '''
         Register a function to handle level one equity quotes as they are sent.
         See :ref:`registering_handlers` for details.
         '''
-        self._handlers[services.QUOTE].append(handler)
+        self.add_handler(services.QUOTE, handler)
 
     ##########################################################################
     # OPTION
@@ -505,16 +530,14 @@ class StreamClient(EnumEnforcer):
                        the fields to return in streaming entries. If unset, all
                        fields will be requested.
         '''
-        await self._service_op(
-            symbols, 'OPTION', 'SUBS', services.OPTION.Fields,
-            fields=fields)
+        await self.subscribe(services.OPTION, symbols, fields)
 
     def add_level_one_option_handler(self, handler):
         '''
         Register a function to handle level one options quotes as they are sent.
         See :ref:`registering_handlers` for details.
         '''
-        self._handlers[services.OPTION].append(handler)
+        self.add_handler(services.OPTION, handler)
 
     ##########################################################################
     # LEVELONE_FUTURES
@@ -531,16 +554,14 @@ class StreamClient(EnumEnforcer):
                        the fields to return in streaming entries. If unset, all
                        fields will be requested.
         '''
-        await self._service_op(
-            symbols, 'LEVELONE_FUTURES', 'SUBS',
-            services.LEVELONE_FUTURES.Fields, fields=fields)
+        await self.subscribe(services.LEVELONE_FUTURES, symbols, fields)
 
     def add_level_one_futures_handler(self, handler):
         '''
         Register a function to handle level one futures quotes as they are sent.
         See :ref:`registering_handlers` for details.
         '''
-        self._handlers[services.LEVELONE_FUTURES].append(handler)
+        self.add_handler(services.LEVELONE_FUTURES, handler)
 
     ##########################################################################
     # LEVELONE_FOREX
@@ -557,16 +578,14 @@ class StreamClient(EnumEnforcer):
                        the fields to return in streaming entries. If unset, all
                        fields will be requested.
         '''
-        await self._service_op(
-            symbols, 'LEVELONE_FOREX', 'SUBS',
-            services.LEVELONE_FOREX.Fields, fields=fields)
+        await self.subscribe(services.LEVELONE_FOREX, symbols, fields)
 
     def add_level_one_forex_handler(self, handler):
         '''
         Register a function to handle level one forex quotes as they are sent.
         See :ref:`registering_handlers` for details.
         '''
-        self._handlers[services.LEVELONE_FOREX].append(handler)
+        self.add_handler(services.LEVELONE_FOREX, handler)
 
     ##########################################################################
     # LEVELONE_FUTURES_OPTIONS
@@ -583,16 +602,15 @@ class StreamClient(EnumEnforcer):
                        representing the fields to return in streaming entries.
                        If unset, all fields will be requested.
         '''
-        await self._service_op(
-            symbols, 'LEVELONE_FUTURES_OPTIONS', 'SUBS',
-            services.LEVELONE_FUTURES_OPTIONS.Fields, fields=fields)
+        await self.subscribe(
+                services.LEVELONE_FUTURES_OPTIONS, symbols, fields)
 
     def add_level_one_futures_options_handler(self, handler):
         '''
         Register a function to handle level one futures options quotes as they
         are sent. See :ref:`registering_handlers` for details.
         '''
-        self._handlers[services.LEVELONE_FUTURES_OPTIONS].append(handler)
+        self.add_handler(services.LEVELONE_FUTURES_OPTIONS, handler)
 
     ##########################################################################
     # TIMESALE
@@ -606,16 +624,14 @@ class StreamClient(EnumEnforcer):
 
         :param symbols: Equity symbols to subscribe to
         '''
-        await self._service_op(
-            symbols, 'TIMESALE_EQUITY', 'SUBS',
-            services.fields.TimesaleFields, fields=fields)
+        await self.subscribe(services.TIMESALE_EQUITY, symbols, fields)
 
     def add_timesale_equity_handler(self, handler):
         '''
         Register a function to handle equity trade notifications as they happen
         See :ref:`registering_handlers` for details.
         '''
-        self._handlers[services.TIMESALE_EQUITY].append(handler)
+        self.add_handler(services.TIMESALE_EQUITY, handler)
 
     async def timesale_futures_subs(self, symbols, *, fields=None):
         '''
@@ -626,16 +642,14 @@ class StreamClient(EnumEnforcer):
 
         :param symbols: Futures symbols to subscribe to
         '''
-        await self._service_op(
-            symbols, 'TIMESALE_FUTURES', 'SUBS',
-            services.fields.TimesaleFields, fields=fields)
+        await self.subscribe(services.TIMESALE_FUTURES, symbols, fields)
 
     def add_timesale_futures_handler(self, handler):
         '''
         Register a function to handle futures trade notifications as they happen
         See :ref:`registering_handlers` for details.
         '''
-        self._handlers[services.TIMESALE_FUTURES].append(handler)
+        self.add_handler(services.TIMESALE_FUTURES, handler)
 
     async def timesale_options_subs(self, symbols, *, fields=None):
         '''
@@ -646,16 +660,14 @@ class StreamClient(EnumEnforcer):
 
         :param symbols: Options symbols to subscribe to
         '''
-        await self._service_op(
-            symbols, 'TIMESALE_OPTIONS', 'SUBS',
-            services.fields.TimesaleFields, fields=fields)
+        await self.subscribe(services.TIMESALE_OPTIONS, symbols, fields)
 
     def add_timesale_options_handler(self, handler):
         '''
         Register a function to handle options trade notifications as they happen
         See :ref:`registering_handlers` for details.
         '''
-        self._handlers[services.TIMESALE_OPTIONS].append(handler)
+        self.add_handler(services.TIMESALE_OPTIONS, handler)
 
     ##########################################################################
     # LISTED_BOOK
@@ -665,16 +677,14 @@ class StreamClient(EnumEnforcer):
         Subscribe to the NYSE level two order book. Note this stream has no
         official documentation.
         '''
-        await self._service_op(
-            symbols, 'LISTED_BOOK', 'SUBS',
-            services.fields.BookFields, fields=services.fields.BookFields.all_fields())
+        await self.subscribe(services.LISTED_BOOK, symbols)
 
     def add_listed_book_handler(self, handler):
         '''
         Register a function to handle level two NYSE book data as it is updated
         See :ref:`registering_handlers` for details.
         '''
-        self._handlers[services.LISTED_BOOK].append(handler)
+        self.add_handler(services.LISTED_BOOK, handler)
 
     ##########################################################################
     # NASDAQ_BOOK
@@ -684,16 +694,14 @@ class StreamClient(EnumEnforcer):
         Subscribe to the NASDAQ level two order book. Note this stream has no
         official documentation.
         '''
-        await self._service_op(symbols, 'NASDAQ_BOOK', 'SUBS',
-                               services.fields.BookFields,
-                               fields=services.fields.BookFields.all_fields())
+        await self.subscribe(services.NASDAQ_BOOK, symbols)
 
     def add_nasdaq_book_handler(self, handler):
         '''
         Register a function to handle level two NASDAQ book data as it is
         updated See :ref:`registering_handlers` for details.
         '''
-        self._handlers[services.NASDAQ_BOOK].append(handler)
+        self.add_handler(services.NASDAQ_BOOK, handler)
 
     ##########################################################################
     # OPTIONS_BOOK
@@ -704,16 +712,14 @@ class StreamClient(EnumEnforcer):
         official documentation, and it's not entirely clear what exchange it
         corresponds to. Use at your own risk.
         '''
-        await self._service_op(symbols, 'OPTIONS_BOOK', 'SUBS',
-                               services.fields.BookFields,
-                               fields=services.fields.BookFields.all_fields())
+        await self.subscribe(services.OPTIONS_BOOK, symbols)
 
     def add_options_book_handler(self, handler):
         '''
         Register a function to handle level two options book data as it is
         updated See :ref:`registering_handlers` for details.
         '''
-        self._handlers[services.OPTIONS_BOOK].append(handler)
+        self.add_handler(services.OPTIONS_BOOK, handler)
 
     ##########################################################################
     # NEWS_HEADLINE
@@ -725,13 +731,11 @@ class StreamClient(EnumEnforcer):
 
         Subscribe to news headlines related to the given symbols.
         '''
-        await self._service_op(symbols, 'NEWS_HEADLINE', 'SUBS',
-                               services.NEWS_HEADLINE.Fields,
-                               fields=services.NEWS_HEADLINE.Fields.all_fields())
+        await self.subscribe(services.NEWS_HEADLINE, symbols)
 
     def add_news_headline_handler(self, handler):
         '''
         Register a function to handle news headlines as they are provided. See
         :ref:`registering_handlers` for details.
         '''
-        self._handlers[services.NEWS_HEADLINE].append(handler)
+        self.add_handler(services.NEWS_HEADLINE, handler)
