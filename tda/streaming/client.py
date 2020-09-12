@@ -42,56 +42,84 @@ class StreamClient(EnumEnforcer):
         self._handlers = dict(
             [(svc, set()) for svc in services.get_service_classes()])
 
-        # When listening for responses, we sometimes encounter non-response
-        # messages. Since this happens outside the context of the handler
-        # dispatcher, we cannot handle these messages. However, we still need to
-        # deliver these messages. This list records the messages that were read
-        # from the stream but not handled yet. Messages should be read from this
-        # list before they are read from the stream.
-        self._overflow_items = deque()
+        # we use these to track request responses
+        self._awaiting_requests = set()
+        self._pending_response_blobs  = {}
 
         # Logging-related fields
         self.logger = get_logger()
-        self.request_number = 0
 
-    def req_num(self):
-        self.request_number += 1
-        return self.request_number
+    def _validate_response(self, request, response):
+        # Validate request ID
+        if response['requestid'] != request['requestid']:
+            raise UnexpectedResponse(
+                response, 'unexpected requestid: {}'.format(
+                    request['requestid']))
 
-    async def _send(self, obj):
+        # Validate service
+        if response['service'] != request['service']:
+            raise UnexpectedResponse(
+                response, 'unexpected service: {}'.format(
+                    response['service']))
+
+        # Validate command
+        if response['command'] != request['command']:
+            raise UnexpectedResponse(
+                response, 'unexpected command: {}'.format(
+                    response['command']))
+
+        # Validate response code
+        if response['content']['code'] != 0:
+            raise UnexpectedResponseCode(
+                response,
+                'unexpected response code: {}, msg is \'{}\''.format(
+                    response['content']['code'],
+                    response['content']['msg']))
+
+    async def _send(self, obj, await_response=True):
         if self._socket is None:
             raise ValueError(
                 'Socket not open. Did you forget to call login()?')
 
-        self.logger.debug('Send {}: Sending {}'.format(
-            self.req_num(), json.dumps(obj, indent=4)))
+        if len(obj['requests']) != 1:
+            raise UnsupportedNumberOfRequests
 
         await self._socket.send(json.dumps(obj))
+
+        if await_response:
+            # grab the requestid from the request obj
+            request_id = obj['requests'][0]['requestid']
+
+            # register ourselves as awaiting a response
+            self._awaiting_requests.add(request_id)
+            
+            # in case user code is not already looping messages, lets loop here
+            while request_id not in self._pending_response_blobs:
+                await self.handle_message()
+
+            # fetch, remove, and then validate the response
+            response = self._pending_response_blobs.pop(request_id)
+            self._validate_response(obj['requests'][0], response)
+
+            return response
 
     async def _receive(self):
         if self._socket is None:
             raise ValueError(
                 'Socket not open. Did you forget to call login()?')
 
-        if len(self._overflow_items) > 0:
-            ret = self._overflow_items.pop()
+        raw = await self._socket.recv()
+        try:
+            ret = json.loads(raw)
+        except json.decoder.JSONDecodeError as e:
+            msg = ('Failed to parse message. This often happens with ' +
+                   'unknown symbols or other error conditions. Full ' +
+                   'message text: ' + raw)
+            raise UnparsableMessage(raw, e, msg)
 
-            self.logger.debug(
-                'Receive {}: Returning message from overflow: {}'.format(
-                    self.req_num(), json.dumps(ret, indent=4)))
-        else:
-            raw = await self._socket.recv()
-            try:
-                ret = json.loads(raw)
-            except json.decoder.JSONDecodeError as e:
-                msg = ('Failed to parse message. This often happens with ' +
-                       'unknown symbols or other error conditions. Full ' +
-                       'message text: ' + raw)
-                raise UnparsableMessage(raw, e, msg)
-
-            self.logger.debug(
-                'Receive {}: Returning message from stream: {}'.format(
-                    self.req_num(), json.dumps(ret, indent=4)))
+        self.logger.debug(
+            'Receive {}: Returning message from stream: {}'.format(
+                self._request_id, json.dumps(ret, indent=4)))
 
         return ret
 
@@ -156,63 +184,8 @@ class StreamClient(EnumEnforcer):
 
         return request, request_id
 
-    async def _await_response(self, request_id, service, command):
-        deferred_messages = []
-
-        # Context handler to ensure we always append the deferred messages,
-        # regardless of how we exit the await loop below
-        class WriteDeferredMessages:
-            def __init__(self, this_client):
-                self.this_client = this_client
-
-            def __enter__(self):
-                return self
-
-            def __exit__(self, exc_type, exc_val, exc_tb):
-                self.this_client._overflow_items.extendleft(deferred_messages)
-
-        with WriteDeferredMessages(self):
-            while True:
-                resp = await self._receive()
-
-                if 'response' not in resp:
-                    deferred_messages.append(resp)
-                    continue
-
-                # Validate request ID
-                resp_request_id = int(resp['response'][0]['requestid'])
-                if resp_request_id != request_id:
-                    raise UnexpectedResponse(
-                        resp, 'unexpected requestid: {}'.format(
-                            resp_request_id))
-
-                # Validate service
-                resp_service = resp['response'][0]['service']
-                if resp_service != service:
-                    raise UnexpectedResponse(
-                        resp, 'unexpected service: {}'.format(
-                            resp_service))
-
-                # Validate command
-                resp_command = resp['response'][0]['command']
-                if resp_command != command:
-                    raise UnexpectedResponse(
-                        resp, 'unexpected command: {}'.format(
-                            resp_command))
-
-                # Validate response code
-                resp_code = resp['response'][0]['content']['code']
-                if resp_code != 0:
-                    raise UnexpectedResponseCode(
-                        resp,
-                        'unexpected response code: {}, msg is \'{}\''.format(
-                            resp_code,
-                            resp['response'][0]['content']['msg']))
-
-                break
-
     async def _service_op(self, symbols, service, command, field_type,
-                          *, fields=None):
+                          *, fields=None, await_response=True):
         if fields is None:
             fields = field_type.all_fields()
         fields = sorted(self.convert_enum_iterable(fields, field_type))
@@ -223,15 +196,26 @@ class StreamClient(EnumEnforcer):
                 'keys': ','.join(symbols),
                 'fields': ','.join(str(f) for f in fields)})
 
-        await self._send({'requests': [request]})
-        await self._await_response(request_id, service, command)
+        self.logger.debug('Send {}: Sending {}'.format(
+            request_id,  json.dumps(request, indent=4)))
+
+        return await self._send({'requests': [request]}, await_response=True)
 
     async def handle_message(self):
         msg = await self._receive()
 
         # response
         if 'response' in msg:
-            raise UnexpectedResponse(msg)
+            for response in msg['response']:
+                request_id = response['requestid']
+                if request_id in self._awaiting_requests:
+                    self._pending_response_blobs[request_id] = response
+                    self._awaiting_requests.remove(request_id)
+                else:
+                    raise UnexpectedResponse(
+                        response, 'unexpected requestid: {}'.format(
+                            request_id))
+            return
 
         data = msg.get('data') or msg.get('notify')
 
@@ -258,7 +242,7 @@ class StreamClient(EnumEnforcer):
     ##########################################################################
     # LOGIN
 
-    async def login(self):
+    async def login(self, await_response=True):
         '''
         `Official Documentation <https://developer.tdameritrade.com/content/
         streaming-data#_Toc504640574>`__
@@ -313,8 +297,8 @@ class StreamClient(EnumEnforcer):
             service='ADMIN', command='LOGIN',
             parameters=request_parameters)
 
-        await self._send({'requests': [request]})
-        await self._await_response(request_id, 'ADMIN', 'LOGIN')
+        return await self._send(
+            {'requests': [request]}, await_response=await_response)
 
     ##########################################################################
     # QOS
@@ -340,7 +324,7 @@ class StreamClient(EnumEnforcer):
         #: 5000ms between updates
         DELAYED = '5'
 
-    async def quality_of_service(self, qos_level):
+    async def quality_of_service(self, qos_level, await_response=True):
         '''
         `Official Documentation <https://developer.tdameritrade.com/content/
         streaming-data#_Toc504640578>`__
@@ -358,39 +342,41 @@ class StreamClient(EnumEnforcer):
             service='ADMIN', command='QOS',
             parameters={'qoslevel': qos_level})
 
-        await self._send({'requests': [request]})
-        await self._await_response(request_id, 'ADMIN', 'QOS')
+        return await self._send(
+            {'requests': [request]}, await_response=await_response)
 
     ##########################################################################
     # Streaming API v2.0
 
-    async def subscribe(self, service, symbols=None, fields=None):
+    async def subscribe(self, service, symbols=None,
+            fields=None, await_response=True):
         if service == services.ACCT_ACTIVITY:
             # Special case where ACCT_ACTIVITY wants our stream key
             symbols = [self._stream_key]
         if fields is None:
             fields = service.Fields.all_fields()
-        await self._service_op(
+        return await self._service_op(
               symbols, service.__name__, 'SUBS', service.Fields,
-              fields=fields)
+              fields=fields, await_response=await_response)
 
-    async def append_subscription(self, service, symbols, fields=None):
+    async def append_subscription(self, service, symbols,
+            fields=None, await_response=True):
         if service == services.ACCT_ACTIVITY:
             # Special case where ACCT_ACTIVITY wants our stream key
             symbols = [self._stream_key]
         if fields is None:
             fields = service.Fields.all_fields()
-        await self._service_op(
+        return await self._service_op(
               symbols, service.__name__, 'ADD', service.Fields,
-              fields=service.Fields.all_fields())
+              fields=service.Fields.all_fields(), await_response=await_response)
 
-    async def unsubscribe(self, service, symbols):
+    async def unsubscribe(self, service, symbols, await_response=True):
         if service == services.ACCT_ACTIVITY:
             # Special case where ACCT_ACTIVITY wants our stream key
             symbols = [self._stream_key]
-        await self._service_op(
+        return await self._service_op(
             symbols, service.__name__, 'UNSUBS', service.Fields,
-            fields=service.Fields.all_fields())
+            fields=service.Fields.all_fields(), await_response=await_response)
 
     def add_handler(self, service, handler):
         self._handlers[service].add(handler)
