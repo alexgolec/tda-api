@@ -62,7 +62,7 @@ class UnparsableMessage(Exception):
 
 
 class _Handler:
-    def __init__(self, func, field_enum_type):
+    def __init__(self, func, field_enum_type=None):
         self._func = func
         self._field_enum_type = field_enum_type
 
@@ -292,32 +292,21 @@ class StreamClient(EnumEnforcer):
         if 'response' in msg:
             raise UnexpectedResponse(msg)
 
+        data = msg.get('data') or msg.get('notify')
+
         # data
-        if 'data' in msg:
-            for d in msg['data']:
-                if d['service'] in self._handlers:
-                    for handler in self._handlers[d['service']]:
-                        labeled_d = handler.label_message(d)
-                        h = handler(labeled_d)
-                        
-                        # Check if h is an awaitable, if so schedule it
-                        # This allows for both sync and async handlers
-                        if inspect.isawaitable(h):
-                            asyncio.ensure_future(h)
-
-        # notify
-        if 'notify' in msg:
-            for d in msg['notify']:
-                if 'heartbeat' in d:
-                    pass
-                else:
-                    for handler in self._handlers[d['service']]:
-                        h = handler(d)
-
-                        # Check if h is an awaitable, if so schedule it
-                        # This allows for both sync and async handlers
-                        if inspect.isawaitable(h):
-                            asyncio.ensure_future(h)
+        for d in data:
+            if 'heartbeat' in d:
+                d['service'] = 'HEARTBEAT'
+            if d['service'] in self._handlers:
+                for handler in self._handlers[d['service']]:
+                    if 'data' in msg: d = handler.label_message(d)
+                    h = handler(d)
+                    
+                    # Check if h is an awaitable, if so schedule it
+                    # This allows for both sync and async handlers
+                    if inspect.isawaitable(h):
+                        asyncio.ensure_future(h)
 
 
     ##########################################################################
