@@ -323,12 +323,14 @@ class EasyClientTest(unittest.TestCase):
         webdriver_func = MagicMock()
         client_from_token_file.side_effect = FileNotFoundError()
 
-        with self.assertRaises(FileNotFoundError):
+        with self.assertRaises(SystemExit):
             auth.easy_client(API_KEY, REDIRECT_URL, self.json_path)
 
     @no_duplicates
     @patch('tda.auth.client_from_token_file')
     def test_token_file(self, client_from_token_file):
+        self.write_token()
+
         webdriver_func = MagicMock()
         client_from_token_file.return_value = self.token
 
@@ -343,7 +345,7 @@ class EasyClientTest(unittest.TestCase):
             client_from_token_file,
             client_from_login_flow):
         webdriver_func = MagicMock()
-        client_from_token_file.side_effect = FileNotFoundError()
+        client_from_token_file.side_effect = SystemExit()
         client_from_login_flow.return_value = 'returned client'
         webdriver_func = MagicMock()
 
