@@ -1,7 +1,7 @@
 ##########################################################################
 # Authentication Wrappers
 
-from authlib.integrations.httpx_client.oauth2_client import AsyncOAuth2Client, OAuth2Client
+from authlib_httpx.oauth2_client import AsyncOAuth2Client, OAuth2Client
 
 import json
 import logging
