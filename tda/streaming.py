@@ -314,7 +314,7 @@ class StreamClient(EnumEnforcer):
                     for handler in self._handlers[d['service']]:
                         h = handler(d)
 
-                        # Check if h is an awaitable, if so schedule oit
+                        # Check if h is an awaitable, if so schedule it
                         # This allows for both sync and async handlers
                         if inspect.isawaitable(h):
                             asyncio.ensure_future(h)
