@@ -298,9 +298,12 @@ class StreamClient(EnumEnforcer):
                 if d['service'] in self._handlers:
                     for handler in self._handlers[d['service']]:
                         labeled_d = handler.label_message(d)
-                        _ = handler(labeled_d)
-                        if inspect.isawaitable(_):
-                            asyncio.ensure_future(_)
+                        h = handler(labeled_d)
+                        
+                        # Check if h is an awaitable, if so schedule it
+                        # This allows for both sync and async handlers
+                        if inspect.isawaitable(h):
+                            asyncio.ensure_future(h)
 
         # notify
         if 'notify' in msg:
@@ -309,9 +312,12 @@ class StreamClient(EnumEnforcer):
                     pass
                 else:
                     for handler in self._handlers[d['service']]:
-                        _ = handler(d)
-                        if inspect.isawaitable(_):
-                            asyncio.ensure_future(_)
+                        h = handler(d)
+
+                        # Check if h is an awaitable, if so schedule oit
+                        # This allows for both sync and async handlers
+                        if inspect.isawaitable(h):
+                            asyncio.ensure_future(h)
 
 
     ##########################################################################
