@@ -5,7 +5,9 @@ from authlib_httpx.oauth2_client import AsyncOAuth2Client, OAuth2Client
 
 import json
 import logging
+import os
 import pickle
+import sys
 import time
 
 from tda.client import AsyncClient, BaseClient, SyncClient
@@ -204,13 +206,13 @@ def easy_client(api_key, redirect_uri, token_path, webdriver_func=None,
     '''
     logger = get_logger()
 
-    try:
+    if os.path.isfile(token_path):
         c = client_from_token_file(token_path, api_key, asyncio=asyncio)
         logger.info('Returning client loaded from token file \'{}\''.format(
             token_path))
         return c
-    except FileNotFoundError:
-        logger.info('Failed to find token file \'{}\''.format(token_path))
+    else:
+        logger.warning('Failed to find token file \'{}\''.format(token_path))
 
         if webdriver_func is not None:
             with webdriver_func() as driver:
@@ -221,8 +223,8 @@ def easy_client(api_key, redirect_uri, token_path, webdriver_func=None,
                     'token to \'{}\''.format(token_path))
                 return c
         else:
-            logger.info('No webdriver_func set, returning')
-            raise
+            logger.error('No webdriver_func set, cannot fetch token')
+            sys.exit(1)
 
 
 def client_from_access_functions(api_key, token_read_func,
