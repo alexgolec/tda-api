@@ -74,12 +74,7 @@ for symbol in birth_month_dividends:
     print('Buying one share of', symbol)
 
     # Build the order spec and place the order
-    builder = tda.orders.EquityOrderBuilder(symbol, 1)
-    builder.set_instruction(builder.Instruction.BUY)
-    builder.set_order_type(builder.OrderType.MARKET)
-    builder.set_duration(tda.orders.Duration.DAY)
-    builder.set_session(tda.orders.Session.NORMAL)
-    order = builder.build()
+    order = tda.orders.equities.equity_buy_market(symbol, 1)
 
     r = client.place_order(account_id, order)
     assert r.ok, r.raise_for_status()

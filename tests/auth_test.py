@@ -5,6 +5,7 @@ from unittest.mock import ANY as _
 
 import json
 import os
+import pickle
 import tempfile
 import unittest
 
@@ -16,10 +17,13 @@ class ClientFromTokenFileTest(unittest.TestCase):
 
     def setUp(self):
         self.tmp_dir = tempfile.TemporaryDirectory()
+        self.pickle_path = os.path.join(self.tmp_dir.name, 'token.pickle')
         self.json_path = os.path.join(self.tmp_dir.name, 'token.json')
         self.token = {'token': 'yes'}
 
     def write_token(self):
+        with open(self.pickle_path, 'wb') as f:
+            pickle.dump(self.token, f)
         with open(self.json_path, 'w') as f:
             json.dump(self.token, f)
 
@@ -31,7 +35,25 @@ class ClientFromTokenFileTest(unittest.TestCase):
     @no_duplicates
     @patch('tda.auth.SyncClient')
     @patch('tda.auth.OAuth2Client')
-    def test_file_exists(self, session, client):
+    def test_pickle_loads(self, session, client):
+        self.write_token()
+
+        client.return_value = 'returned client'
+
+        self.assertEqual('returned client',
+                         auth.client_from_token_file(self.pickle_path, API_KEY))
+        client.assert_called_once_with(API_KEY, _)
+        session.assert_called_once_with(
+            API_KEY,
+            token=self.token,
+            auto_refresh_url=_,
+            auto_refresh_kwargs=_,
+            update_token=_)
+
+    @no_duplicates
+    @patch('tda.auth.SyncClient')
+    @patch('tda.auth.OAuth2Client')
+    def test_json_loads(self, session, client):
         self.write_token()
 
         client.return_value = 'returned client'
@@ -60,7 +82,7 @@ class ClientFromTokenFileTest(unittest.TestCase):
 
         updated_token = {'updated': 'token'}
         update_token(updated_token)
-        with open(self.json_path, 'rb') as f:
+        with open(self.json_path, 'r') as f:
             self.assertEqual(json.load(f), updated_token)
 
 
@@ -174,7 +196,7 @@ class ClientFromLoginFlow(unittest.TestCase):
                              self.json_path,
                              redirect_wait_time_seconds=0.0))
 
-        with open(self.json_path, 'rb') as f:
+        with open(self.json_path, 'r') as f:
             self.assertEqual(self.token, json.load(f))
 
     @no_duplicates
@@ -201,7 +223,7 @@ class ClientFromLoginFlow(unittest.TestCase):
                              self.json_path,
                              redirect_wait_time_seconds=0.0))
 
-        with open(self.json_path, 'rb') as f:
+        with open(self.json_path, 'r') as f:
             self.assertEqual(self.token, json.load(f))
 
     @no_duplicates
@@ -230,7 +252,7 @@ class ClientFromLoginFlow(unittest.TestCase):
                              self.json_path,
                              redirect_wait_time_seconds=0.0))
 
-        with open(self.json_path, 'rb') as f:
+        with open(self.json_path, 'r') as f:
             self.assertEqual(self.token, json.load(f))
 
     @no_duplicates

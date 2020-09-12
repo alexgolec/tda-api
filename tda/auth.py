@@ -2,12 +2,13 @@
 # Authentication Wrappers
 
 from authlib.integrations.httpx_client.oauth2_client import AsyncOAuth2Client, OAuth2Client
-import logging
+
 import json
+import logging
 import pickle
 import time
 
-from tda.client import AsyncClient, SyncClient
+from tda.client import AsyncClient, BaseClient, SyncClient
 from tda.debug import register_redactions
 
 
@@ -22,6 +23,23 @@ def __update_token(token_path):
         with open(token_path, 'w') as f:
             json.dump(t, f)
     return update_token
+
+
+def __token_loader(token_path):
+    def load_token():
+        get_logger().info('Loading token from file {}'.format(token_path))
+
+        with open(token_path, 'rb') as f:
+            token_data = f.read()
+            try:
+                return json.loads(token_data.decode())
+            except ValueError:
+                get_logger().warning(
+                    "Unable to load JSON token from file {}, falling back to pickle"\
+                    .format(token_path)
+                )
+                return pickle.loads(token_data)
+    return load_token
 
 
 def __normalize_api_key(api_key):
@@ -51,15 +69,8 @@ def client_from_token_file(token_path, api_key, asyncio=False):
     :param api_key: Your TD Ameritrade application's API key, also known as the
                     client ID.
     '''
-    def load():
-        with open(token_path, 'rb') as f:
-            token_data = f.read()
-            try:
-                return json.loads(token_data)
-            except:
-                token = pickle.loads(token_data)
-                get_logger().warning("Legacy token file detected.")
-                return token
+
+    load = __token_loader(token_path)
 
     return client_from_access_functions(
             api_key, load, __update_token(token_path), asyncio=asyncio)

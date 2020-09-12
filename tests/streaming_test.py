@@ -471,7 +471,9 @@ class StreamClientTest(IsolatedAsyncioTestCase):
         await self.client.account_activity_sub()
 
         handler = Mock()
+        async_handler = AsyncMock()
         self.client.add_account_activity_handler(handler)
+        self.client.add_account_activity_handler(async_handler)
         await self.client.handle_message()
 
         expected_item = {
@@ -490,6 +492,7 @@ class StreamClientTest(IsolatedAsyncioTestCase):
         }
 
         self.assert_handler_called_once_with(handler, expected_item)
+        self.assert_handler_called_once_with(async_handler, expected_item)
 
     ##########################################################################
     # CHART_EQUITY
@@ -616,7 +619,9 @@ class StreamClientTest(IsolatedAsyncioTestCase):
         await self.client.chart_equity_subs(['GOOG', 'MSFT'])
 
         handler = Mock()
+        async_handler = AsyncMock()
         self.client.add_chart_equity_handler(handler)
+        self.client.add_chart_equity_handler(async_handler)
         await self.client.handle_message()
 
         expected_item = {
@@ -652,6 +657,7 @@ class StreamClientTest(IsolatedAsyncioTestCase):
         }
 
         self.assert_handler_called_once_with(handler, expected_item)
+        self.assert_handler_called_once_with(async_handler, expected_item)
 
     ##########################################################################
     # CHART_FUTURES
@@ -774,7 +780,9 @@ class StreamClientTest(IsolatedAsyncioTestCase):
         await self.client.chart_futures_subs(['/ES', '/CL'])
 
         handler = Mock()
+        async_handler = AsyncMock()
         self.client.add_chart_futures_handler(handler)
+        self.client.add_chart_futures_handler(async_handler)
         await self.client.handle_message()
 
         expected_item = {
@@ -803,6 +811,7 @@ class StreamClientTest(IsolatedAsyncioTestCase):
         }
 
         self.assert_handler_called_once_with(handler, expected_item)
+        self.assert_handler_called_once_with(async_handler, expected_item)
 
     ##########################################################################
     # QUOTE
@@ -1009,7 +1018,9 @@ class StreamClientTest(IsolatedAsyncioTestCase):
         await self.client.level_one_equity_subs(['GOOG', 'MSFT'])
 
         handler = Mock()
+        async_handler = AsyncMock()
         self.client.add_level_one_equity_handler(handler)
+        self.client.add_level_one_equity_handler(async_handler)
         await self.client.handle_message()
 
         expected_item = {
@@ -1134,6 +1145,7 @@ class StreamClientTest(IsolatedAsyncioTestCase):
         }
 
         self.assert_handler_called_once_with(handler, expected_item)
+        self.assert_handler_called_once_with(async_handler, expected_item)
 
     ##########################################################################
     # OPTION
@@ -1310,7 +1322,9 @@ class StreamClientTest(IsolatedAsyncioTestCase):
             ['GOOG_052920C620', 'MSFT_052920C145'])
 
         handler = Mock()
+        async_handler = AsyncMock()
         self.client.add_level_one_option_handler(handler)
+        self.client.add_level_one_option_handler(async_handler)
         await self.client.handle_message()
 
         expected_item = {
@@ -1401,6 +1415,7 @@ class StreamClientTest(IsolatedAsyncioTestCase):
         }
 
         self.assert_handler_called_once_with(handler, expected_item)
+        self.assert_handler_called_once_with(async_handler, expected_item)
 
     ##########################################################################
     # LEVELONE_FUTURES
@@ -1570,7 +1585,9 @@ class StreamClientTest(IsolatedAsyncioTestCase):
         await self.client.level_one_futures_subs(['/ES', '/CL'])
 
         handler = Mock()
+        async_handler = AsyncMock()
         self.client.add_level_one_futures_handler(handler)
+        self.client.add_level_one_futures_handler(async_handler)
         await self.client.handle_message()
 
         expected_item = {
@@ -1662,6 +1679,7 @@ class StreamClientTest(IsolatedAsyncioTestCase):
         }
 
         self.assert_handler_called_once_with(handler, expected_item)
+        self.assert_handler_called_once_with(async_handler, expected_item)
 
     ##########################################################################
     # LEVELONE_FOREX
@@ -1816,7 +1834,9 @@ class StreamClientTest(IsolatedAsyncioTestCase):
         await self.client.level_one_forex_subs(['EUR/USD', 'EUR/GBP'])
 
         handler = Mock()
+        async_handler = AsyncMock()
         self.client.add_level_one_forex_handler(handler)
+        self.client.add_level_one_forex_handler(async_handler)
         await self.client.handle_message()
 
         expected_item = {
@@ -1891,6 +1911,7 @@ class StreamClientTest(IsolatedAsyncioTestCase):
         }
 
         self.assert_handler_called_once_with(handler, expected_item)
+        self.assert_handler_called_once_with(async_handler, expected_item)
 
     ##########################################################################
     # LEVELONE_FUTURES_OPTIONS
@@ -2071,7 +2092,9 @@ class StreamClientTest(IsolatedAsyncioTestCase):
             ['NQU20_C6500', 'NQU20_P6500'])
 
         handler = Mock()
+        async_handler = AsyncMock()
         self.client.add_level_one_futures_options_handler(handler)
+        self.client.add_level_one_futures_options_handler(async_handler)
         await self.client.handle_message()
 
         expected_item = {
@@ -2164,6 +2187,7 @@ class StreamClientTest(IsolatedAsyncioTestCase):
         }
 
         self.assert_handler_called_once_with(handler, expected_item)
+        self.assert_handler_called_once_with(async_handler, expected_item)
 
     ##########################################################################
     # TIMESALE_EQUITY
@@ -2266,7 +2290,9 @@ class StreamClientTest(IsolatedAsyncioTestCase):
         await self.client.timesale_equity_subs(['GOOG', 'MSFT'])
 
         handler = Mock()
+        async_handler = AsyncMock()
         self.client.add_timesale_equity_handler(handler)
+        self.client.add_timesale_equity_handler(async_handler)
         await self.client.handle_message()
 
         expected_item = {
@@ -2291,6 +2317,7 @@ class StreamClientTest(IsolatedAsyncioTestCase):
         }
 
         self.assert_handler_called_once_with(handler, expected_item)
+        self.assert_handler_called_once_with(async_handler, expected_item)
 
     ##########################################################################
     # TIMESALE_FUTURES
@@ -2393,7 +2420,9 @@ class StreamClientTest(IsolatedAsyncioTestCase):
         await self.client.timesale_futures_subs(['/ES', '/CL'])
 
         handler = Mock()
+        async_handler = AsyncMock()
         self.client.add_timesale_futures_handler(handler)
+        self.client.add_timesale_futures_handler(async_handler)
         await self.client.handle_message()
 
         expected_item = {
@@ -2417,6 +2446,7 @@ class StreamClientTest(IsolatedAsyncioTestCase):
             }]
         }
         self.assert_handler_called_once_with(handler, expected_item)
+        self.assert_handler_called_once_with(async_handler, expected_item)
 
     ##########################################################################
     # TIMESALE_OPTIONS
@@ -2523,7 +2553,9 @@ class StreamClientTest(IsolatedAsyncioTestCase):
             ['GOOG_052920C620', 'MSFT_052920C145'])
 
         handler = Mock()
+        async_handler = AsyncMock()
         self.client.add_timesale_options_handler(handler)
+        self.client.add_timesale_options_handler(async_handler)
         await self.client.handle_message()
 
         expected_item = {
@@ -2548,6 +2580,7 @@ class StreamClientTest(IsolatedAsyncioTestCase):
         }
 
         self.assert_handler_called_once_with(handler, expected_item)
+        self.assert_handler_called_once_with(async_handler, expected_item)
 
     ##########################################################################
     # LISTED_BOOK
@@ -2679,8 +2712,10 @@ class StreamClientTest(IsolatedAsyncioTestCase):
 
         def register_handler():
             handler = Mock()
+            async_handler = AsyncMock()
             self.client.add_listed_book_handler(handler)
-            return handler
+            self.client.add_listed_book_handler(async_handler)
+            return handler, async_handler
 
         return await self.__test_book_handler(
             ws_connect, 'LISTED_BOOK', subs, register_handler)
@@ -2693,8 +2728,10 @@ class StreamClientTest(IsolatedAsyncioTestCase):
 
         def register_handler():
             handler = Mock()
+            async_handler = AsyncMock()
             self.client.add_nasdaq_book_handler(handler)
-            return handler
+            self.client.add_nasdaq_book_handler(async_handler)
+            return handler, async_handler
 
         return await self.__test_book_handler(
             ws_connect, 'NASDAQ_BOOK', subs, register_handler)
@@ -2707,8 +2744,10 @@ class StreamClientTest(IsolatedAsyncioTestCase):
 
         def register_handler():
             handler = Mock()
+            async_handler = AsyncMock()
             self.client.add_options_book_handler(handler)
-            return handler
+            self.client.add_options_book_handler(async_handler)
+            return handler, async_handler
 
         return await self.__test_book_handler(
             ws_connect, 'OPTIONS_BOOK', subs, register_handler)
@@ -2917,7 +2956,7 @@ class StreamClientTest(IsolatedAsyncioTestCase):
             json.dumps(stream_item)]
         await subs()
 
-        handler = register_handler()
+        handler, async_handler = register_handler()
         await self.client.handle_message()
 
         expected_item = {
@@ -3111,6 +3150,7 @@ class StreamClientTest(IsolatedAsyncioTestCase):
         }
 
         self.assert_handler_called_once_with(handler, expected_item)
+        self.assert_handler_called_once_with(async_handler, expected_item)
 
     ##########################################################################
     # NEWS_HEADLINE
@@ -3198,7 +3238,9 @@ class StreamClientTest(IsolatedAsyncioTestCase):
         await self.client.news_headline_subs(['GOOG', 'MSFT'])
 
         handler = Mock()
+        async_handler = AsyncMock()
         self.client.add_news_headline_handler(handler)
+        self.client.add_news_headline_handler(async_handler)
         await self.client.handle_message()
 
         expected_item = {
@@ -3235,6 +3277,7 @@ class StreamClientTest(IsolatedAsyncioTestCase):
         }
 
         self.assert_handler_called_once_with(handler, expected_item)
+        self.assert_handler_called_once_with(async_handler, expected_item)
 
     @no_duplicates
     @patch('tda.streaming.websockets.client.connect', new_callable=AsyncMock)
@@ -3260,7 +3303,9 @@ class StreamClientTest(IsolatedAsyncioTestCase):
         await self.client.news_headline_subs(['GOOG', 'MSFT'])
 
         handler = Mock()
+        async_handler = AsyncMock()
         self.client.add_news_headline_handler(handler)
+        self.client.add_news_headline_handler(async_handler)
         await self.client.handle_message()
 
         expected_item = {
@@ -3273,6 +3318,7 @@ class StreamClientTest(IsolatedAsyncioTestCase):
         }
 
         self.assert_handler_called_once_with(handler, expected_item)
+        self.assert_handler_called_once_with(async_handler, expected_item)
 
     ###########################################################################
     # Handler edge cases
@@ -3297,9 +3343,12 @@ class StreamClientTest(IsolatedAsyncioTestCase):
         await self.client.chart_equity_add(['INTC'])
 
         handler = Mock()
+        async_handler = AsyncMock()
         self.client.add_chart_equity_handler(handler)
+        self.client.add_chart_equity_handler(async_handler)
         await self.client.handle_message()
         handler.assert_called_once_with(stream_item['data'][0])
+        async_handler.assert_called_once_with(stream_item['data'][0])
 
     @no_duplicates
     @patch('tda.streaming.websockets.client.connect', new_callable=AsyncMock)
@@ -3322,9 +3371,12 @@ class StreamClientTest(IsolatedAsyncioTestCase):
             await self.client.chart_equity_add(['INTC'])
 
         handler = Mock()
+        async_handler = AsyncMock()
         self.client.add_chart_equity_handler(handler)
+        self.client.add_chart_equity_handler(async_handler)
         await self.client.handle_message()
         handler.assert_called_once_with(stream_item['data'][0])
+        async_handler.assert_called_once_with(stream_item['data'][0])
 
     @no_duplicates
     @patch('tda.streaming.websockets.client.connect', new_callable=AsyncMock)
@@ -3347,9 +3399,12 @@ class StreamClientTest(IsolatedAsyncioTestCase):
             await self.client.chart_equity_add(['INTC'])
 
         handler = Mock()
+        async_handler = AsyncMock()
         self.client.add_chart_equity_handler(handler)
+        self.client.add_chart_equity_handler(async_handler)
         await self.client.handle_message()
         handler.assert_called_once_with(stream_item['data'][0])
+        async_handler.assert_called_once_with(stream_item['data'][0])
 
     @no_duplicates
     @patch('tda.streaming.websockets.client.connect', new_callable=AsyncMock)
@@ -3363,9 +3418,12 @@ class StreamClientTest(IsolatedAsyncioTestCase):
         await self.client.chart_equity_subs(['GOOG,MSFT'])
 
         handler = Mock()
+        async_handler = AsyncMock()
         self.client.add_chart_equity_handler(handler)
+        self.client.add_chart_equity_handler(async_handler)
         await self.client.handle_message()
         handler.assert_not_called()
+        async_handler.assert_not_called()
 
     @no_duplicates
     @patch('tda.streaming.websockets.client.connect', new_callable=AsyncMock)
@@ -3414,14 +3472,14 @@ class StreamClientTest(IsolatedAsyncioTestCase):
 
         await self.client.chart_equity_subs(['GOOG,MSFT'])
 
-        handler_1 = Mock()
-        handler_2 = Mock()
-        self.client.add_chart_equity_handler(handler_1)
-        self.client.add_chart_equity_handler(handler_2)
+        handler = Mock()
+        async_handler = AsyncMock()
+        self.client.add_chart_equity_handler(handler)
+        self.client.add_chart_equity_handler(async_handler)
 
         await self.client.handle_message()
-        handler_1.assert_called_once_with(stream_item_1['data'][0])
-        handler_2.assert_called_once_with(stream_item_1['data'][0])
+        handler.assert_called_once_with(stream_item_1['data'][0])
+        async_handler.assert_called_once_with(stream_item_1['data'][0])
 
     @no_duplicates
     @patch('tda.streaming.websockets.client.connect', new_callable=AsyncMock)
@@ -3439,13 +3497,15 @@ class StreamClientTest(IsolatedAsyncioTestCase):
 
         await self.client.chart_equity_subs(['GOOG,MSFT'])
 
-        handler_1 = Mock()
-        handler_2 = Mock()
-        self.client.add_chart_equity_handler(handler_1)
-        self.client.add_chart_equity_handler(handler_2)
+        handler = Mock()
+        async_handler = AsyncMock()
+        self.client.add_chart_equity_handler(handler)
+        self.client.add_chart_equity_handler(async_handler)
 
         await self.client.handle_message()
-        handler_1.assert_has_calls(
+        handler.assert_has_calls(
+            [call(stream_item['data'][0]), call(stream_item['data'][1])])
+        async_handler.assert_has_calls(
             [call(stream_item['data'][0]), call(stream_item['data'][1])])
 
     @no_duplicates
