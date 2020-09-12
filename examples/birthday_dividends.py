@@ -6,9 +6,9 @@ import dateutil
 import sys
 import tda
 
-API_KEY = 'YOUR_API_KEY@AMER.OAUTHAP'
-REDIRECT_URI = 'YOUR_REDIRECT_URI'
-TOKEN_PATH = '/YOUR/TOKEN/PATH'
+API_KEY = 'YOUR_API_KEY'
+REDIRECT_URI = 'http://localhost:8080/'
+TOKEN_PATH = 'ameritrade-credentials.json'
 YOUR_BIRTHDAY = datetime.datetime(year=1969, month=4, day=20)
 
 

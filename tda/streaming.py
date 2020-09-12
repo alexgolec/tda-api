@@ -1,4 +1,4 @@
-from collections import defaultdict, deque
+from collections import deque
 from enum import Enum
 
 import asyncio
@@ -61,27 +61,45 @@ class UnparsableMessage(Exception):
         self.json_parse_exception = json_parse_exception
 
 
-class _Handler:
-    def __init__(self, func, field_enum_type=None):
-        self._func = func
-        self._field_enum_type = field_enum_type
+class Service(Enum):
+    def _generate_next_value_(name, start, count, last_values):
+        return name
 
-    def __call__(self, *args, **kwargs):
-        return self._func(*args, **kwargs)
+    HEARTBEAT = 'HEARTBEAT' # Synthetic service, not real
 
-    def label_message(self, msg):
-        if 'content' in msg:
-            new_msg = copy.deepcopy(msg)
-            for idx in range(len(msg['content'])):
-                self._field_enum_type.relabel_message(msg['content'][idx],
-                                                      new_msg['content'][idx])
-            return new_msg
-        else:
-            return msg
+    # Borrowed from: https://developer.tdameritrade.com/content/streaming-data#_Toc504640570
+    ACCT_ACTIVITY = 'ACCT_ACTIVITY'
+    ADMIN = 'ADMIN'
+    ACTIVES_NASDAQ = 'ACTIVES_NASDAQ'
+    ACTIVES_NYSE = 'ACTIVES_NYSE'
+    ACTIVES_OTCBB = 'ACTIVES_OTCBB'
+    ACTIVES_OPTIONS = 'ACTIVES_OPTIONS'
+    FOREX_BOOK = 'FOREX_BOOK'
+    FUTURES_BOOK = 'FUTURES_BOOK'
+    LISTED_BOOK = 'LISTED_BOOK'
+    NASDAQ_BOOK = 'NASDAQ_BOOK'
+    OPTIONS_BOOK = 'OPTIONS_BOOK'
+    FUTURES_OPTIONS_BOOK = 'FUTURES_OPTIONS_BOOK'
+    CHART_EQUITY = 'CHART_EQUITY'
+    CHART_FUTURES = 'CHART_FUTURES'
+    CHART_HISTORY_FUTURES  = 'CHART_HISTORY_FUTURES'
+    QUOTE = 'QUOTE'
+    LEVELONE_FUTURES = 'LEVELONE_FUTURES'
+    LEVELONE_FOREX = 'LEVELONE_FOREX'
+    LEVELONE_FUTURES_OPTIONS = 'LEVELONE_FUTURES_OPTIONS'
+    OPTION = 'OPTION'
+    LEVELTWO_FUTURES = 'LEVELTWO_FUTURES'
+    NEWS_HEADLINE = 'NEWS_HEADLINE'
+    NEWS_STORY = 'NEWS_STORY'
+    NEWS_HEADLINE_LIST = 'NEWS_HEADLINE_LIST'
+    STREAMER_SERVER = 'STREAMER_SERVER'
+    TIMESALE_EQUITY = 'TIMESALE_EQUITY'
+    TIMESALE_FUTURES = 'TIMESALE_FUTURES'
+    TIMESALE_FOREX = 'TIMESALE_FOREX'
+    TIMESALE_OPTIONS = 'TIMESALE_OPTIONS'
 
 
 class StreamClient(EnumEnforcer):
-
     def __init__(self, client, *, account_id=None, enforce_enums=True, ssl_context=None):
         super().__init__(enforce_enums)
 
@@ -99,7 +117,8 @@ class StreamClient(EnumEnforcer):
 
         # Internal fields
         self._request_id = 0
-        self._handlers = defaultdict(list)
+        # Construct a dict for all services
+        self._handlers = dict([(svc, []) for svc in list(Service)])
 
         # When listening for responses, we sometimes encounter non-response
         # messages. Since this happens outside the context of the handler
@@ -116,6 +135,110 @@ class StreamClient(EnumEnforcer):
     def req_num(self):
         self.request_number += 1
         return self.request_number
+
+    @classmethod
+    def _relabel_fields(cls, service: Service, msg):
+        '''
+        Takes a raw message, and returns is with relabeled fields.
+        The service must be supported, otherwise we exhibit undefined behaviour
+        '''
+        return cls._field_normalizer(service)(msg)
+
+    @classmethod
+    def _field_normalizer(cls, service: Service):
+        'Returns the field normalizer for a given service.'
+        bfn = cls._book_fieldname_normalizer
+        fn = cls._field_name_normalizer
+
+        known_normalizers = {
+            Service.LISTED_BOOK: bfn(cls.BookFields),
+            Service.NASDAQ_BOOK: bfn(cls.BookFields),
+            Service.OPTIONS_BOOK: bfn(cls.BookFields),
+            Service.NEWS_HEADLINE: bfn(cls.NewsHeadlineFields),
+            Service.TIMESALE_OPTIONS: fn(cls.TimesaleFields),
+            Service.TIMESALE_FUTURES: fn(cls.TimesaleFields),
+            Service.TIMESALE_EQUITY: fn(cls.TimesaleFields),
+            Service.LEVELONE_FUTURES_OPTIONS: fn(cls.LevelOneFuturesFields),
+            Service.LEVELONE_FOREX: fn(cls.LevelOneForexFields),
+            Service.LEVELONE_FUTURES: fn(cls.LevelOneFuturesFields),
+            Service.OPTION: fn(cls.LevelOneOptionFields),
+            Service.QUOTE: fn(cls.LevelOneEquityFields),
+            Service.CHART_FUTURES: fn(cls.ChartFuturesFields),
+            Service.CHART_EQUITY: fn(cls.ChartEquityFields),
+            Service.ACCT_ACTIVITY: fn(cls.AccountActivityFields),
+            # These are services we do not currently handle
+            # so just return the identity function:
+            Service.HEARTBEAT: lambda x: x,
+            Service.ACTIVES_NASDAQ: lambda x: x,
+            Service.ADMIN: lambda x: x,
+            Service.ACTIVES_NYSE: lambda x: x,
+            Service.ACTIVES_OTCBB: lambda x: x,
+            Service.ACTIVES_OPTIONS: lambda x: x,
+            Service.FOREX_BOOK: lambda x: x,
+            Service.FUTURES_BOOK: lambda x: x,
+            Service.FUTURES_OPTIONS_BOOK: lambda x: x,
+            Service.CHART_HISTORY_FUTURES: lambda x: x,
+            Service.LEVELTWO_FUTURES: lambda x: x,
+            Service.NEWS_STORY: lambda x: x,
+            Service.NEWS_HEADLINE_LIST: lambda x: x,
+            Service.STREAMER_SERVER: lambda x: x,
+            Service.TIMESALE_FOREX: lambda x: x,
+        }
+
+        return known_normalizers[service]
+
+    @classmethod
+    def _field_name_normalizer(cls, field_enum_type):
+        '''
+        Returns a function which returns a relabeled copy of the argument
+        according to field_enum_type
+        '''
+        def __handler(msg):
+            if 'content' in msg:
+                new_msg = copy.deepcopy(msg)
+                for idx in range(len(msg['content'])):
+                    field_enum_type.relabel_message(msg['content'][idx],
+                                                    new_msg['content'][idx])
+                return new_msg
+            else:
+                return msg
+        return __handler
+
+    @classmethod
+    def _book_fieldname_normalizer(cls, field_enum_type):
+        _top_level_handler = cls._field_name_normalizer(field_enum_type)
+
+        def __handler(msg):
+            # Relabel top-level fields
+            new_msg = _top_level_handler(msg)
+
+            # Relabel bids
+            for content in new_msg['content']:
+                if 'BIDS' in content:
+                    for bid in content['BIDS']:
+                        # Relabel top-level bids
+                        cls.BidFields.relabel_message(bid, bid)
+
+                        # Relabel per-exchange bids
+                        for e_bid in bid['BIDS']:
+                            cls.PerExchangeBidFields.relabel_message(
+                                e_bid, e_bid)
+
+            # Relabel asks
+            for content in new_msg['content']:
+                if 'ASKS' in content:
+                    for ask in content['ASKS']:
+                        # Relabel top-level asks
+                        cls.AskFields.relabel_message(ask, ask)
+
+                        # Relabel per-exchange bids
+                        for e_ask in ask['ASKS']:
+                            cls.PerExchangeAskFields.relabel_message(
+                                e_ask, e_ask)
+
+            return new_msg
+
+        return __handler
 
     async def _send(self, obj):
         if self._socket is None:
@@ -294,20 +417,24 @@ class StreamClient(EnumEnforcer):
 
         data = msg.get('data') or msg.get('notify')
 
-        # data
         for d in data:
+            # If this is a heartbeat, set the service so we can fetch handlers
             if 'heartbeat' in d:
                 d['service'] = 'HEARTBEAT'
-            if d['service'] in self._handlers:
-                for handler in self._handlers[d['service']]:
-                    if 'data' in msg: d = handler.label_message(d)
-                    h = handler(d)
-                    
-                    # Check if h is an awaitable, if so schedule it
-                    # This allows for both sync and async handlers
-                    if inspect.isawaitable(h):
-                        asyncio.ensure_future(h)
+            service = Service[d['service']]
+            handlers = self._handlers[service]
+            if len(handlers) > 0:
+                # If this is a data msg, we need to normalize fields first
+                if 'data' in msg: d = self._field_normalizer(service)(d)
+                for handler in self._handlers[service]:
+                    # We cannot "trust" the handler not to modify the
+                    # object we pass it, therefore we pass it a copy
+                    h = handler(copy.deepcopy(d))
 
+                    # Check if the returned value is awaitable
+                    # This allows us to support both sync and async handlers
+                    if inspect.isawaitable(h):
+                        await h
 
     ##########################################################################
     # LOGIN
@@ -415,6 +542,12 @@ class StreamClient(EnumEnforcer):
         await self._send({'requests': [request]})
         await self._await_response(request_id, 'ADMIN', 'QOS')
 
+    #########################################################################
+    # HEARTBEAT
+
+    def add_heartbeat_handler(self, handler):
+        self._handlers[Service.HEARTBEAT].append(handler)
+
     ##########################################################################
     # ACCT_ACTIVITY
 
@@ -462,8 +595,7 @@ class StreamClient(EnumEnforcer):
         Adds a handler to the account activity subscription. See
         :ref:`registering_handlers` for details.
         '''
-        self._handlers['ACCT_ACTIVITY'].append(_Handler(handler,
-                                                        self.AccountActivityFields))
+        self._handlers[Service.ACCT_ACTIVITY].append(handler)
 
     ##########################################################################
     # CHART_EQUITY
@@ -539,8 +671,7 @@ class StreamClient(EnumEnforcer):
         Adds a handler to the equity chart subscription. See
         :ref:`registering_handlers` for details.
         '''
-        self._handlers['CHART_EQUITY'].append(_Handler(handler,
-                                                       self.ChartEquityFields))
+        self._handlers[Service.CHART_EQUITY].append(handler)
 
     ##########################################################################
     # CHART_FUTURES
@@ -610,8 +741,7 @@ class StreamClient(EnumEnforcer):
         Adds a handler to the futures chart subscription. See
         :ref:`registering_handlers` for details.
         '''
-        self._handlers['CHART_FUTURES'].append(_Handler(handler,
-                                                        self.ChartFuturesFields))
+        self._handlers[Service.CHART_FUTURES].append(handler)
 
     ##########################################################################
     # QUOTE
@@ -832,8 +962,7 @@ class StreamClient(EnumEnforcer):
         Register a function to handle level one equity quotes as they are sent.
         See :ref:`registering_handlers` for details.
         '''
-        self._handlers['QUOTE'].append(_Handler(handler,
-                                                self.LevelOneEquityFields))
+        self._handlers[Service.QUOTE].append(handler)
 
     ##########################################################################
     # OPTION
@@ -975,8 +1104,7 @@ class StreamClient(EnumEnforcer):
         Register a function to handle level one options quotes as they are sent.
         See :ref:`registering_handlers` for details.
         '''
-        self._handlers['OPTION'].append(_Handler(handler,
-                                                 self.LevelOneOptionFields))
+        self._handlers[Service.OPTION].append(handler)
 
     ##########################################################################
     # LEVELONE_FUTURES
@@ -1132,8 +1260,7 @@ class StreamClient(EnumEnforcer):
         Register a function to handle level one futures quotes as they are sent.
         See :ref:`registering_handlers` for details.
         '''
-        self._handlers['LEVELONE_FUTURES'].append(
-            _Handler(handler, self.LevelOneFuturesFields))
+        self._handlers[Service.LEVELONE_FUTURES].append(handler)
 
     ##########################################################################
     # LEVELONE_FOREX
@@ -1262,8 +1389,7 @@ class StreamClient(EnumEnforcer):
         Register a function to handle level one forex quotes as they are sent.
         See :ref:`registering_handlers` for details.
         '''
-        self._handlers['LEVELONE_FOREX'].append(_Handler(handler,
-                                                         self.LevelOneForexFields))
+        self._handlers[Service.LEVELONE_FOREX].append(handler)
 
     ##########################################################################
     # LEVELONE_FUTURES_OPTIONS
@@ -1411,8 +1537,7 @@ class StreamClient(EnumEnforcer):
         Register a function to handle level one futures options quotes as they
         are sent. See :ref:`registering_handlers` for details.
         '''
-        self._handlers['LEVELONE_FUTURES_OPTIONS'].append(
-            _Handler(handler, self.LevelOneFuturesOptionsFields))
+        self._handlers[Service.LEVELONE_FUTURES_OPTIONS].append(handler)
 
     ##########################################################################
     # TIMESALE
@@ -1457,8 +1582,7 @@ class StreamClient(EnumEnforcer):
         Register a function to handle equity trade notifications as they happen
         See :ref:`registering_handlers` for details.
         '''
-        self._handlers['TIMESALE_EQUITY'].append(_Handler(handler,
-                                                          self.TimesaleFields))
+        self._handlers[Service.TIMESALE_EQUITY].append(handler)
 
     async def timesale_futures_subs(self, symbols, *, fields=None):
         '''
@@ -1478,8 +1602,7 @@ class StreamClient(EnumEnforcer):
         Register a function to handle futures trade notifications as they happen
         See :ref:`registering_handlers` for details.
         '''
-        self._handlers['TIMESALE_FUTURES'].append(_Handler(handler,
-                                                           self.TimesaleFields))
+        self._handlers[Service.TIMESALE_FUTURES].append(handler)
 
     async def timesale_options_subs(self, symbols, *, fields=None):
         '''
@@ -1499,8 +1622,7 @@ class StreamClient(EnumEnforcer):
         Register a function to handle options trade notifications as they happen
         See :ref:`registering_handlers` for details.
         '''
-        self._handlers['TIMESALE_OPTIONS'].append(_Handler(handler,
-                                                           self.TimesaleFields))
+        self._handlers[Service.TIMESALE_OPTIONS].append(handler)
 
     ##########################################################################
     # Common book utilities
@@ -1533,37 +1655,6 @@ class StreamClient(EnumEnforcer):
         ASK_VOLUME = 1
         SEQUENCE = 2
 
-    class _BookHandler(_Handler):
-        def label_message(self, msg):
-            # Relabel top-level fields
-            new_msg = super().label_message(msg)
-
-            # Relabel bids
-            for content in new_msg['content']:
-                if 'BIDS' in content:
-                    for bid in content['BIDS']:
-                        # Relabel top-level bids
-                        StreamClient.BidFields.relabel_message(bid, bid)
-
-                        # Relabel per-exchange bids
-                        for e_bid in bid['BIDS']:
-                            StreamClient.PerExchangeBidFields.relabel_message(
-                                e_bid, e_bid)
-
-            # Relabel asks
-            for content in new_msg['content']:
-                if 'ASKS' in content:
-                    for ask in content['ASKS']:
-                        # Relabel top-level asks
-                        StreamClient.AskFields.relabel_message(ask, ask)
-
-                        # Relabel per-exchange bids
-                        for e_ask in ask['ASKS']:
-                            StreamClient.PerExchangeAskFields.relabel_message(
-                                e_ask, e_ask)
-
-            return new_msg
-
     ##########################################################################
     # LISTED_BOOK
 
@@ -1581,8 +1672,7 @@ class StreamClient(EnumEnforcer):
         Register a function to handle level two NYSE book data as it is updated
         See :ref:`registering_handlers` for details.
         '''
-        self._handlers['LISTED_BOOK'].append(
-            self._BookHandler(handler, self.BookFields))
+        self._handlers[Service.LISTED_BOOK].append(handler)
 
     ##########################################################################
     # NASDAQ_BOOK
@@ -1601,8 +1691,7 @@ class StreamClient(EnumEnforcer):
         Register a function to handle level two NASDAQ book data as it is
         updated See :ref:`registering_handlers` for details.
         '''
-        self._handlers['NASDAQ_BOOK'].append(
-            self._BookHandler(handler, self.BookFields))
+        self._handlers[Service.NASDAQ_BOOK].append(handler)
 
     ##########################################################################
     # OPTIONS_BOOK
@@ -1622,8 +1711,7 @@ class StreamClient(EnumEnforcer):
         Register a function to handle level two options book data as it is
         updated See :ref:`registering_handlers` for details.
         '''
-        self._handlers['OPTIONS_BOOK'].append(
-            self._BookHandler(handler, self.BookFields))
+        self._handlers[Service.OPTIONS_BOOK].append(handler)
 
     ##########################################################################
     # NEWS_HEADLINE
@@ -1672,5 +1760,4 @@ class StreamClient(EnumEnforcer):
         Register a function to handle news headlines as they are provided. See
         :ref:`registering_handlers` for details.
         '''
-        self._handlers['NEWS_HEADLINE'].append(
-            self._BookHandler(handler, self.NewsHeadlineFields))
+        self._handlers[Service.NEWS_HEADLINE].append(handler)

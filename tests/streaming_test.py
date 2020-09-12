@@ -4,7 +4,7 @@ import json
 import copy
 from tests.test_utils import account_principals, has_diff, MockResponse
 from tests.test_utils import no_duplicates
-from unittest import IsolatedAsyncioTestCase
+from unittest import IsolatedAsyncioTestCase, TestCase
 from unittest.mock import ANY, AsyncMock, call, MagicMock, Mock, patch
 from tda import streaming
 
@@ -3408,22 +3408,31 @@ class StreamClientTest(IsolatedAsyncioTestCase):
 
     @no_duplicates
     @patch('tda.streaming.websockets.client.connect', new_callable=AsyncMock)
-    async def test_notify_heartbeat_messages_ignored(self, ws_connect):
+    async def test_handle_heartbeat_messages(self, ws_connect):
         socket = await self.login_and_get_socket(ws_connect)
 
-        socket.recv.side_effect = [
-            json.dumps(self.success_response(1, 'CHART_EQUITY', 'SUBS')),
-            json.dumps({'notify': [{'heartbeat': '1591499624412'}]})]
+        stream_item = {
+                'notify': [
+                    {
+                        'heartbeat': '123456789'
+                    }
+                ]
+        }
 
-        await self.client.chart_equity_subs(['GOOG,MSFT'])
+        expected_item = {
+            'service': 'HEARTBEAT',
+            'heartbeat': '123456789'
+        }
+
+        socket.recv.side_effect = [json.dumps(stream_item)]
 
         handler = Mock()
         async_handler = AsyncMock()
-        self.client.add_chart_equity_handler(handler)
-        self.client.add_chart_equity_handler(async_handler)
+        self.client.add_heartbeat_handler(handler)
+        self.client.add_heartbeat_handler(async_handler)
         await self.client.handle_message()
-        handler.assert_not_called()
-        async_handler.assert_not_called()
+        self.assert_handler_called_once_with(handler, expected_item)
+        self.assert_handler_called_once_with(async_handler, expected_item)
 
     @no_duplicates
     @patch('tda.streaming.websockets.client.connect', new_callable=AsyncMock)
@@ -3519,3 +3528,19 @@ class StreamClientTest(IsolatedAsyncioTestCase):
     async def test_subscribe_without_login(self, ws_connect):
         with self.assertRaisesRegex(ValueError, '.*Socket not open.*'):
             await self.client.chart_equity_subs(['GOOG,MSFT'])
+
+class StreamClientMiscTest(TestCase):
+    @no_duplicates
+    def test_service(self):
+        # Spot check to make sure the variable name equals the enum name
+        # equals the enum value
+        self.assertEqual(streaming.Service.LISTED_BOOK.name, 'LISTED_BOOK')
+        self.assertEqual(streaming.Service.LISTED_BOOK.value, 'LISTED_BOOK')
+        # Make sure all the names are equal to the values
+        for service in list(streaming.Service):
+            self.assertEqual(service.name, service.value)
+
+    @no_duplicates
+    def test_get_normalizers(self):
+        for service in list(streaming.Service):
+            self.assertIsNotNone(StreamClient._field_normalizer(service))
