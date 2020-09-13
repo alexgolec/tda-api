@@ -14,8 +14,8 @@ def __getattr__(name):
         if name not in __WARNINGS:
             replacement_url = ('https://tda-api.readthedocs.io/en/stable/' +
                                'order-templates.html')
-            print(('WARNING: {name} has moved from tda.orders to ' +
-                   'tda.orders.{new_package}. It will be removed from tda.orders ' +
+            print(('WARNING: {name} has moved from  to ' +
+                   'tda.orders.{new_package}. It will be removed from  ' +
                    'in a future version. You can find documentation on its '+
                    'replacements here: {url}').format(
                        name=name, new_package=new_package, url=replacement_url),

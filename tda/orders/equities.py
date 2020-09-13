@@ -1,7 +1,7 @@
 from enum import Enum
 
-from tda.orders.common import InvalidOrderException
-from tda.orders.common import InvalidOrderException, Duration, Session
+from .common import InvalidOrderException
+from .common import InvalidOrderException, Duration, Session
 
 
 _DEPRECATION_WARNED = False
@@ -127,9 +127,9 @@ def equity_buy_market(symbol, quantity):
     Returns a pre-filled :class:`~tda.orders.generic.OrderBuilder` for an equity
     buy market order.
     '''
-    from tda.orders.common import Duration, EquityInstruction
-    from tda.orders.common import OrderStrategyType, OrderType, Session
-    from tda.orders.generic import OrderBuilder
+    from .common import Duration, EquityInstruction
+    from .common import OrderStrategyType, OrderType, Session
+    from .generic import OrderBuilder
 
     return (OrderBuilder()
             .set_order_type(OrderType.MARKET)
@@ -144,9 +144,9 @@ def equity_buy_limit(symbol, quantity, price):
     Returns a pre-filled :class:`~tda.orders.generic.OrderBuilder` for an equity
     buy limit order.
     '''
-    from tda.orders.common import Duration, EquityInstruction
-    from tda.orders.common import OrderStrategyType, OrderType, Session
-    from tda.orders.generic import OrderBuilder
+    from .common import Duration, EquityInstruction
+    from .common import OrderStrategyType, OrderType, Session
+    from .generic import OrderBuilder
 
     return (OrderBuilder()
             .set_order_type(OrderType.LIMIT)
@@ -165,9 +165,9 @@ def equity_sell_market(symbol, quantity):
     Returns a pre-filled :class:`~tda.orders.generic.OrderBuilder` for an equity
     sell market order.
     '''
-    from tda.orders.common import Duration, EquityInstruction
-    from tda.orders.common import OrderStrategyType, OrderType, Session
-    from tda.orders.generic import OrderBuilder
+    from .common import Duration, EquityInstruction
+    from .common import OrderStrategyType, OrderType, Session
+    from .generic import OrderBuilder
 
     return (OrderBuilder()
             .set_order_type(OrderType.MARKET)
@@ -182,9 +182,9 @@ def equity_sell_limit(symbol, quantity, price):
     Returns a pre-filled :class:`~tda.orders.generic.OrderBuilder` for an equity
     sell limit order.
     '''
-    from tda.orders.common import Duration, EquityInstruction
-    from tda.orders.common import OrderStrategyType, OrderType, Session
-    from tda.orders.generic import OrderBuilder
+    from .common import Duration, EquityInstruction
+    from .common import OrderStrategyType, OrderType, Session
+    from .generic import OrderBuilder
 
     return (OrderBuilder()
             .set_order_type(OrderType.LIMIT)
@@ -203,9 +203,9 @@ def equity_sell_short_market(symbol, quantity):
     Returns a pre-filled :class:`~tda.orders.generic.OrderBuilder` for an equity
     short sell market order.
     '''
-    from tda.orders.common import Duration, EquityInstruction
-    from tda.orders.common import OrderStrategyType, OrderType, Session
-    from tda.orders.generic import OrderBuilder
+    from .common import Duration, EquityInstruction
+    from .common import OrderStrategyType, OrderType, Session
+    from .generic import OrderBuilder
 
     return (OrderBuilder()
             .set_order_type(OrderType.MARKET)
@@ -220,9 +220,9 @@ def equity_sell_short_limit(symbol, quantity, price):
     Returns a pre-filled :class:`~tda.orders.generic.OrderBuilder` for an equity
     short sell limit order.
     '''
-    from tda.orders.common import Duration, EquityInstruction
-    from tda.orders.common import OrderStrategyType, OrderType, Session
-    from tda.orders.generic import OrderBuilder
+    from .common import Duration, EquityInstruction
+    from .common import OrderStrategyType, OrderType, Session
+    from .generic import OrderBuilder
 
     return (OrderBuilder()
             .set_order_type(OrderType.LIMIT)
@@ -241,9 +241,9 @@ def equity_buy_to_cover_market(symbol, quantity):
     Returns a pre-filled :class:`~tda.orders.generic.OrderBuilder` for an equity
     buy-to-cover market order.
     '''
-    from tda.orders.common import Duration, EquityInstruction
-    from tda.orders.common import OrderStrategyType, OrderType, Session
-    from tda.orders.generic import OrderBuilder
+    from .common import Duration, EquityInstruction
+    from .common import OrderStrategyType, OrderType, Session
+    from .generic import OrderBuilder
 
     return (OrderBuilder()
             .set_order_type(OrderType.MARKET)
@@ -258,9 +258,9 @@ def equity_buy_to_cover_limit(symbol, quantity, price):
     Returns a pre-filled :class:`~tda.orders.generic.OrderBuilder` for an equity
     buy-to-cover limit order.
     '''
-    from tda.orders.common import Duration, EquityInstruction
-    from tda.orders.common import OrderStrategyType, OrderType, Session
-    from tda.orders.generic import OrderBuilder
+    from .common import Duration, EquityInstruction
+    from .common import OrderStrategyType, OrderType, Session
+    from .generic import OrderBuilder
 
     return (OrderBuilder()
             .set_order_type(OrderType.LIMIT)

@@ -4,17 +4,12 @@
 from requests_oauthlib import OAuth2Session
 
 import json
-import logging
 import pickle
 import time
 
-from tda.client import Client
-from tda.debug import register_redactions
-
-
-def get_logger():
-    return logging.getLogger(__name__)
-
+from .client import Client
+from .debug import register_redactions
+from .utils import get_logger
 
 def __token_updater(token_path):
     def update_token(t):

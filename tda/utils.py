@@ -3,8 +3,9 @@ module.'''
 
 import datetime
 import dateutil.parser
+import logging
 import re
-
+import warnings
 
 class EnumEnforcer:
     def __init__(self, enforce_enums):
@@ -117,3 +118,17 @@ class Utils(EnumEnforcer):
                     'order request account ID != Utils.account_id')
 
         return order_id
+
+def get_logger():
+    return logging.getLogger(__name__)
+
+def deprecated(func):
+    def deprecated_function(*args, **kwargs):
+        logger = get_logger()
+        msg = 'WARNING: {} has been deprecated, please see the library ' \
+              'documentation'.format(func.__name__)
+        logger.warning(msg)
+        return func(*args, **kwargs)
+    deprecated_function.__name__ = func.__name__
+    deprecated_function.__qualname__ = func.__qualname__
+    return deprecated_function

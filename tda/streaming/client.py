@@ -6,18 +6,15 @@ import copy
 import datetime
 import inspect
 import json
-import logging
 import tda
 import urllib.parse
+import warnings
 import websockets
 
 from .exceptions import *
 from . import services
-from ..utils import EnumEnforcer
+from ..utils import deprecated, get_logger, EnumEnforcer
 
-
-def get_logger():
-    return logging.getLogger(__name__)
 
 
 class StreamClient(EnumEnforcer):
@@ -387,12 +384,14 @@ class StreamClient(EnumEnforcer):
     ##########################################################################
     # HEARTBEAT
 
+    @deprecated
     def add_heartbeat_handler(self, handler):
         self.add_handler(services.HEARTBEAT, handler)
 
     ##########################################################################
     # ACCT_ACTIVITY
 
+    @deprecated
     async def account_activity_sub(self):
         '''
         `Official documentation <https://developer.tdameritrade.com/content/
@@ -403,6 +402,7 @@ class StreamClient(EnumEnforcer):
         '''
         await self.subscribe(services.ACCT_ACTIVITY)
 
+    @deprecated
     def add_account_activity_handler(self, handler):
         '''
         Adds a handler to the account activity subscription. See
@@ -413,6 +413,7 @@ class StreamClient(EnumEnforcer):
     ##########################################################################
     # CHART_EQUITY
 
+    @deprecated
     async def chart_equity_subs(self, symbols):
         '''
         `Official documentation <https://developer.tdameritrade.com/content/
@@ -424,6 +425,7 @@ class StreamClient(EnumEnforcer):
         :param symbols: Equity symbols to subscribe to.'''
         await self.subscribe(services.CHART_EQUITY, symbols)
 
+    @deprecated
     async def chart_equity_add(self, symbols):
         '''
         `Official documentation <https://developer.tdameritrade.com/content/
@@ -436,6 +438,7 @@ class StreamClient(EnumEnforcer):
         '''
         await self.append_subscription(services.CHART_EQUITY, symbols)
 
+    @deprecated
     def add_chart_equity_handler(self, handler):
         '''
         Adds a handler to the equity chart subscription. See
@@ -446,6 +449,7 @@ class StreamClient(EnumEnforcer):
     ##########################################################################
     # CHART_FUTURES
 
+    @deprecated
     async def chart_futures_subs(self, symbols):
         '''
         `Official documentation <https://developer.tdameritrade.com/content/
@@ -458,6 +462,7 @@ class StreamClient(EnumEnforcer):
         '''
         await self.subscribe(services.CHART_FUTURES, symbols)
 
+    @deprecated
     async def chart_futures_add(self, symbols):
         '''
         `Official documentation <https://developer.tdameritrade.com/content/
@@ -470,6 +475,7 @@ class StreamClient(EnumEnforcer):
         '''
         await self.append_subscription(services.CHART_FUTURES, symbols)
 
+    @deprecated
     def add_chart_futures_handler(self, handler):
         '''
         Adds a handler to the futures chart subscription. See
@@ -480,6 +486,7 @@ class StreamClient(EnumEnforcer):
     ##########################################################################
     # QUOTE
 
+    @deprecated
     async def level_one_equity_subs(self, symbols, *, fields=None):
         '''
         `Official documentation <https://developer.tdameritrade.com/content/
@@ -494,6 +501,7 @@ class StreamClient(EnumEnforcer):
         '''
         await self.subscribe(services.QUOTE, symbols, fields)
 
+    @deprecated
     def add_level_one_equity_handler(self, handler):
         '''
         Register a function to handle level one equity quotes as they are sent.
@@ -504,6 +512,7 @@ class StreamClient(EnumEnforcer):
     ##########################################################################
     # OPTION
 
+    @deprecated
     async def level_one_option_subs(self, symbols, *, fields=None):
         '''
         `Official documentation <https://developer.tdameritrade.com/content/
@@ -518,6 +527,7 @@ class StreamClient(EnumEnforcer):
         '''
         await self.subscribe(services.OPTION, symbols, fields)
 
+    @deprecated
     def add_level_one_option_handler(self, handler):
         '''
         Register a function to handle level one options quotes as they are sent.
@@ -528,6 +538,7 @@ class StreamClient(EnumEnforcer):
     ##########################################################################
     # LEVELONE_FUTURES
 
+    @deprecated
     async def level_one_futures_subs(self, symbols, *, fields=None):
         '''
         `Official documentation <https://developer.tdameritrade.com/content/
@@ -542,6 +553,7 @@ class StreamClient(EnumEnforcer):
         '''
         await self.subscribe(services.LEVELONE_FUTURES, symbols, fields)
 
+    @deprecated
     def add_level_one_futures_handler(self, handler):
         '''
         Register a function to handle level one futures quotes as they are sent.
@@ -552,6 +564,7 @@ class StreamClient(EnumEnforcer):
     ##########################################################################
     # LEVELONE_FOREX
 
+    @deprecated
     async def level_one_forex_subs(self, symbols, *, fields=None):
         '''
         `Official documentation <https://developer.tdameritrade.com/content/
@@ -566,6 +579,7 @@ class StreamClient(EnumEnforcer):
         '''
         await self.subscribe(services.LEVELONE_FOREX, symbols, fields)
 
+    @deprecated
     def add_level_one_forex_handler(self, handler):
         '''
         Register a function to handle level one forex quotes as they are sent.
@@ -576,6 +590,7 @@ class StreamClient(EnumEnforcer):
     ##########################################################################
     # LEVELONE_FUTURES_OPTIONS
 
+    @deprecated
     async def level_one_futures_options_subs(self, symbols, *, fields=None):
         '''
         `Official documentation <https://developer.tdameritrade.com/content/
@@ -591,6 +606,7 @@ class StreamClient(EnumEnforcer):
         await self.subscribe(
                 services.LEVELONE_FUTURES_OPTIONS, symbols, fields)
 
+    @deprecated
     def add_level_one_futures_options_handler(self, handler):
         '''
         Register a function to handle level one futures options quotes as they
@@ -601,6 +617,7 @@ class StreamClient(EnumEnforcer):
     ##########################################################################
     # TIMESALE
 
+    @deprecated
     async def timesale_equity_subs(self, symbols, *, fields=None):
         '''
         `Official documentation <https://developer.tdameritrade.com/content/
@@ -612,6 +629,7 @@ class StreamClient(EnumEnforcer):
         '''
         await self.subscribe(services.TIMESALE_EQUITY, symbols, fields)
 
+    @deprecated
     def add_timesale_equity_handler(self, handler):
         '''
         Register a function to handle equity trade notifications as they happen
@@ -619,6 +637,7 @@ class StreamClient(EnumEnforcer):
         '''
         self.add_handler(services.TIMESALE_EQUITY, handler)
 
+    @deprecated
     async def timesale_futures_subs(self, symbols, *, fields=None):
         '''
         `Official documentation <https://developer.tdameritrade.com/content/
@@ -630,6 +649,7 @@ class StreamClient(EnumEnforcer):
         '''
         await self.subscribe(services.TIMESALE_FUTURES, symbols, fields)
 
+    @deprecated
     def add_timesale_futures_handler(self, handler):
         '''
         Register a function to handle futures trade notifications as they happen
@@ -637,6 +657,7 @@ class StreamClient(EnumEnforcer):
         '''
         self.add_handler(services.TIMESALE_FUTURES, handler)
 
+    @deprecated
     async def timesale_options_subs(self, symbols, *, fields=None):
         '''
         `Official documentation <https://developer.tdameritrade.com/content/
@@ -648,6 +669,7 @@ class StreamClient(EnumEnforcer):
         '''
         await self.subscribe(services.TIMESALE_OPTIONS, symbols, fields)
 
+    @deprecated
     def add_timesale_options_handler(self, handler):
         '''
         Register a function to handle options trade notifications as they happen
@@ -658,6 +680,7 @@ class StreamClient(EnumEnforcer):
     ##########################################################################
     # LISTED_BOOK
 
+    @deprecated
     async def listed_book_subs(self, symbols):
         '''
         Subscribe to the NYSE level two order book. Note this stream has no
@@ -665,6 +688,7 @@ class StreamClient(EnumEnforcer):
         '''
         await self.subscribe(services.LISTED_BOOK, symbols)
 
+    @deprecated
     def add_listed_book_handler(self, handler):
         '''
         Register a function to handle level two NYSE book data as it is updated
@@ -675,6 +699,7 @@ class StreamClient(EnumEnforcer):
     ##########################################################################
     # NASDAQ_BOOK
 
+    @deprecated
     async def nasdaq_book_subs(self, symbols):
         '''
         Subscribe to the NASDAQ level two order book. Note this stream has no
@@ -682,6 +707,7 @@ class StreamClient(EnumEnforcer):
         '''
         await self.subscribe(services.NASDAQ_BOOK, symbols)
 
+    @deprecated
     def add_nasdaq_book_handler(self, handler):
         '''
         Register a function to handle level two NASDAQ book data as it is
@@ -692,6 +718,7 @@ class StreamClient(EnumEnforcer):
     ##########################################################################
     # OPTIONS_BOOK
 
+    @deprecated
     async def options_book_subs(self, symbols):
         '''
         Subscribe to the level two order book for options. Note this stream has no
@@ -700,6 +727,7 @@ class StreamClient(EnumEnforcer):
         '''
         await self.subscribe(services.OPTIONS_BOOK, symbols)
 
+    @deprecated
     def add_options_book_handler(self, handler):
         '''
         Register a function to handle level two options book data as it is
@@ -710,6 +738,7 @@ class StreamClient(EnumEnforcer):
     ##########################################################################
     # NEWS_HEADLINE
 
+    @deprecated
     async def news_headline_subs(self, symbols):
         '''
         `Official documentation <https://developer.tdameritrade.com/content/
@@ -719,6 +748,7 @@ class StreamClient(EnumEnforcer):
         '''
         await self.subscribe(services.NEWS_HEADLINE, symbols)
 
+    @deprecated
     def add_news_headline_handler(self, handler):
         '''
         Register a function to handle news headlines as they are provided. See

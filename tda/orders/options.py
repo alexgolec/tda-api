@@ -1,6 +1,6 @@
 import datetime
 
-from tda.orders.generic import OrderBuilder
+from .generic import OrderBuilder
 
 
 def _parse_expiration_date(expiration_date):
@@ -138,7 +138,7 @@ class OptionSymbol:
 
 
 def __base_builder():
-    from tda.orders.common import Duration, Session
+    from .common import Duration, Session
 
     return (OrderBuilder()
             .set_session(Session.NORMAL)
@@ -155,7 +155,7 @@ def option_buy_to_open_market(symbol, quantity):
     Returns a pre-filled :class:`~tda.orders.generic.OrderBuilder` for a
     buy-to-open market order.
     '''
-    from tda.orders.common import OptionInstruction, OrderType, OrderStrategyType
+    from .common import OptionInstruction, OrderType, OrderStrategyType
 
     return (__base_builder()
             .set_order_type(OrderType.MARKET)
@@ -168,7 +168,7 @@ def option_buy_to_open_limit(symbol, quantity, price):
     Returns a pre-filled :class:`~tda.orders.generic.OrderBuilder` for a
     buy-to-open limit order.
     '''
-    from tda.orders.common import OptionInstruction, OrderType, OrderStrategyType
+    from .common import OptionInstruction, OrderType, OrderStrategyType
 
     return (__base_builder()
             .set_order_type(OrderType.LIMIT)
@@ -185,7 +185,7 @@ def option_sell_to_open_market(symbol, quantity):
     Returns a pre-filled :class:`~tda.orders.generic.OrderBuilder` for a
     sell-to-open market order.
     '''
-    from tda.orders.common import OptionInstruction, OrderType, OrderStrategyType
+    from .common import OptionInstruction, OrderType, OrderStrategyType
 
     return (__base_builder()
             .set_order_type(OrderType.MARKET)
@@ -198,7 +198,7 @@ def option_sell_to_open_limit(symbol, quantity, price):
     Returns a pre-filled :class:`~tda.orders.generic.OrderBuilder` for a
     sell-to-open limit order.
     '''
-    from tda.orders.common import OptionInstruction, OrderType, OrderStrategyType
+    from .common import OptionInstruction, OrderType, OrderStrategyType
 
     return (__base_builder()
             .set_order_type(OrderType.LIMIT)
@@ -216,7 +216,7 @@ def option_buy_to_close_market(symbol, quantity):
     Returns a pre-filled :class:`~tda.orders.generic.OrderBuilder` for a
     buy-to-close market order.
     '''
-    from tda.orders.common import OptionInstruction, OrderType, OrderStrategyType
+    from .common import OptionInstruction, OrderType, OrderStrategyType
 
     return (__base_builder()
             .set_order_type(OrderType.MARKET)
@@ -229,7 +229,7 @@ def option_buy_to_close_limit(symbol, quantity, price):
     Returns a pre-filled :class:`~tda.orders.generic.OrderBuilder` for a
     buy-to-close limit order.
     '''
-    from tda.orders.common import OptionInstruction, OrderType, OrderStrategyType
+    from .common import OptionInstruction, OrderType, OrderStrategyType
 
     return (__base_builder()
             .set_order_type(OrderType.LIMIT)
@@ -247,7 +247,7 @@ def option_sell_to_close_market(symbol, quantity):
     Returns a pre-filled :class:`~tda.orders.generic.OrderBuilder` for a
     sell-to-close market order.
     '''
-    from tda.orders.common import OptionInstruction, OrderType, OrderStrategyType
+    from .common import OptionInstruction, OrderType, OrderStrategyType
 
     return (__base_builder()
             .set_order_type(OrderType.MARKET)
@@ -260,7 +260,7 @@ def option_sell_to_close_limit(symbol, quantity, price):
     Returns a pre-filled :class:`~tda.orders.generic.OrderBuilder` for a
     sell-to-close limit order.
     '''
-    from tda.orders.common import OptionInstruction, OrderType, OrderStrategyType
+    from .common import OptionInstruction, OrderType, OrderStrategyType
 
     return (__base_builder()
             .set_order_type(OrderType.LIMIT)
@@ -281,8 +281,8 @@ def bull_call_vertical_open(
     Returns a pre-filled :class:`~tda.orders.generic.OrderBuilder` that opens a 
     bull call vertical position. See :ref:`vertical_spreads` for details.
     '''
-    from tda.orders.common import OptionInstruction, OrderType, OrderStrategyType
-    from tda.orders.common import ComplexOrderStrategyType
+    from .common import OptionInstruction, OrderType, OrderStrategyType
+    from .common import ComplexOrderStrategyType
 
     return (__base_builder()
             .set_order_type(OrderType.NET_DEBIT)
@@ -301,8 +301,8 @@ def bull_call_vertical_close(
     Returns a pre-filled :class:`~tda.orders.generic.OrderBuilder` that closes a
     bull call vertical position. See :ref:`vertical_spreads` for details.
     '''
-    from tda.orders.common import OptionInstruction, OrderType, OrderStrategyType
-    from tda.orders.common import ComplexOrderStrategyType
+    from .common import OptionInstruction, OrderType, OrderStrategyType
+    from .common import ComplexOrderStrategyType
 
     return (__base_builder()
             .set_order_type(OrderType.NET_CREDIT)
@@ -324,8 +324,8 @@ def bear_call_vertical_open(
     Returns a pre-filled :class:`~tda.orders.generic.OrderBuilder` that opens a
     bear call vertical position. See :ref:`vertical_spreads` for details.
     '''
-    from tda.orders.common import OptionInstruction, OrderType, OrderStrategyType
-    from tda.orders.common import ComplexOrderStrategyType
+    from .common import OptionInstruction, OrderType, OrderStrategyType
+    from .common import ComplexOrderStrategyType
 
     return (__base_builder()
             .set_order_type(OrderType.NET_CREDIT)
@@ -344,8 +344,8 @@ def bear_call_vertical_close(
     Returns a pre-filled :class:`~tda.orders.generic.OrderBuilder` that closes a
     bear call vertical position. See :ref:`vertical_spreads` for details.
     '''
-    from tda.orders.common import OptionInstruction, OrderType, OrderStrategyType
-    from tda.orders.common import ComplexOrderStrategyType
+    from .common import OptionInstruction, OrderType, OrderStrategyType
+    from .common import ComplexOrderStrategyType
 
     return (__base_builder()
             .set_order_type(OrderType.NET_DEBIT)
@@ -367,8 +367,8 @@ def bull_put_vertical_open(
     Returns a pre-filled :class:`~tda.orders.generic.OrderBuilder` that opens a
     bull put vertical position. See :ref:`vertical_spreads` for details.
     '''
-    from tda.orders.common import OptionInstruction, OrderType, OrderStrategyType
-    from tda.orders.common import ComplexOrderStrategyType
+    from .common import OptionInstruction, OrderType, OrderStrategyType
+    from .common import ComplexOrderStrategyType
 
     return (__base_builder()
             .set_order_type(OrderType.NET_CREDIT)
@@ -387,8 +387,8 @@ def bull_put_vertical_close(
     Returns a pre-filled :class:`~tda.orders.generic.OrderBuilder` that closes a
     bull put vertical position. See :ref:`vertical_spreads` for details.
     '''
-    from tda.orders.common import OptionInstruction, OrderType, OrderStrategyType
-    from tda.orders.common import ComplexOrderStrategyType
+    from .common import OptionInstruction, OrderType, OrderStrategyType
+    from .common import ComplexOrderStrategyType
 
     return (__base_builder()
             .set_order_type(OrderType.NET_DEBIT)
@@ -410,8 +410,8 @@ def bear_put_vertical_open(
     Returns a pre-filled :class:`~tda.orders.generic.OrderBuilder` that opens a
     bear put vertical position. See :ref:`vertical_spreads` for details.
     '''
-    from tda.orders.common import OptionInstruction, OrderType, OrderStrategyType
-    from tda.orders.common import ComplexOrderStrategyType
+    from .common import OptionInstruction, OrderType, OrderStrategyType
+    from .common import ComplexOrderStrategyType
 
     return (__base_builder()
             .set_order_type(OrderType.NET_DEBIT)
@@ -430,8 +430,8 @@ def bear_put_vertical_close(
     Returns a pre-filled :class:`~tda.orders.generic.OrderBuilder` that closes a
     bear put vertical position. See :ref:`vertical_spreads` for details.
     '''
-    from tda.orders.common import OptionInstruction, OrderType, OrderStrategyType
-    from tda.orders.common import ComplexOrderStrategyType
+    from .common import OptionInstruction, OrderType, OrderStrategyType
+    from .common import ComplexOrderStrategyType
 
     return (__base_builder()
             .set_order_type(OrderType.NET_CREDIT)

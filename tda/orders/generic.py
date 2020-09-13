@@ -1,7 +1,7 @@
 from enum import Enum
 
-from tda.orders import common
-from tda.utils import EnumEnforcer
+from . import common
+from ..utils import EnumEnforcer
 
 
 def _build_object(obj):

@@ -7,17 +7,12 @@ from requests_oauthlib import OAuth2Session
 
 import datetime
 import json
-import logging
 import pickle
 import tda
 import time
 
-from tda.orders.generic import OrderBuilder
-from .utils import EnumEnforcer
-
-
-def get_logger():
-    return logging.getLogger(__name__)
+from .orders.generic import OrderBuilder
+from .utils import get_logger, EnumEnforcer
 
 
 ##########################################################################
