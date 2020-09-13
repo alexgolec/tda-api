@@ -7,7 +7,7 @@ from unittest.mock import ANY, MagicMock, Mock, patch
 from tda.client import Client
 from tda.orders.generic import OrderBuilder
 
-from tests.test_utils import no_duplicates
+from .utils import no_duplicates
 
 # Constants
 

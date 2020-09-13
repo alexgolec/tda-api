@@ -1,8 +1,9 @@
+asynctest
 colorama
 coverage
-nose
 requests_oauthlib
 python-dateutil
+pytest
 pytz
 selenium
 sphinx_rtd_theme
