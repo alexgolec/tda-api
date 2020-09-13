@@ -1,4 +1,4 @@
-from tests.test_utils import has_diff, no_duplicates
+from ..utils import has_diff, no_duplicates
 from tda.orders.common import *
 from tda.orders.generic import OrderBuilder
 

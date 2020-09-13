@@ -2,7 +2,7 @@ import unittest
 
 from tda.orders.common import *
 from tda.orders.equities import *
-from ._utils import has_diff, no_duplicates
+from .utils import has_diff, no_duplicates
 from . import test_utils
 
 

@@ -6,7 +6,7 @@ import tda
 import unittest
 
 from tda.client import Client
-from ._utils import MockResponse, no_duplicates
+from .utils import MockResponse, no_duplicates
 from unittest.mock import Mock, patch
 
 

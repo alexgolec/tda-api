@@ -1,5 +1,5 @@
 from tda import auth
-from ._utils import no_duplicates
+from .utils import no_duplicates
 from unittest.mock import patch, ANY, MagicMock
 from unittest.mock import ANY as _
 
