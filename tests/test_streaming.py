@@ -5,7 +5,7 @@ import copy
 from .utils import account_principals, has_diff, MockResponse
 from .utils import no_duplicates
 import asynctest
-from unittest.mock import ANY, call, MagicMock, Mock, patch
+from unittest.mock import ANY, call, MagicMock, Mock
 from tda import streaming
 
 StreamClient = streaming.StreamClient
@@ -43,7 +43,7 @@ class StreamClientTest(asynctest.TestCase):
 
     def request_from_socket_mock(self, socket):
         return json.loads(
-            socket.send.call_args_list[0].args[0])['requests'][0]
+            socket.send.call_args_list[0][0][0])['requests'][0]
 
     def success_response(self, request_id, service, command):
         return {
@@ -78,7 +78,7 @@ class StreamClientTest(asynctest.TestCase):
     def assert_handler_called_once_with(self, handler, expected):
         handler.assert_called_once()
         self.assertEqual(len(handler.call_args_list[0]), 2)
-        data = handler.call_args_list[0].args[0]
+        data = handler.call_args_list[0][0][0] # Mock from <- 3.7 has a bad api
 
         self.assertFalse(has_diff(data, expected))
 
@@ -102,7 +102,7 @@ class StreamClientTest(asynctest.TestCase):
     # Login
 
     @no_duplicates
-    @patch('tda.streaming.websockets.client.connect', new_callable=asynctest.CoroutineMock)
+    @asynctest.patch('tda.streaming.websockets.client.connect', new_callable=asynctest.CoroutineMock)
     async def test_login_single_account_success(self, ws_connect):
         principals = account_principals()
         principals['accounts'].clear()
@@ -146,7 +146,7 @@ class StreamClientTest(asynctest.TestCase):
         self.assertEqual(request['command'], 'LOGIN')
 
     @no_duplicates
-    @patch('tda.streaming.websockets.client.connect', new_callable=asynctest.CoroutineMock)
+    @asynctest.patch('tda.streaming.websockets.client.connect', new_callable=asynctest.CoroutineMock)
     async def test_login_multiple_accounts_require_account_id(self, ws_connect):
         principals = account_principals()
         principals['accounts'].clear()
@@ -167,7 +167,7 @@ class StreamClientTest(asynctest.TestCase):
         ws_connect.assert_not_called()
 
     @no_duplicates
-    @patch('tda.streaming.websockets.client.connect', new_callable=asynctest.CoroutineMock)
+    @asynctest.patch('tda.streaming.websockets.client.connect', new_callable=asynctest.CoroutineMock)
     async def test_login_multiple_accounts_with_account_id(self, ws_connect):
         principals = account_principals()
         principals['accounts'].clear()
@@ -215,7 +215,7 @@ class StreamClientTest(asynctest.TestCase):
         self.assertEqual(request['command'], 'LOGIN')
 
     @no_duplicates
-    @patch('tda.streaming.websockets.client.connect', new_callable=asynctest.CoroutineMock)
+    @asynctest.patch('tda.streaming.websockets.client.connect', new_callable=asynctest.CoroutineMock)
     async def test_login_unrecognized_account_id(self, ws_connect):
         principals = account_principals()
         principals['accounts'].clear()
@@ -238,7 +238,7 @@ class StreamClientTest(asynctest.TestCase):
         ws_connect.assert_not_called()
 
     @no_duplicates
-    @patch('tda.streaming.websockets.client.connect', new_callable=asynctest.CoroutineMock)
+    @asynctest.patch('tda.streaming.websockets.client.connect', new_callable=asynctest.CoroutineMock)
     async def test_login_bad_response(self, ws_connect):
         principals = account_principals()
         principals['accounts'].clear()
@@ -261,7 +261,7 @@ class StreamClientTest(asynctest.TestCase):
             await self.client.login()
 
     @no_duplicates
-    @patch('tda.streaming.websockets.client.connect', new_callable=asynctest.CoroutineMock)
+    @asynctest.patch('tda.streaming.websockets.client.connect', new_callable=asynctest.CoroutineMock)
     async def test_login_no_ssl_context(self, ws_connect):
         self.client = StreamClient(self.http_client)
 
@@ -279,7 +279,7 @@ class StreamClientTest(asynctest.TestCase):
 
 
     @no_duplicates
-    @patch('tda.streaming.websockets.client.connect', new_callable=asynctest.CoroutineMock)
+    @asynctest.patch('tda.streaming.websockets.client.connect', new_callable=asynctest.CoroutineMock)
     async def test_login_ssl_context(self, ws_connect):
         self.client = StreamClient(self.http_client, ssl_context='ssl_context')
 
@@ -297,7 +297,7 @@ class StreamClientTest(asynctest.TestCase):
 
 
     @no_duplicates
-    @patch('tda.streaming.websockets.client.connect', new_callable=asynctest.CoroutineMock)
+    @asynctest.patch('tda.streaming.websockets.client.connect', new_callable=asynctest.CoroutineMock)
     async def test_login_unexpected_request_id(self, ws_connect):
         principals = account_principals()
         principals['accounts'].clear()
@@ -320,7 +320,7 @@ class StreamClientTest(asynctest.TestCase):
             await self.client.login()
 
     @no_duplicates
-    @patch('tda.streaming.websockets.client.connect', new_callable=asynctest.CoroutineMock)
+    @asynctest.patch('tda.streaming.websockets.client.connect', new_callable=asynctest.CoroutineMock)
     async def test_login_unexpected_service(self, ws_connect):
         principals = account_principals()
         principals['accounts'].clear()
@@ -342,7 +342,7 @@ class StreamClientTest(asynctest.TestCase):
             await self.client.login()
 
     @no_duplicates
-    @patch('tda.streaming.websockets.client.connect', new_callable=asynctest.CoroutineMock)
+    @asynctest.patch('tda.streaming.websockets.client.connect', new_callable=asynctest.CoroutineMock)
     async def test_login_unexpected_command(self, ws_connect):
         principals = account_principals()
         principals['accounts'].clear()
@@ -367,7 +367,7 @@ class StreamClientTest(asynctest.TestCase):
     # QOS
 
     @no_duplicates
-    @patch('tda.streaming.websockets.client.connect', new_callable=asynctest.CoroutineMock)
+    @asynctest.patch('tda.streaming.websockets.client.connect', new_callable=asynctest.CoroutineMock)
     async def test_qos_success(self, ws_connect):
         socket = await self.login_and_get_socket(ws_connect)
 
@@ -390,7 +390,7 @@ class StreamClientTest(asynctest.TestCase):
         })
 
     @no_duplicates
-    @patch('tda.streaming.websockets.client.connect', new_callable=asynctest.CoroutineMock)
+    @asynctest.patch('tda.streaming.websockets.client.connect', new_callable=asynctest.CoroutineMock)
     async def test_qos_failure(self, ws_connect):
         socket = await self.login_and_get_socket(ws_connect)
 
@@ -406,7 +406,7 @@ class StreamClientTest(asynctest.TestCase):
     # ACCT_ACTIVITY
 
     @no_duplicates
-    @patch('tda.streaming.websockets.client.connect', new_callable=asynctest.CoroutineMock)
+    @asynctest.patch('tda.streaming.websockets.client.connect', new_callable=asynctest.CoroutineMock)
     async def test_account_activity_subs_success(self, ws_connect):
         socket = await self.login_and_get_socket(ws_connect)
 
@@ -430,7 +430,7 @@ class StreamClientTest(asynctest.TestCase):
         })
 
     @no_duplicates
-    @patch('tda.streaming.websockets.client.connect', new_callable=asynctest.CoroutineMock)
+    @asynctest.patch('tda.streaming.websockets.client.connect', new_callable=asynctest.CoroutineMock)
     async def test_account_activity_subs_failure(self, ws_connect):
         socket = await self.login_and_get_socket(ws_connect)
 
@@ -442,7 +442,7 @@ class StreamClientTest(asynctest.TestCase):
             await self.client.account_activity_sub()
 
     @no_duplicates
-    @patch('tda.streaming.websockets.client.connect', new_callable=asynctest.CoroutineMock)
+    @asynctest.patch('tda.streaming.websockets.client.connect', new_callable=asynctest.CoroutineMock)
     async def test_account_activity_handler(self, ws_connect):
         socket = await self.login_and_get_socket(ws_connect)
 
@@ -498,7 +498,7 @@ class StreamClientTest(asynctest.TestCase):
     # CHART_EQUITY
 
     @no_duplicates
-    @patch('tda.streaming.websockets.client.connect', new_callable=asynctest.CoroutineMock)
+    @asynctest.patch('tda.streaming.websockets.client.connect', new_callable=asynctest.CoroutineMock)
     async def test_chart_equity_subs_and_add_success(self, ws_connect):
         socket = await self.login_and_get_socket(ws_connect)
 
@@ -543,7 +543,7 @@ class StreamClientTest(asynctest.TestCase):
         })
 
     @no_duplicates
-    @patch('tda.streaming.websockets.client.connect', new_callable=asynctest.CoroutineMock)
+    @asynctest.patch('tda.streaming.websockets.client.connect', new_callable=asynctest.CoroutineMock)
     async def test_chart_equity_subs_failure(self, ws_connect):
         socket = await self.login_and_get_socket(ws_connect)
 
@@ -555,7 +555,7 @@ class StreamClientTest(asynctest.TestCase):
             await self.client.chart_equity_subs(['GOOG', 'MSFT'])
 
     @no_duplicates
-    @patch('tda.streaming.websockets.client.connect', new_callable=asynctest.CoroutineMock)
+    @asynctest.patch('tda.streaming.websockets.client.connect', new_callable=asynctest.CoroutineMock)
     async def test_chart_equity_add_failure(self, ws_connect):
         socket = await self.login_and_get_socket(ws_connect)
 
@@ -573,7 +573,7 @@ class StreamClientTest(asynctest.TestCase):
             await self.client.chart_equity_add(['INTC'])
 
     @no_duplicates
-    @patch('tda.streaming.websockets.client.connect', new_callable=asynctest.CoroutineMock)
+    @asynctest.patch('tda.streaming.websockets.client.connect', new_callable=asynctest.CoroutineMock)
     async def test_chart_equity_handler(self, ws_connect):
         socket = await self.login_and_get_socket(ws_connect)
 
@@ -663,7 +663,7 @@ class StreamClientTest(asynctest.TestCase):
     # CHART_FUTURES
 
     @no_duplicates
-    @patch('tda.streaming.websockets.client.connect', new_callable=asynctest.CoroutineMock)
+    @asynctest.patch('tda.streaming.websockets.client.connect', new_callable=asynctest.CoroutineMock)
     async def test_chart_futures_subs_and_add_success(self, ws_connect):
         socket = await self.login_and_get_socket(ws_connect)
 
@@ -708,7 +708,7 @@ class StreamClientTest(asynctest.TestCase):
         })
 
     @no_duplicates
-    @patch('tda.streaming.websockets.client.connect', new_callable=asynctest.CoroutineMock)
+    @asynctest.patch('tda.streaming.websockets.client.connect', new_callable=asynctest.CoroutineMock)
     async def test_chart_futures_subs_failure(self, ws_connect):
         socket = await self.login_and_get_socket(ws_connect)
 
@@ -720,7 +720,7 @@ class StreamClientTest(asynctest.TestCase):
             await self.client.chart_futures_subs(['/ES', '/CL'])
 
     @no_duplicates
-    @patch('tda.streaming.websockets.client.connect', new_callable=asynctest.CoroutineMock)
+    @asynctest.patch('tda.streaming.websockets.client.connect', new_callable=asynctest.CoroutineMock)
     async def test_chart_futures_add_failure(self, ws_connect):
         socket = await self.login_and_get_socket(ws_connect)
 
@@ -738,7 +738,7 @@ class StreamClientTest(asynctest.TestCase):
             await self.client.chart_futures_add(['/ZC'])
 
     @no_duplicates
-    @patch('tda.streaming.websockets.client.connect', new_callable=asynctest.CoroutineMock)
+    @asynctest.patch('tda.streaming.websockets.client.connect', new_callable=asynctest.CoroutineMock)
     async def test_chart_futures_handler(self, ws_connect):
         socket = await self.login_and_get_socket(ws_connect)
 
@@ -817,7 +817,7 @@ class StreamClientTest(asynctest.TestCase):
     # QUOTE
 
     @no_duplicates
-    @patch('tda.streaming.websockets.client.connect', new_callable=asynctest.CoroutineMock)
+    @asynctest.patch('tda.streaming.websockets.client.connect', new_callable=asynctest.CoroutineMock)
     async def test_level_one_equity_subs_success_all_fields(self, ws_connect):
         socket = await self.login_and_get_socket(ws_connect)
 
@@ -844,7 +844,7 @@ class StreamClientTest(asynctest.TestCase):
         })
 
     @no_duplicates
-    @patch('tda.streaming.websockets.client.connect', new_callable=asynctest.CoroutineMock)
+    @asynctest.patch('tda.streaming.websockets.client.connect', new_callable=asynctest.CoroutineMock)
     async def test_level_one_equity_subs_success_some_fields(self, ws_connect):
         socket = await self.login_and_get_socket(ws_connect)
 
@@ -873,7 +873,7 @@ class StreamClientTest(asynctest.TestCase):
         })
 
     @no_duplicates
-    @patch('tda.streaming.websockets.client.connect', new_callable=asynctest.CoroutineMock)
+    @asynctest.patch('tda.streaming.websockets.client.connect', new_callable=asynctest.CoroutineMock)
     async def test_level_one_equity_subs_failure(self, ws_connect):
         socket = await self.login_and_get_socket(ws_connect)
 
@@ -885,7 +885,7 @@ class StreamClientTest(asynctest.TestCase):
             await self.client.level_one_equity_subs(['GOOG', 'MSFT'])
 
     @no_duplicates
-    @patch('tda.streaming.websockets.client.connect', new_callable=asynctest.CoroutineMock)
+    @asynctest.patch('tda.streaming.websockets.client.connect', new_callable=asynctest.CoroutineMock)
     async def test_level_one_quote_handler(self, ws_connect):
         socket = await self.login_and_get_socket(ws_connect)
 
@@ -1151,7 +1151,7 @@ class StreamClientTest(asynctest.TestCase):
     # OPTION
 
     @no_duplicates
-    @patch('tda.streaming.websockets.client.connect', new_callable=asynctest.CoroutineMock)
+    @asynctest.patch('tda.streaming.websockets.client.connect', new_callable=asynctest.CoroutineMock)
     async def test_level_one_option_subs_success_all_fields(self, ws_connect):
         socket = await self.login_and_get_socket(ws_connect)
 
@@ -1178,7 +1178,7 @@ class StreamClientTest(asynctest.TestCase):
         })
 
     @no_duplicates
-    @patch('tda.streaming.websockets.client.connect', new_callable=asynctest.CoroutineMock)
+    @asynctest.patch('tda.streaming.websockets.client.connect', new_callable=asynctest.CoroutineMock)
     async def test_level_one_option_subs_success_some_fields(self, ws_connect):
         socket = await self.login_and_get_socket(ws_connect)
 
@@ -1208,7 +1208,7 @@ class StreamClientTest(asynctest.TestCase):
         })
 
     @no_duplicates
-    @patch('tda.streaming.websockets.client.connect', new_callable=asynctest.CoroutineMock)
+    @asynctest.patch('tda.streaming.websockets.client.connect', new_callable=asynctest.CoroutineMock)
     async def test_level_one_option_subs_failure(self, ws_connect):
         socket = await self.login_and_get_socket(ws_connect)
 
@@ -1221,7 +1221,7 @@ class StreamClientTest(asynctest.TestCase):
                 ['GOOG_052920C620', 'MSFT_052920C145'])
 
     @no_duplicates
-    @patch('tda.streaming.websockets.client.connect', new_callable=asynctest.CoroutineMock)
+    @asynctest.patch('tda.streaming.websockets.client.connect', new_callable=asynctest.CoroutineMock)
     async def test_level_one_option_handler(self, ws_connect):
         socket = await self.login_and_get_socket(ws_connect)
 
@@ -1421,7 +1421,7 @@ class StreamClientTest(asynctest.TestCase):
     # LEVELONE_FUTURES
 
     @no_duplicates
-    @patch('tda.streaming.websockets.client.connect', new_callable=asynctest.CoroutineMock)
+    @asynctest.patch('tda.streaming.websockets.client.connect', new_callable=asynctest.CoroutineMock)
     async def test_level_one_futures_subs_success_all_fields(self, ws_connect):
         socket = await self.login_and_get_socket(ws_connect)
 
@@ -1446,7 +1446,7 @@ class StreamClientTest(asynctest.TestCase):
         })
 
     @no_duplicates
-    @patch('tda.streaming.websockets.client.connect', new_callable=asynctest.CoroutineMock)
+    @asynctest.patch('tda.streaming.websockets.client.connect', new_callable=asynctest.CoroutineMock)
     async def test_level_one_futures_subs_success_some_fields(self, ws_connect):
         socket = await self.login_and_get_socket(ws_connect)
 
@@ -1475,7 +1475,7 @@ class StreamClientTest(asynctest.TestCase):
         })
 
     @no_duplicates
-    @patch('tda.streaming.websockets.client.connect', new_callable=asynctest.CoroutineMock)
+    @asynctest.patch('tda.streaming.websockets.client.connect', new_callable=asynctest.CoroutineMock)
     async def test_level_one_futures_subs_failure(self, ws_connect):
         socket = await self.login_and_get_socket(ws_connect)
 
@@ -1487,7 +1487,7 @@ class StreamClientTest(asynctest.TestCase):
             await self.client.level_one_futures_subs(['/ES', '/CL'])
 
     @no_duplicates
-    @patch('tda.streaming.websockets.client.connect', new_callable=asynctest.CoroutineMock)
+    @asynctest.patch('tda.streaming.websockets.client.connect', new_callable=asynctest.CoroutineMock)
     async def test_level_one_futures_handler(self, ws_connect):
         socket = await self.login_and_get_socket(ws_connect)
 
@@ -1685,7 +1685,7 @@ class StreamClientTest(asynctest.TestCase):
     # LEVELONE_FOREX
 
     @no_duplicates
-    @patch('tda.streaming.websockets.client.connect', new_callable=asynctest.CoroutineMock)
+    @asynctest.patch('tda.streaming.websockets.client.connect', new_callable=asynctest.CoroutineMock)
     async def test_level_one_forex_subs_success_all_fields(self, ws_connect):
         socket = await self.login_and_get_socket(ws_connect)
 
@@ -1710,7 +1710,7 @@ class StreamClientTest(asynctest.TestCase):
         })
 
     @no_duplicates
-    @patch('tda.streaming.websockets.client.connect', new_callable=asynctest.CoroutineMock)
+    @asynctest.patch('tda.streaming.websockets.client.connect', new_callable=asynctest.CoroutineMock)
     async def test_level_one_forex_subs_success_some_fields(self, ws_connect):
         socket = await self.login_and_get_socket(ws_connect)
 
@@ -1739,7 +1739,7 @@ class StreamClientTest(asynctest.TestCase):
         })
 
     @no_duplicates
-    @patch('tda.streaming.websockets.client.connect', new_callable=asynctest.CoroutineMock)
+    @asynctest.patch('tda.streaming.websockets.client.connect', new_callable=asynctest.CoroutineMock)
     async def test_level_one_forex_subs_failure(self, ws_connect):
         socket = await self.login_and_get_socket(ws_connect)
 
@@ -1751,7 +1751,7 @@ class StreamClientTest(asynctest.TestCase):
             await self.client.level_one_forex_subs(['EUR/USD', 'EUR/GBP'])
 
     @no_duplicates
-    @patch('tda.streaming.websockets.client.connect', new_callable=asynctest.CoroutineMock)
+    @asynctest.patch('tda.streaming.websockets.client.connect', new_callable=asynctest.CoroutineMock)
     async def test_level_one_forex_handler(self, ws_connect):
         socket = await self.login_and_get_socket(ws_connect)
 
@@ -1917,7 +1917,7 @@ class StreamClientTest(asynctest.TestCase):
     # LEVELONE_FUTURES_OPTIONS
 
     @no_duplicates
-    @patch('tda.streaming.websockets.client.connect', new_callable=asynctest.CoroutineMock)
+    @asynctest.patch('tda.streaming.websockets.client.connect', new_callable=asynctest.CoroutineMock)
     async def test_level_one_futures_options_subs_success_all_fields(
             self, ws_connect):
         socket = await self.login_and_get_socket(ws_connect)
@@ -1944,7 +1944,7 @@ class StreamClientTest(asynctest.TestCase):
         })
 
     @no_duplicates
-    @patch('tda.streaming.websockets.client.connect', new_callable=asynctest.CoroutineMock)
+    @asynctest.patch('tda.streaming.websockets.client.connect', new_callable=asynctest.CoroutineMock)
     async def test_level_one_futures_options_subs_success_some_fields(
             self, ws_connect):
         socket = await self.login_and_get_socket(ws_connect)
@@ -1975,7 +1975,7 @@ class StreamClientTest(asynctest.TestCase):
         })
 
     @no_duplicates
-    @patch('tda.streaming.websockets.client.connect', new_callable=asynctest.CoroutineMock)
+    @asynctest.patch('tda.streaming.websockets.client.connect', new_callable=asynctest.CoroutineMock)
     async def test_level_one_futures_options_subs_failure(self, ws_connect):
         socket = await self.login_and_get_socket(ws_connect)
 
@@ -1989,7 +1989,7 @@ class StreamClientTest(asynctest.TestCase):
 
     @no_duplicates
     # TODO: Replace this with real messages
-    @patch('tda.streaming.websockets.client.connect', new_callable=asynctest.CoroutineMock)
+    @asynctest.patch('tda.streaming.websockets.client.connect', new_callable=asynctest.CoroutineMock)
     async def test_level_one_futures_options_handler(self, ws_connect):
         socket = await self.login_and_get_socket(ws_connect)
 
@@ -2193,7 +2193,7 @@ class StreamClientTest(asynctest.TestCase):
     # TIMESALE_EQUITY
 
     @no_duplicates
-    @patch('tda.streaming.websockets.client.connect', new_callable=asynctest.CoroutineMock)
+    @asynctest.patch('tda.streaming.websockets.client.connect', new_callable=asynctest.CoroutineMock)
     async def test_timesale_equity_subs_success_all_fields(self, ws_connect):
         socket = await self.login_and_get_socket(ws_connect)
 
@@ -2217,7 +2217,7 @@ class StreamClientTest(asynctest.TestCase):
         })
 
     @no_duplicates
-    @patch('tda.streaming.websockets.client.connect', new_callable=asynctest.CoroutineMock)
+    @asynctest.patch('tda.streaming.websockets.client.connect', new_callable=asynctest.CoroutineMock)
     async def test_timesale_equity_subs_success_some_fields(self, ws_connect):
         socket = await self.login_and_get_socket(ws_connect)
 
@@ -2245,7 +2245,7 @@ class StreamClientTest(asynctest.TestCase):
         })
 
     @no_duplicates
-    @patch('tda.streaming.websockets.client.connect', new_callable=asynctest.CoroutineMock)
+    @asynctest.patch('tda.streaming.websockets.client.connect', new_callable=asynctest.CoroutineMock)
     async def test_timesale_equity_subs_failure(self, ws_connect):
         socket = await self.login_and_get_socket(ws_connect)
 
@@ -2257,7 +2257,7 @@ class StreamClientTest(asynctest.TestCase):
             await self.client.timesale_equity_subs(['GOOG', 'MSFT'])
 
     @no_duplicates
-    @patch('tda.streaming.websockets.client.connect', new_callable=asynctest.CoroutineMock)
+    @asynctest.patch('tda.streaming.websockets.client.connect', new_callable=asynctest.CoroutineMock)
     async def test_timesale_equity_handler(self, ws_connect):
         socket = await self.login_and_get_socket(ws_connect)
 
@@ -2323,7 +2323,7 @@ class StreamClientTest(asynctest.TestCase):
     # TIMESALE_FUTURES
 
     @no_duplicates
-    @patch('tda.streaming.websockets.client.connect', new_callable=asynctest.CoroutineMock)
+    @asynctest.patch('tda.streaming.websockets.client.connect', new_callable=asynctest.CoroutineMock)
     async def test_timesale_futures_subs_success_all_fields(self, ws_connect):
         socket = await self.login_and_get_socket(ws_connect)
 
@@ -2347,7 +2347,7 @@ class StreamClientTest(asynctest.TestCase):
         })
 
     @no_duplicates
-    @patch('tda.streaming.websockets.client.connect', new_callable=asynctest.CoroutineMock)
+    @asynctest.patch('tda.streaming.websockets.client.connect', new_callable=asynctest.CoroutineMock)
     async def test_timesale_futures_subs_success_some_fields(self, ws_connect):
         socket = await self.login_and_get_socket(ws_connect)
 
@@ -2375,7 +2375,7 @@ class StreamClientTest(asynctest.TestCase):
         })
 
     @no_duplicates
-    @patch('tda.streaming.websockets.client.connect', new_callable=asynctest.CoroutineMock)
+    @asynctest.patch('tda.streaming.websockets.client.connect', new_callable=asynctest.CoroutineMock)
     async def test_timesale_futures_subs_failure(self, ws_connect):
         socket = await self.login_and_get_socket(ws_connect)
 
@@ -2387,7 +2387,7 @@ class StreamClientTest(asynctest.TestCase):
             await self.client.timesale_futures_subs(['/ES', '/CL'])
 
     @no_duplicates
-    @patch('tda.streaming.websockets.client.connect', new_callable=asynctest.CoroutineMock)
+    @asynctest.patch('tda.streaming.websockets.client.connect', new_callable=asynctest.CoroutineMock)
     async def test_timesale_futures_handler(self, ws_connect):
         socket = await self.login_and_get_socket(ws_connect)
 
@@ -2452,7 +2452,7 @@ class StreamClientTest(asynctest.TestCase):
     # TIMESALE_OPTIONS
 
     @no_duplicates
-    @patch('tda.streaming.websockets.client.connect', new_callable=asynctest.CoroutineMock)
+    @asynctest.patch('tda.streaming.websockets.client.connect', new_callable=asynctest.CoroutineMock)
     async def test_timesale_options_subs_success_all_fields(self, ws_connect):
         socket = await self.login_and_get_socket(ws_connect)
 
@@ -2476,7 +2476,7 @@ class StreamClientTest(asynctest.TestCase):
         })
 
     @no_duplicates
-    @patch('tda.streaming.websockets.client.connect', new_callable=asynctest.CoroutineMock)
+    @asynctest.patch('tda.streaming.websockets.client.connect', new_callable=asynctest.CoroutineMock)
     async def test_timesale_options_subs_success_some_fields(self, ws_connect):
         socket = await self.login_and_get_socket(ws_connect)
 
@@ -2505,7 +2505,7 @@ class StreamClientTest(asynctest.TestCase):
         })
 
     @no_duplicates
-    @patch('tda.streaming.websockets.client.connect', new_callable=asynctest.CoroutineMock)
+    @asynctest.patch('tda.streaming.websockets.client.connect', new_callable=asynctest.CoroutineMock)
     async def test_timesale_options_subs_failure(self, ws_connect):
         socket = await self.login_and_get_socket(ws_connect)
 
@@ -2519,7 +2519,7 @@ class StreamClientTest(asynctest.TestCase):
 
     @no_duplicates
     # TODO: Replace this with real messages
-    @patch('tda.streaming.websockets.client.connect', new_callable=asynctest.CoroutineMock)
+    @asynctest.patch('tda.streaming.websockets.client.connect', new_callable=asynctest.CoroutineMock)
     async def test_timesale_options_handler(self, ws_connect):
         socket = await self.login_and_get_socket(ws_connect)
 
@@ -2586,7 +2586,7 @@ class StreamClientTest(asynctest.TestCase):
     # LISTED_BOOK
 
     @no_duplicates
-    @patch('tda.streaming.websockets.client.connect', new_callable=asynctest.CoroutineMock)
+    @asynctest.patch('tda.streaming.websockets.client.connect', new_callable=asynctest.CoroutineMock)
     async def test_listed_book_subs_success_all_fields(self, ws_connect):
         socket = await self.login_and_get_socket(ws_connect)
 
@@ -2610,7 +2610,7 @@ class StreamClientTest(asynctest.TestCase):
         })
 
     @no_duplicates
-    @patch('tda.streaming.websockets.client.connect', new_callable=asynctest.CoroutineMock)
+    @asynctest.patch('tda.streaming.websockets.client.connect', new_callable=asynctest.CoroutineMock)
     async def test_listed_book_subs_failure(self, ws_connect):
         socket = await self.login_and_get_socket(ws_connect)
 
@@ -2625,7 +2625,7 @@ class StreamClientTest(asynctest.TestCase):
     # NASDAQ_BOOK
 
     @no_duplicates
-    @patch('tda.streaming.websockets.client.connect', new_callable=asynctest.CoroutineMock)
+    @asynctest.patch('tda.streaming.websockets.client.connect', new_callable=asynctest.CoroutineMock)
     async def test_nasdaq_book_subs_success_all_fields(self, ws_connect):
         socket = await self.login_and_get_socket(ws_connect)
 
@@ -2649,7 +2649,7 @@ class StreamClientTest(asynctest.TestCase):
         })
 
     @no_duplicates
-    @patch('tda.streaming.websockets.client.connect', new_callable=asynctest.CoroutineMock)
+    @asynctest.patch('tda.streaming.websockets.client.connect', new_callable=asynctest.CoroutineMock)
     async def test_nasdaq_book_subs_failure(self, ws_connect):
         socket = await self.login_and_get_socket(ws_connect)
 
@@ -2664,7 +2664,7 @@ class StreamClientTest(asynctest.TestCase):
     # OPTIONS_BOOK
 
     @no_duplicates
-    @patch('tda.streaming.websockets.client.connect', new_callable=asynctest.CoroutineMock)
+    @asynctest.patch('tda.streaming.websockets.client.connect', new_callable=asynctest.CoroutineMock)
     async def test_options_book_subs_success_all_fields(self, ws_connect):
         socket = await self.login_and_get_socket(ws_connect)
 
@@ -2689,7 +2689,7 @@ class StreamClientTest(asynctest.TestCase):
         })
 
     @no_duplicates
-    @patch('tda.streaming.websockets.client.connect', new_callable=asynctest.CoroutineMock)
+    @asynctest.patch('tda.streaming.websockets.client.connect', new_callable=asynctest.CoroutineMock)
     async def test_options_book_subs_failure(self, ws_connect):
         socket = await self.login_and_get_socket(ws_connect)
 
@@ -2705,7 +2705,7 @@ class StreamClientTest(asynctest.TestCase):
     # Common book handler functionality
 
     @no_duplicates
-    @patch('tda.streaming.websockets.client.connect', new_callable=asynctest.CoroutineMock)
+    @asynctest.patch('tda.streaming.websockets.client.connect', new_callable=asynctest.CoroutineMock)
     async def test_listed_book_handler(self, ws_connect):
         async def subs():
             await self.client.listed_book_subs(['GOOG', 'MSFT'])
@@ -2721,7 +2721,7 @@ class StreamClientTest(asynctest.TestCase):
             ws_connect, 'LISTED_BOOK', subs, register_handler)
 
     @no_duplicates
-    @patch('tda.streaming.websockets.client.connect', new_callable=asynctest.CoroutineMock)
+    @asynctest.patch('tda.streaming.websockets.client.connect', new_callable=asynctest.CoroutineMock)
     async def test_nasdaq_book_handler(self, ws_connect):
         async def subs():
             await self.client.nasdaq_book_subs(['GOOG', 'MSFT'])
@@ -2737,7 +2737,7 @@ class StreamClientTest(asynctest.TestCase):
             ws_connect, 'NASDAQ_BOOK', subs, register_handler)
 
     @no_duplicates
-    @patch('tda.streaming.websockets.client.connect', new_callable=asynctest.CoroutineMock)
+    @asynctest.patch('tda.streaming.websockets.client.connect', new_callable=asynctest.CoroutineMock)
     async def test_options_book_handler(self, ws_connect):
         async def subs():
             await self.client.options_book_subs(['GOOG', 'MSFT'])
@@ -3156,7 +3156,7 @@ class StreamClientTest(asynctest.TestCase):
     # NEWS_HEADLINE
 
     @no_duplicates
-    @patch('tda.streaming.websockets.client.connect', new_callable=asynctest.CoroutineMock)
+    @asynctest.patch('tda.streaming.websockets.client.connect', new_callable=asynctest.CoroutineMock)
     async def test_news_headline_subs_success(self, ws_connect):
         socket = await self.login_and_get_socket(ws_connect)
 
@@ -3180,7 +3180,7 @@ class StreamClientTest(asynctest.TestCase):
         })
 
     @no_duplicates
-    @patch('tda.streaming.websockets.client.connect', new_callable=asynctest.CoroutineMock)
+    @asynctest.patch('tda.streaming.websockets.client.connect', new_callable=asynctest.CoroutineMock)
     async def test_news_headline_subs_failure(self, ws_connect):
         socket = await self.login_and_get_socket(ws_connect)
 
@@ -3193,7 +3193,7 @@ class StreamClientTest(asynctest.TestCase):
 
     @no_duplicates
     # TODO: Replace this with real messages.
-    @patch('tda.streaming.websockets.client.connect', new_callable=asynctest.CoroutineMock)
+    @asynctest.patch('tda.streaming.websockets.client.connect', new_callable=asynctest.CoroutineMock)
     async def test_news_headline_handler(self, ws_connect):
         socket = await self.login_and_get_socket(ws_connect)
 
@@ -3280,7 +3280,7 @@ class StreamClientTest(asynctest.TestCase):
         self.assert_handler_called_once_with(async_handler, expected_item)
 
     @no_duplicates
-    @patch('tda.streaming.websockets.client.connect', new_callable=asynctest.CoroutineMock)
+    @asynctest.patch('tda.streaming.websockets.client.connect', new_callable=asynctest.CoroutineMock)
     async def test_news_headline_not_authorized_notification(self, ws_connect):
         socket = await self.login_and_get_socket(ws_connect)
 
@@ -3324,11 +3324,11 @@ class StreamClientTest(asynctest.TestCase):
     # Handler edge cases
     #
     # Note: We use CHART_EQUITY as a test case, which leaks the implementation
-    # detail that the handler dispatching is implemented by a common component.
+    # detail that the handler disasynctest.patching is implemented by a common component.
     # If this were to ever change, these tests will have to be revisited.
 
     @no_duplicates
-    @patch('tda.streaming.websockets.client.connect', new_callable=asynctest.CoroutineMock)
+    @asynctest.patch('tda.streaming.websockets.client.connect', new_callable=asynctest.CoroutineMock)
     async def test_messages_received_while_awaiting_response(self, ws_connect):
         socket = await self.login_and_get_socket(ws_connect)
 
@@ -3351,7 +3351,7 @@ class StreamClientTest(asynctest.TestCase):
         async_handler.assert_called_once_with(stream_item['data'][0])
 
     @no_duplicates
-    @patch('tda.streaming.websockets.client.connect', new_callable=asynctest.CoroutineMock)
+    @asynctest.patch('tda.streaming.websockets.client.connect', new_callable=asynctest.CoroutineMock)
     async def test_messages_received_while_awaiting_failed_response_bad_code(
             self, ws_connect):
         socket = await self.login_and_get_socket(ws_connect)
@@ -3379,7 +3379,7 @@ class StreamClientTest(asynctest.TestCase):
         async_handler.assert_called_once_with(stream_item['data'][0])
 
     @no_duplicates
-    @patch('tda.streaming.websockets.client.connect', new_callable=asynctest.CoroutineMock)
+    @asynctest.patch('tda.streaming.websockets.client.connect', new_callable=asynctest.CoroutineMock)
     async def test_messages_received_while_receiving_unexpected_response(
             self, ws_connect):
         socket = await self.login_and_get_socket(ws_connect)
@@ -3407,7 +3407,7 @@ class StreamClientTest(asynctest.TestCase):
         async_handler.assert_called_once_with(stream_item['data'][0])
 
     @no_duplicates
-    @patch('tda.streaming.websockets.client.connect', new_callable=asynctest.CoroutineMock)
+    @asynctest.patch('tda.streaming.websockets.client.connect', new_callable=asynctest.CoroutineMock)
     async def test_notify_heartbeat_messages_ignored(self, ws_connect):
         socket = await self.login_and_get_socket(ws_connect)
 
@@ -3426,7 +3426,7 @@ class StreamClientTest(asynctest.TestCase):
         async_handler.assert_not_called()
 
     @no_duplicates
-    @patch('tda.streaming.websockets.client.connect', new_callable=asynctest.CoroutineMock)
+    @asynctest.patch('tda.streaming.websockets.client.connect', new_callable=asynctest.CoroutineMock)
     async def test_handle_message_unexpected_response(self, ws_connect):
         socket = await self.login_and_get_socket(ws_connect)
 
@@ -3440,7 +3440,7 @@ class StreamClientTest(asynctest.TestCase):
             await self.client.handle_message()
 
     @no_duplicates
-    @patch('tda.streaming.websockets.client.connect', new_callable=asynctest.CoroutineMock)
+    @asynctest.patch('tda.streaming.websockets.client.connect', new_callable=asynctest.CoroutineMock)
     async def test_handle_message_unparsable_message(self, ws_connect):
         socket = await self.login_and_get_socket(ws_connect)
 
@@ -3460,7 +3460,7 @@ class StreamClientTest(asynctest.TestCase):
             await self.client.handle_message()
 
     @no_duplicates
-    @patch('tda.streaming.websockets.client.connect', new_callable=asynctest.CoroutineMock)
+    @asynctest.patch('tda.streaming.websockets.client.connect', new_callable=asynctest.CoroutineMock)
     async def test_handle_message_multiple_handlers(self, ws_connect):
         socket = await self.login_and_get_socket(ws_connect)
 
@@ -3482,7 +3482,7 @@ class StreamClientTest(asynctest.TestCase):
         async_handler.assert_called_once_with(stream_item_1['data'][0])
 
     @no_duplicates
-    @patch('tda.streaming.websockets.client.connect', new_callable=asynctest.CoroutineMock)
+    @asynctest.patch('tda.streaming.websockets.client.connect', new_callable=asynctest.CoroutineMock)
     async def test_multiple_data_per_message(self, ws_connect):
         socket = await self.login_and_get_socket(ws_connect)
 
@@ -3509,13 +3509,13 @@ class StreamClientTest(asynctest.TestCase):
             [call(stream_item['data'][0]), call(stream_item['data'][1])])
 
     @no_duplicates
-    @patch('tda.streaming.websockets.client.connect', new_callable=asynctest.CoroutineMock)
+    @asynctest.patch('tda.streaming.websockets.client.connect', new_callable=asynctest.CoroutineMock)
     async def test_handle_message_without_login(self, ws_connect):
         with self.assertRaisesRegex(ValueError, '.*Socket not open.*'):
             await self.client.handle_message()
 
     @no_duplicates
-    @patch('tda.streaming.websockets.client.connect', new_callable=asynctest.CoroutineMock)
+    @asynctest.patch('tda.streaming.websockets.client.connect', new_callable=asynctest.CoroutineMock)
     async def test_subscribe_without_login(self, ws_connect):
         with self.assertRaisesRegex(ValueError, '.*Socket not open.*'):
             await self.client.chart_equity_subs(['GOOG,MSFT'])
