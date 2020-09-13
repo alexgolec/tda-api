@@ -122,7 +122,6 @@ class AsyncMagicMock:
         self.__attr_cache = {}
 
     def __getattr__(self, key):
-        print(key)
         attr_cache = super().__getattribute__('_AsyncMagicMock__attr_cache')
         if key == '_AsyncMagicMock__attr_cache': return attr_cache
         try:
