@@ -4,7 +4,7 @@ import json
 import copy
 from .utils import account_principals, has_diff, MockResponse
 from .utils import no_duplicates
-from unittest import IsolatedAsyncioTestCase
+from asynctest import TestCase
 from unittest.mock import ANY, AsyncMock, call, MagicMock, Mock, patch
 from tda import streaming
 
@@ -15,7 +15,7 @@ ACCOUNT_ID = 1000
 TOKEN_TIMESTAMP = '2020-05-22T02:12:48+0000'
 
 
-class StreamClientTest(IsolatedAsyncioTestCase):
+class StreamClientTest(TestCase):
 
     def setUp(self):
         self.http_client = MagicMock()

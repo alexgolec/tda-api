@@ -1,3 +1,4 @@
+asynctest
 colorama
 coverage
 requests_oauthlib
