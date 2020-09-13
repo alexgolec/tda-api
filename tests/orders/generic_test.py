@@ -2,7 +2,7 @@ import unittest
 
 from tda.orders.generic import *
 from tda.orders.common import *
-from tests.test_utils import has_diff, no_duplicates
+from ..utils import has_diff, no_duplicates
 
 
 class OrderBuilderTest(unittest.TestCase):

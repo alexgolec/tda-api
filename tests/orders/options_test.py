@@ -3,7 +3,7 @@ import unittest
 
 from tda.orders.common import *
 from tda.orders.options import *
-from tests.test_utils import has_diff, no_duplicates
+from ..utils import has_diff, no_duplicates
 
 
 class OptionSymbolTest(unittest.TestCase):

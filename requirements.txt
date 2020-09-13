@@ -1,10 +1,11 @@
+asynctest
 colorama
 coverage
-nose
+tox
 authlib==0.14.3
-authlib-httpx==0.1.1
 httpx==0.14.3
 python-dateutil
+pytest
 pytz
 selenium
 sphinx_rtd_theme

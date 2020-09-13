@@ -1,5 +1,5 @@
 from tda import auth
-from tests.test_utils import no_duplicates
+from .utils import no_duplicates
 from unittest.mock import patch, ANY, MagicMock
 from unittest.mock import ANY as _
 
@@ -78,7 +78,7 @@ class ClientFromTokenFileTest(unittest.TestCase):
         session.assert_called_once()
 
         session_call = session.mock_calls[0]
-        update_token = session_call.kwargs['update_token']
+        update_token = session_call[2]['update_token']
 
         updated_token = {'updated': 'token'}
         update_token(updated_token)
@@ -135,7 +135,7 @@ class ClientFromAccessFunctionsTest(unittest.TestCase):
 
         # Verify that the write function is called when the updater is called
         session_call = session.mock_calls[0]
-        update_token = session_call.kwargs['update_token']
+        update_token = session_call[2]['update_token']
         token_write_func.assert_not_called()
         update_token()
         token_write_func.assert_called_once()
