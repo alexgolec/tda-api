@@ -78,7 +78,7 @@ class ClientFromTokenFileTest(unittest.TestCase):
         session.assert_called_once()
 
         session_call = session.mock_calls[0]
-        token_updater = session_call.kwargs['token_updater']
+        token_updater = session_call[2]['token_updater']
 
         updated_token = {'updated': 'token'}
         token_updater(updated_token)
@@ -135,7 +135,7 @@ class ClientFromAccessFunctionsTest(unittest.TestCase):
 
         # Verify that the write function is called when the updater is called
         session_call = session.mock_calls[0]
-        token_updater = session_call.kwargs['token_updater']
+        token_updater = session_call[2]['token_updater']
         token_write_func.assert_not_called()
         token_updater()
         token_write_func.assert_called_once()
