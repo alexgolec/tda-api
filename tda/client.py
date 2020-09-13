@@ -4,7 +4,6 @@ Ameritrade HTTP API.'''
 
 from abc import ABC, abstractmethod
 from enum import Enum
-from requests_oauthlib import OAuth2Session
 
 import datetime
 import json

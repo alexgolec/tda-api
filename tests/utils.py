@@ -6,8 +6,6 @@ import difflib
 import inspect
 import json
 
-from unittest.mock import AsyncMock
-
 def account_principals():
     with open('tests/testdata/principals.json', 'r') as f:
         return json.load(f)
