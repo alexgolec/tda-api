@@ -2,8 +2,8 @@ import tda
 import urllib.parse
 import json
 import copy
-from .utils import account_principals, has_diff, MockResponse
-from .utils import no_duplicates
+from .utils import (account_principals, has_diff, MockResponse,
+                    no_duplicates, AsyncMagicMock)
 import asynctest
 from unittest.mock import ANY, call, MagicMock, Mock
 from tda import streaming
