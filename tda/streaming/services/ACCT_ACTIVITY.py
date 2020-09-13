@@ -2,7 +2,6 @@ from .base import _BaseService
 from .fields import _BaseFieldEnum
 
 class ACCT_ACTIVITY(_BaseService): 
-    implemented = False
     class Fields(_BaseFieldEnum):
         '''
         `Official documentation <https://developer.tdameritrade.com/content/

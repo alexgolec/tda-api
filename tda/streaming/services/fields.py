@@ -9,7 +9,6 @@ class _BaseFieldEnum(Enum):
     @classmethod
     def key_mapping(cls):
         try:
-            print(cls._key_mapping)
             return cls._key_mapping
         except AttributeError:
             cls._key_mapping = { str(enum.value):name for name, enum in cls.__members__.items() }

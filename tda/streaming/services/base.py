@@ -3,15 +3,10 @@ from .fields import (_BaseFieldEnum, BidFields, PerExchangeBidFields,
 import copy
 
 class _BaseService:
-    supports_subs = True
-    supports_handlers = True
-    implemented = True
 
     class Fields(_BaseFieldEnum):
         pass
         
-    implemented = False
-
     @classmethod
     def normalize_fields(cls, msg):
         if 'content' in msg:
@@ -27,7 +22,6 @@ class _BaseBookService(_BaseService):
     def normalize_fields(cls, msg):
         # Relabel top-level fields
         new_msg = super().normalize_fields(msg)
-        print(new_msg)
         # Relabel bids
         for content in new_msg['content']:
             if 'BIDS' in content:
@@ -49,5 +43,4 @@ class _BaseBookService(_BaseService):
                     # Relabel per-exchange bids
                     for e_ask in ask['ASKS']:
                         PerExchangeAskFields.relabel_message(e_ask)
-        print(msg, '\n', new_msg)
         return new_msg
