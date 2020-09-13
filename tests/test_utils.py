@@ -1,114 +1,88 @@
-from colorama import Fore, Back, Style, init
+from unittest.mock import MagicMock
 
-import difflib
+import datetime
 import json
+import unittest
+
+from tda.orders import EquityOrderBuilder
+from tda.utils import AccountIdMismatchException, Utils
+from tda.utils import UnsuccessfulOrderException
+from . import test_utils
+from .test_utils import no_duplicates, MockResponse
 
 
-def account_principals():
-    with open('tests/testdata/principals.json', 'r') as f:
-        return json.load(f)
+class UtilsTest(unittest.TestCase):
 
+    def setUp(self):
+        self.mock_client = MagicMock()
+        self.account_id = 10000
+        self.utils = Utils(self.mock_client, self.account_id)
 
-def real_order():
-    return {
-        'session': 'NORMAL',
-        'duration': 'DAY',
-        'orderType': 'MARKET',
-        'complexOrderStrategyType': 'NONE',
-        'quantity': 1.0,
-        'filledQuantity': 1.0,
-        'remainingQuantity': 0.0,
-        'requestedDestination': 'AUTO',
-        'destinationLinkName': 'ETMM',
-        'price': 58.41,
-        'orderLegCollection': [
-            {
-                'orderLegType': 'EQUITY',
-                'legId': 1,
-                'instrument': {
-                    'assetType': 'EQUITY',
-                    'cusip': '126650100',
-                    'symbol': 'CVS'
-                },
-                'instruction': 'BUY',
-                'positionEffect': 'OPENING',
-                'quantity': 1.0
-            }
-        ],
-        'orderStrategyType': 'SINGLE',
-        'orderId': 100001,
-        'cancelable': False,
-        'editable': False,
-        'status': 'FILLED',
-        'enteredTime': '2020-03-30T15:36:12+0000',
-        'closeTime': '2020-03-30T15:36:12+0000',
-        'tag': 'API_TDAM:App',
-        'accountId': 100000,
-        'orderActivityCollection': [
-            {
-                'activityType': 'EXECUTION',
-                'executionType': 'FILL',
-                'quantity': 1.0,
-                'orderRemainingQuantity': 0.0,
-                'executionLegs': [
-                    {
-                        'legId': 1,
-                        'quantity': 1.0,
-                        'mismarkedQuantity': 0.0,
-                        'price': 58.1853,
-                        'time': '2020-03-30T15:36:12+0000'
-                    }
-                ]
-            }
-        ]
-    }
+        self.order_id = 1
 
+        self.maxDiff = None
 
-class MockResponse:
-    def __init__(self, json, ok, headers=None):
-        self._json = json
-        self.ok = ok
-        self.headers = headers if headers is not None else {}
+    ##########################################################################
+    # extract_order_id tests
 
-    def json(self):
-        return self._json
+    @no_duplicates
+    def test_extract_order_id_order_not_ok(self):
+        response = MockResponse({}, False)
+        with self.assertRaises(
+                UnsuccessfulOrderException, msg='order not successful'):
+            self.utils.extract_order_id(response)
 
+    @no_duplicates
+    def test_extract_order_id_no_location(self):
+        response = MockResponse({}, True, headers={})
+        self.assertIsNone(self.utils.extract_order_id(response))
 
-def has_diff(old, new):
-    old_out = json.dumps(old, indent=4, sort_keys=True).splitlines()
-    new_out = json.dumps(new, indent=4, sort_keys=True).splitlines()
-    diff = difflib.ndiff(old_out, new_out)
-    diff, has_diff = color_diff(diff)
+    @no_duplicates
+    def test_extract_order_id_no_pattern_match(self):
+        response = MockResponse({}, True, headers={
+            'Location': 'https://api.tdameritrade.com/v1/accounts/12345'})
+        self.assertIsNone(self.utils.extract_order_id(response))
 
-    if has_diff:
-        print('\n'.join(diff))
-    return has_diff
+    @no_duplicates
+    def test_get_order_nonmatching_account_id(self):
+        response = MockResponse({}, True, headers={
+            'Location':
+            'https://api.tdameritrade.com/v1/accounts/{}/orders/456'.format(
+                self.account_id + 1)})
+        with self.assertRaises(
+                AccountIdMismatchException,
+                msg='order request account ID != Utils.account_id'):
+            self.utils.extract_order_id(response)
 
+    @no_duplicates
+    def test_get_order_nonmatching_account_id_str(self):
+        self.utils = Utils(self.mock_client, str(self.account_id))
 
-def color_diff(diff):
-    has_diff = False
-    output = []
-    for line in diff:
-        if line.startswith('+'):
-            output.append(Fore.GREEN + line + Fore.RESET)
-            has_diff = True
-        elif line.startswith('-'):
-            output.append(Fore.RED + line + Fore.RESET)
-            has_diff = True
-        elif line.startswith('^'):
-            output.append(Fore.BLUE + line + Fore.RESET)
-            has_diff = True
-        else:
-            output.append(line)
-    return output, has_diff
+        response = MockResponse({}, True, headers={
+            'Location':
+            'https://api.tdameritrade.com/v1/accounts/{}/orders/456'.format(
+                self.account_id + 1)})
+        with self.assertRaises(
+                AccountIdMismatchException,
+                msg='order request account ID != Utils.account_id'):
+            self.utils.extract_order_id(response)
 
+    @no_duplicates
+    def test_get_order_success(self):
+        order_id = self.account_id + 100
+        response = MockResponse({}, True, headers={
+            'Location':
+            'https://api.tdameritrade.com/v1/accounts/{}/orders/{}'.format(
+                self.account_id, order_id)})
+        self.assertEqual(order_id, self.utils.extract_order_id(response))
 
-__NO_DUPLICATES_DEFINED_NAMES = set()
+    @no_duplicates
+    def test_get_order_success_str_account_id(self):
+        self.utils = Utils(self.mock_client, str(self.account_id))
 
-
-def no_duplicates(f):
-    name = f.__qualname__
-    if name in __NO_DUPLICATES_DEFINED_NAMES:
-        raise AttributeError('duplicate definition of {}'.format(name))
-    __NO_DUPLICATES_DEFINED_NAMES.add(name)
-    return f
+        order_id = self.account_id + 100
+        response = MockResponse({}, True, headers={
+            'Location':
+            'https://api.tdameritrade.com/v1/accounts/{}/orders/{}'.format(
+                self.account_id, order_id)})
+        self.assertEqual(order_id, self.utils.extract_order_id(response))
