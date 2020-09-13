@@ -31,7 +31,6 @@ setuptools.setup(
     python_requires='>=3.6',
     install_requires=[
         'authlib==0.14.3',
-        'authlib-httpx==0.1.1',
         'httpx==0.14.3',
         'python-dateutil',
         'selenium', 
