@@ -2,7 +2,8 @@ from colorama import Fore, Back, Style, init
 
 import difflib
 import json
-
+import asynctest
+import inspect
 
 def account_principals():
     with open('tests/testdata/principals.json', 'r') as f:
@@ -73,6 +74,38 @@ class MockResponse:
     def json(self):
         return self._json
 
+
+class AsyncMagicMock:
+    """
+    Simple mock that returns a asynctest.CoroutineMock instance for every
+    attribute. Useful for mocking async libraries
+    """
+    def __init__(self):
+        self.__attr_cache = {}
+
+    def __getattr__(self, key):
+        attr_cache = super().__getattribute__('_AsyncMagicMock__attr_cache')
+        if key == '_AsyncMagicMock__attr_cache': return attr_cache
+
+        try:
+            return super().__getattribute__(key)
+        except AttributeError:
+            if key not in attr_cache:
+                attr_cache[key] = asynctest.CoroutineMock()
+            return attr_cache[key]
+
+    def __setattr__(self, key, val):
+        if key == '_AsyncMagicMock__attr_cache':
+            return super().__setattr__(key, val)
+        attr_cache = super().__getattribute__('_AsyncMagicMock__attr_cache')
+        attr_cache[key] = val
+
+    def __hasattr__(self, key):
+        attr_cache = super().__getattribute__('_AsyncMagicMock__attr_cache')
+        return attr_cache.has_key(key)
+
+    def reset_mock(self):
+        self.__attr_cache.clear()
 
 def has_diff(old, new):
     old_out = json.dumps(old, indent=4, sort_keys=True).splitlines()

@@ -4,7 +4,7 @@ import datetime
 import json
 import unittest
 
-from tda.orders import EquityOrderBuilder
+from tda.orders.equities import EquityOrderBuilder
 from tda.utils import AccountIdMismatchException, Utils
 from tda.utils import UnsuccessfulOrderException
 from . import test_utils
