@@ -15,7 +15,7 @@ jobs:
           command: python -m nose
           name: Test
       - run:
-          command: python -m coverage run --source=tda -m nose
+          command: python -m coverage run --source=tda -m pytest
           name: Run coverage
       - run:
           command: python -m coverage xml
