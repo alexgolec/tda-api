@@ -1,6 +1,5 @@
 from tda.auth import easy_client
-from tda.client import Client
-from tda.streaming import StreamClient
+from tda.streaming import StreamClient, services
 import asyncio
 import pprint
 
@@ -11,8 +10,14 @@ class MyStreamConsumer:
     """
     We use a class to enforce good code organization practices
     """
-    def __init__(self, api_key, account_id, queue_size=1,
-                 credentials_path='./ameritrade-credentials.pickle'):
+
+    def __init__(
+        self,
+        api_key,
+        account_id,
+        queue_size=1,
+        credentials_path="./ameritrade-credentials.json",
+    ):
         """
         We're storing the configuration variables within the class for easy
         access later in the code!
@@ -23,9 +28,32 @@ class MyStreamConsumer:
         self.tda_client = None
         self.stream_client = None
         self.symbols = [
-            'GOOG', 'GOOGL', 'BP', 'CVS', 'ADBE', 'CRM', 'SNAP', 'AMZN',
-            'BABA', 'DIS', 'TWTR', 'M', 'USO', 'AAPL', 'NFLX', 'GE', 'TSLA',
-            'F', 'SPY', 'FDX', 'UBER', 'ROKU', 'X', 'FB', 'BIDU', 'FIT'
+            "GOOG",
+            "GOOGL",
+            "BP",
+            "CVS",
+            "ADBE",
+            "CRM",
+            "SNAP",
+            "AMZN",
+            "BABA",
+            "DIS",
+            "TWTR",
+            "M",
+            "USO",
+            "AAPL",
+            "NFLX",
+            "GE",
+            "TSLA",
+            "F",
+            "SPY",
+            "FDX",
+            "UBER",
+            "ROKU",
+            "X",
+            "FB",
+            "BIDU",
+            "FIT",
         ]
 
         # Create a queue so we can queue up work gathered from the client
@@ -38,17 +66,26 @@ class MyStreamConsumer:
         """
         self.tda_client = easy_client(
             api_key=self.api_key,
-            redirect_uri='https://localhost:8080',
-            token_path=self.credentials_path)
-        self.stream_client = StreamClient(self.tda_client, account_id=self.account_id)
+            redirect_uri="https://localhost:8080",
+            token_path=self.credentials_path,
+        )
+        self.stream_client = StreamClient(
+            self.tda_client, account_id=self.account_id
+        )
 
         # The streaming client wants you to add a handler for every service type
-        self.stream_client.add_timesale_equity_handler(self.handle_timesale_equity)
+        self.stream_client.add_handler(
+            services.TIMESALE_EQUITY, self.handle_timesale_equity
+        )
 
     async def stream(self):
-        await self.stream_client.login() # Log into the streaming service
-        await self.stream_client.quality_of_service(StreamClient.QOSLevel.EXPRESS)
-        await self.stream_client.timesale_equity_subs(self.symbols)
+        await self.stream_client.login()  # Log into the streaming service
+        await self.stream_client.quality_of_service(
+            StreamClient.QOSLevel.EXPRESS
+        )
+        await self.stream_client.subscribe(
+            services.TIMESALE_EQUITY, self.symbols
+        )
 
         # Kick off our handle_queue function as an independent coroutine
         asyncio.ensure_future(self.handle_queue())
@@ -85,5 +122,6 @@ async def main():
     consumer.initialize()
     await consumer.stream()
 
-if __name__ == '__main__':
+
+if __name__ == "__main__":
     asyncio.run(main())
