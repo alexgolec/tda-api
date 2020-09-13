@@ -9,7 +9,6 @@ import tda
 API_KEY = 'XXXXXX@AMER.OAUTHAP'
 REDIRECT_URI = 'http://localhost:8080/'
 TOKEN_PATH = 'ameritrade-credentials.json'
-YOUR_BIRTHDAY = datetime.datetime(year=1969, month=4, day=20)
 
 
 def make_webdriver():
