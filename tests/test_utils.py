@@ -8,7 +8,7 @@ from tda.orders import EquityOrderBuilder
 from tda.utils import AccountIdMismatchException, Utils
 from tda.utils import UnsuccessfulOrderException
 from . import test_utils
-from .test_utils import no_duplicates, MockResponse
+from ._utils import no_duplicates, MockResponse
 
 
 class UtilsTest(unittest.TestCase):
