@@ -97,7 +97,8 @@ class Utils(EnumEnforcer):
 
         '''
         if place_order_response.status_code != 200:
-            raise UnsuccessfulOrderException('order not successful')
+            raise UnsuccessfulOrderException(
+                    'order not successful: status {}'.format(place_order_response.status_code))
 
         try:
             location = place_order_response.headers['Location']
