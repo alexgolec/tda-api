@@ -414,7 +414,7 @@ class StreamClientTest(IsolatedAsyncioTestCase):
         socket.recv.side_effect = [json.dumps(self.success_response(
             1, 'ACCT_ACTIVITY', 'SUBS'))]
 
-        await self.client.account_activity_sub()
+        await self.client.subscribe(services.ACCT_ACTIVITY)
         socket.recv.assert_awaited_once()
         request = self.request_from_socket_mock(socket)
 
@@ -440,7 +440,7 @@ class StreamClientTest(IsolatedAsyncioTestCase):
         socket.recv.side_effect = [json.dumps(response)]
 
         with self.assertRaises(tda.streaming.exceptions.UnexpectedResponseCode):
-            await self.client.account_activity_sub()
+            await self.client.subscribe(services.ACCT_ACTIVITY)
 
     @no_duplicates
     @patch('tda.streaming.client.websockets.client.connect', new_callable=AsyncMock)
@@ -469,12 +469,12 @@ class StreamClientTest(IsolatedAsyncioTestCase):
         socket.recv.side_effect = [
             json.dumps(self.success_response(1, 'ACCT_ACTIVITY', 'SUBS')),
             json.dumps(stream_item)]
-        await self.client.account_activity_sub()
+        await self.client.subscribe(services.ACCT_ACTIVITY)
 
         handler = Mock()
         async_handler = AsyncMock()
-        self.client.add_account_activity_handler(handler)
-        self.client.add_account_activity_handler(async_handler)
+        self.client.add_handler(services.ACCT_ACTIVITY, handler)
+        self.client.add_handler(services.ACCT_ACTIVITY, async_handler)
         await self.client.handle_message()
 
         expected_item = {
@@ -506,7 +506,7 @@ class StreamClientTest(IsolatedAsyncioTestCase):
         socket.recv.side_effect = [json.dumps(self.success_response(
             1, 'CHART_EQUITY', 'SUBS'))]
 
-        await self.client.chart_equity_subs(['GOOG', 'MSFT'])
+        await self.client.subscribe(services.CHART_EQUITY, ['GOOG', 'MSFT'])
         socket.recv.assert_awaited_once()
         request = self.request_from_socket_mock(socket)
 
@@ -527,7 +527,7 @@ class StreamClientTest(IsolatedAsyncioTestCase):
         socket.recv.side_effect = [json.dumps(self.success_response(
             2, 'CHART_EQUITY', 'ADD'))]
 
-        await self.client.chart_equity_add(['INTC'])
+        await self.client.append_subscription(services.CHART_EQUITY, ['INTC'])
         socket.recv.assert_awaited_once()
         request = self.request_from_socket_mock(socket)
 
@@ -553,7 +553,7 @@ class StreamClientTest(IsolatedAsyncioTestCase):
         socket.recv.side_effect = [json.dumps(response)]
 
         with self.assertRaises(tda.streaming.exceptions.UnexpectedResponseCode):
-            await self.client.chart_equity_subs(['GOOG', 'MSFT'])
+            await self.client.subscribe(services.CHART_EQUITY, ['GOOG', 'MSFT'])
 
     @no_duplicates
     @patch('tda.streaming.client.websockets.client.connect', new_callable=AsyncMock)
@@ -568,10 +568,10 @@ class StreamClientTest(IsolatedAsyncioTestCase):
             json.dumps(response_subs),
             json.dumps(response_add)]
 
-        await self.client.chart_equity_subs(['GOOG', 'MSFT'])
+        await self.client.subscribe(services.CHART_EQUITY, ['GOOG', 'MSFT'])
 
         with self.assertRaises(tda.streaming.exceptions.UnexpectedResponseCode):
-            await self.client.chart_equity_add(['INTC'])
+            await self.client.append_subscription(services.CHART_EQUITY, ['INTC'])
 
     @no_duplicates
     @patch('tda.streaming.client.websockets.client.connect', new_callable=AsyncMock)
@@ -617,12 +617,12 @@ class StreamClientTest(IsolatedAsyncioTestCase):
         socket.recv.side_effect = [
             json.dumps(self.success_response(1, 'CHART_EQUITY', 'SUBS')),
             json.dumps(stream_item)]
-        await self.client.chart_equity_subs(['GOOG', 'MSFT'])
+        await self.client.subscribe(services.CHART_EQUITY, ['GOOG', 'MSFT'])
 
         handler = Mock()
         async_handler = AsyncMock()
-        self.client.add_chart_equity_handler(handler)
-        self.client.add_chart_equity_handler(async_handler)
+        self.client.add_handler(services.CHART_EQUITY, handler)
+        self.client.add_handler(services.CHART_EQUITY, async_handler)
         await self.client.handle_message()
 
         expected_item = {
@@ -671,7 +671,7 @@ class StreamClientTest(IsolatedAsyncioTestCase):
         socket.recv.side_effect = [json.dumps(self.success_response(
             1, 'CHART_FUTURES', 'SUBS'))]
 
-        await self.client.chart_futures_subs(['/ES', '/CL'])
+        await self.client.subscribe(services.CHART_FUTURES, ['/ES', '/CL'])
         socket.recv.assert_awaited_once()
         request = self.request_from_socket_mock(socket)
 
@@ -692,7 +692,7 @@ class StreamClientTest(IsolatedAsyncioTestCase):
         socket.recv.side_effect = [json.dumps(self.success_response(
             2, 'CHART_FUTURES', 'ADD'))]
 
-        await self.client.chart_futures_add(['/ZC'])
+        await self.client.append_subscription(services.CHART_FUTURES, ['/ZC'])
         socket.recv.assert_awaited_once()
         request = self.request_from_socket_mock(socket)
 
@@ -718,7 +718,7 @@ class StreamClientTest(IsolatedAsyncioTestCase):
         socket.recv.side_effect = [json.dumps(response)]
 
         with self.assertRaises(tda.streaming.exceptions.UnexpectedResponseCode):
-            await self.client.chart_futures_subs(['/ES', '/CL'])
+            await self.client.subscribe(services.CHART_FUTURES, ['/ES', '/CL'])
 
     @no_duplicates
     @patch('tda.streaming.client.websockets.client.connect', new_callable=AsyncMock)
@@ -733,10 +733,10 @@ class StreamClientTest(IsolatedAsyncioTestCase):
             json.dumps(response_subs),
             json.dumps(response_add)]
 
-        await self.client.chart_futures_subs(['/ES', '/CL'])
+        await self.client.subscribe(services.CHART_FUTURES, ['/ES', '/CL'])
 
         with self.assertRaises(tda.streaming.exceptions.UnexpectedResponseCode):
-            await self.client.chart_futures_add(['/ZC'])
+            await self.client.append_subscription(services.CHART_FUTURES, ['/ZC'])
 
     @no_duplicates
     @patch('tda.streaming.client.websockets.client.connect', new_callable=AsyncMock)
@@ -778,12 +778,12 @@ class StreamClientTest(IsolatedAsyncioTestCase):
         socket.recv.side_effect = [
             json.dumps(self.success_response(1, 'CHART_FUTURES', 'SUBS')),
             json.dumps(stream_item)]
-        await self.client.chart_futures_subs(['/ES', '/CL'])
+        await self.client.subscribe(services.CHART_FUTURES, ['/ES', '/CL'])
 
         handler = Mock()
         async_handler = AsyncMock()
-        self.client.add_chart_futures_handler(handler)
-        self.client.add_chart_futures_handler(async_handler)
+        self.client.add_handler(services.CHART_FUTURES, handler)
+        self.client.add_handler(services.CHART_FUTURES, async_handler)
         await self.client.handle_message()
 
         expected_item = {
@@ -825,7 +825,7 @@ class StreamClientTest(IsolatedAsyncioTestCase):
         socket.recv.side_effect = [json.dumps(self.success_response(
             1, 'QUOTE', 'SUBS'))]
 
-        await self.client.level_one_equity_subs(['GOOG', 'MSFT'])
+        await self.client.subscribe(services.QUOTE, ['GOOG', 'MSFT'])
         socket.recv.assert_awaited_once()
         request = self.request_from_socket_mock(socket)
 
@@ -852,7 +852,7 @@ class StreamClientTest(IsolatedAsyncioTestCase):
         socket.recv.side_effect = [json.dumps(self.success_response(
             1, 'QUOTE', 'SUBS'))]
 
-        await self.client.level_one_equity_subs(['GOOG', 'MSFT'], fields=[
+        await self.client.subscribe(services.QUOTE, ['GOOG', 'MSFT'], fields=[
             services.QUOTE.Fields.SYMBOL,
             services.QUOTE.Fields.BID_PRICE,
             services.QUOTE.Fields.ASK_PRICE,
@@ -883,7 +883,7 @@ class StreamClientTest(IsolatedAsyncioTestCase):
         socket.recv.side_effect = [json.dumps(response)]
 
         with self.assertRaises(tda.streaming.exceptions.UnexpectedResponseCode):
-            await self.client.level_one_equity_subs(['GOOG', 'MSFT'])
+            await self.client.subscribe(services.QUOTE, ['GOOG', 'MSFT'])
 
     @no_duplicates
     @patch('tda.streaming.client.websockets.client.connect', new_callable=AsyncMock)
@@ -1016,12 +1016,12 @@ class StreamClientTest(IsolatedAsyncioTestCase):
         socket.recv.side_effect = [
             json.dumps(self.success_response(1, 'QUOTE', 'SUBS')),
             json.dumps(stream_item)]
-        await self.client.level_one_equity_subs(['GOOG', 'MSFT'])
+        await self.client.subscribe(services.QUOTE, ['GOOG', 'MSFT'])
 
         handler = Mock()
         async_handler = AsyncMock()
-        self.client.add_level_one_equity_handler(handler)
-        self.client.add_level_one_equity_handler(async_handler)
+        self.client.add_handler(services.QUOTE, handler)
+        self.client.add_handler(services.QUOTE, async_handler)
         await self.client.handle_message()
 
         expected_item = {
@@ -1159,7 +1159,7 @@ class StreamClientTest(IsolatedAsyncioTestCase):
         socket.recv.side_effect = [json.dumps(self.success_response(
             1, 'OPTION', 'SUBS'))]
 
-        await self.client.level_one_option_subs(
+        await self.client.subscribe(services.OPTION, 
             ['GOOG_052920C620', 'MSFT_052920C145'])
         socket.recv.assert_awaited_once()
         request = self.request_from_socket_mock(socket)
@@ -1186,7 +1186,7 @@ class StreamClientTest(IsolatedAsyncioTestCase):
         socket.recv.side_effect = [json.dumps(self.success_response(
             1, 'OPTION', 'SUBS'))]
 
-        await self.client.level_one_option_subs(
+        await self.client.subscribe(services.OPTION, 
             ['GOOG_052920C620', 'MSFT_052920C145'], fields=[
                 services.OPTION.Fields.SYMBOL,
                 services.OPTION.Fields.BID_PRICE,
@@ -1218,7 +1218,7 @@ class StreamClientTest(IsolatedAsyncioTestCase):
         socket.recv.side_effect = [json.dumps(response)]
 
         with self.assertRaises(tda.streaming.exceptions.UnexpectedResponseCode):
-            await self.client.level_one_option_subs(
+            await self.client.subscribe(services.OPTION, 
                 ['GOOG_052920C620', 'MSFT_052920C145'])
 
     @no_duplicates
@@ -1319,13 +1319,13 @@ class StreamClientTest(IsolatedAsyncioTestCase):
         socket.recv.side_effect = [
             json.dumps(self.success_response(1, 'OPTION', 'SUBS')),
             json.dumps(stream_item)]
-        await self.client.level_one_option_subs(
+        await self.client.subscribe(services.OPTION, 
             ['GOOG_052920C620', 'MSFT_052920C145'])
 
         handler = Mock()
         async_handler = AsyncMock()
-        self.client.add_level_one_option_handler(handler)
-        self.client.add_level_one_option_handler(async_handler)
+        self.client.add_handler(services.OPTION, handler)
+        self.client.add_handler(services.OPTION, async_handler)
         await self.client.handle_message()
 
         expected_item = {
@@ -1429,7 +1429,7 @@ class StreamClientTest(IsolatedAsyncioTestCase):
         socket.recv.side_effect = [json.dumps(self.success_response(
             1, 'LEVELONE_FUTURES', 'SUBS'))]
 
-        await self.client.level_one_futures_subs(['/ES', '/CL'])
+        await self.client.subscribe(services.LEVELONE_FUTURES, ['/ES', '/CL'])
         socket.recv.assert_awaited_once()
         request = self.request_from_socket_mock(socket)
 
@@ -1454,7 +1454,7 @@ class StreamClientTest(IsolatedAsyncioTestCase):
         socket.recv.side_effect = [json.dumps(self.success_response(
             1, 'LEVELONE_FUTURES', 'SUBS'))]
 
-        await self.client.level_one_futures_subs(['/ES', '/CL'], fields=[
+        await self.client.subscribe(services.LEVELONE_FUTURES, ['/ES', '/CL'], fields=[
             services.LEVELONE_FUTURES.Fields.SYMBOL,
             services.LEVELONE_FUTURES.Fields.BID_PRICE,
             services.LEVELONE_FUTURES.Fields.ASK_PRICE,
@@ -1485,7 +1485,7 @@ class StreamClientTest(IsolatedAsyncioTestCase):
         socket.recv.side_effect = [json.dumps(response)]
 
         with self.assertRaises(tda.streaming.exceptions.UnexpectedResponseCode):
-            await self.client.level_one_futures_subs(['/ES', '/CL'])
+            await self.client.subscribe(services.LEVELONE_FUTURES, ['/ES', '/CL'])
 
     @no_duplicates
     @patch('tda.streaming.client.websockets.client.connect', new_callable=AsyncMock)
@@ -1583,12 +1583,12 @@ class StreamClientTest(IsolatedAsyncioTestCase):
         socket.recv.side_effect = [
             json.dumps(self.success_response(1, 'LEVELONE_FUTURES', 'SUBS')),
             json.dumps(stream_item)]
-        await self.client.level_one_futures_subs(['/ES', '/CL'])
+        await self.client.subscribe(services.LEVELONE_FUTURES, ['/ES', '/CL'])
 
         handler = Mock()
         async_handler = AsyncMock()
-        self.client.add_level_one_futures_handler(handler)
-        self.client.add_level_one_futures_handler(async_handler)
+        self.client.add_handler(services.LEVELONE_FUTURES, handler)
+        self.client.add_handler(services.LEVELONE_FUTURES, async_handler)
         await self.client.handle_message()
 
         expected_item = {
@@ -1693,7 +1693,7 @@ class StreamClientTest(IsolatedAsyncioTestCase):
         socket.recv.side_effect = [json.dumps(self.success_response(
             1, 'LEVELONE_FOREX', 'SUBS'))]
 
-        await self.client.level_one_forex_subs(['EUR/USD', 'EUR/GBP'])
+        await self.client.subscribe(services.LEVELONE_FOREX, ['EUR/USD', 'EUR/GBP'])
         socket.recv.assert_awaited_once()
         request = self.request_from_socket_mock(socket)
 
@@ -1718,7 +1718,7 @@ class StreamClientTest(IsolatedAsyncioTestCase):
         socket.recv.side_effect = [json.dumps(self.success_response(
             1, 'LEVELONE_FOREX', 'SUBS'))]
 
-        await self.client.level_one_forex_subs(['EUR/USD', 'EUR/GBP'], fields=[
+        await self.client.subscribe(services.LEVELONE_FOREX, ['EUR/USD', 'EUR/GBP'], fields=[
             services.LEVELONE_FOREX.Fields.SYMBOL,
             services.LEVELONE_FOREX.Fields.HIGH_PRICE,
             services.LEVELONE_FOREX.Fields.LOW_PRICE,
@@ -1749,7 +1749,7 @@ class StreamClientTest(IsolatedAsyncioTestCase):
         socket.recv.side_effect = [json.dumps(response)]
 
         with self.assertRaises(tda.streaming.exceptions.UnexpectedResponseCode):
-            await self.client.level_one_forex_subs(['EUR/USD', 'EUR/GBP'])
+            await self.client.subscribe(services.LEVELONE_FOREX, ['EUR/USD', 'EUR/GBP'])
 
     @no_duplicates
     @patch('tda.streaming.client.websockets.client.connect', new_callable=AsyncMock)
@@ -1832,12 +1832,12 @@ class StreamClientTest(IsolatedAsyncioTestCase):
         socket.recv.side_effect = [
             json.dumps(self.success_response(1, 'LEVELONE_FOREX', 'SUBS')),
             json.dumps(stream_item)]
-        await self.client.level_one_forex_subs(['EUR/USD', 'EUR/GBP'])
+        await self.client.subscribe(services.LEVELONE_FOREX, ['EUR/USD', 'EUR/GBP'])
 
         handler = Mock()
         async_handler = AsyncMock()
-        self.client.add_level_one_forex_handler(handler)
-        self.client.add_level_one_forex_handler(async_handler)
+        self.client.add_handler(services.LEVELONE_FOREX, handler)
+        self.client.add_handler(services.LEVELONE_FOREX, async_handler)
         await self.client.handle_message()
 
         expected_item = {
@@ -1926,7 +1926,7 @@ class StreamClientTest(IsolatedAsyncioTestCase):
         socket.recv.side_effect = [json.dumps(self.success_response(
             1, 'LEVELONE_FUTURES_OPTIONS', 'SUBS'))]
 
-        await self.client.level_one_futures_options_subs(
+        await self.client.subscribe(services.LEVELONE_FUTURES_OPTIONS, 
             ['NQU20_C6500', 'NQU20_P6500'])
         socket.recv.assert_awaited_once()
         request = self.request_from_socket_mock(socket)
@@ -1953,7 +1953,7 @@ class StreamClientTest(IsolatedAsyncioTestCase):
         socket.recv.side_effect = [json.dumps(self.success_response(
             1, 'LEVELONE_FUTURES_OPTIONS', 'SUBS'))]
 
-        await self.client.level_one_futures_options_subs(
+        await self.client.subscribe(services.LEVELONE_FUTURES_OPTIONS, 
             ['NQU20_C6500', 'NQU20_P6500'], fields=[
                 services.LEVELONE_FUTURES_OPTIONS.Fields.SYMBOL,
                 services.LEVELONE_FUTURES_OPTIONS.Fields.BID_SIZE,
@@ -1985,7 +1985,7 @@ class StreamClientTest(IsolatedAsyncioTestCase):
         socket.recv.side_effect = [json.dumps(response)]
 
         with self.assertRaises(tda.streaming.exceptions.UnexpectedResponseCode):
-            await self.client.level_one_futures_options_subs(
+            await self.client.subscribe(services.LEVELONE_FUTURES_OPTIONS, 
                 ['NQU20_C6500', 'NQU20_P6500'])
 
     @no_duplicates
@@ -2089,13 +2089,13 @@ class StreamClientTest(IsolatedAsyncioTestCase):
             json.dumps(self.success_response(
                 1, 'LEVELONE_FUTURES_OPTIONS', 'SUBS')),
             json.dumps(stream_item)]
-        await self.client.level_one_futures_options_subs(
+        await self.client.subscribe(services.LEVELONE_FUTURES_OPTIONS, 
             ['NQU20_C6500', 'NQU20_P6500'])
 
         handler = Mock()
         async_handler = AsyncMock()
-        self.client.add_level_one_futures_options_handler(handler)
-        self.client.add_level_one_futures_options_handler(async_handler)
+        self.client.add_handler(services.LEVELONE_FUTURES_OPTIONS, handler)
+        self.client.add_handler(services.LEVELONE_FUTURES_OPTIONS, async_handler)
         await self.client.handle_message()
 
         expected_item = {
@@ -2201,7 +2201,7 @@ class StreamClientTest(IsolatedAsyncioTestCase):
         socket.recv.side_effect = [json.dumps(self.success_response(
             1, 'TIMESALE_EQUITY', 'SUBS'))]
 
-        await self.client.timesale_equity_subs(['GOOG', 'MSFT'])
+        await self.client.subscribe(services.TIMESALE_EQUITY, ['GOOG', 'MSFT'])
         socket.recv.assert_awaited_once()
         request = self.request_from_socket_mock(socket)
 
@@ -2225,7 +2225,7 @@ class StreamClientTest(IsolatedAsyncioTestCase):
         socket.recv.side_effect = [json.dumps(self.success_response(
             1, 'TIMESALE_EQUITY', 'SUBS'))]
 
-        await self.client.timesale_equity_subs(['GOOG', 'MSFT'], fields=[
+        await self.client.subscribe(services.TIMESALE_EQUITY, ['GOOG', 'MSFT'], fields=[
             services.fields.TimesaleFields.SYMBOL,
             services.fields.TimesaleFields.TRADE_TIME,
             services.fields.TimesaleFields.LAST_SIZE,
@@ -2255,7 +2255,7 @@ class StreamClientTest(IsolatedAsyncioTestCase):
         socket.recv.side_effect = [json.dumps(response)]
 
         with self.assertRaises(tda.streaming.exceptions.UnexpectedResponseCode):
-            await self.client.timesale_equity_subs(['GOOG', 'MSFT'])
+            await self.client.subscribe(services.TIMESALE_EQUITY, ['GOOG', 'MSFT'])
 
     @no_duplicates
     @patch('tda.streaming.client.websockets.client.connect', new_callable=AsyncMock)
@@ -2288,12 +2288,12 @@ class StreamClientTest(IsolatedAsyncioTestCase):
         socket.recv.side_effect = [
             json.dumps(self.success_response(1, 'TIMESALE_EQUITY', 'SUBS')),
             json.dumps(stream_item)]
-        await self.client.timesale_equity_subs(['GOOG', 'MSFT'])
+        await self.client.subscribe(services.TIMESALE_EQUITY, ['GOOG', 'MSFT'])
 
         handler = Mock()
         async_handler = AsyncMock()
-        self.client.add_timesale_equity_handler(handler)
-        self.client.add_timesale_equity_handler(async_handler)
+        self.client.add_handler(services.TIMESALE_EQUITY, handler)
+        self.client.add_handler(services.TIMESALE_EQUITY, async_handler)
         await self.client.handle_message()
 
         expected_item = {
@@ -2331,7 +2331,7 @@ class StreamClientTest(IsolatedAsyncioTestCase):
         socket.recv.side_effect = [json.dumps(self.success_response(
             1, 'TIMESALE_FUTURES', 'SUBS'))]
 
-        await self.client.timesale_futures_subs(['/ES', '/CL'])
+        await self.client.subscribe(services.TIMESALE_FUTURES, ['/ES', '/CL'])
         socket.recv.assert_awaited_once()
         request = self.request_from_socket_mock(socket)
 
@@ -2355,7 +2355,7 @@ class StreamClientTest(IsolatedAsyncioTestCase):
         socket.recv.side_effect = [json.dumps(self.success_response(
             1, 'TIMESALE_FUTURES', 'SUBS'))]
 
-        await self.client.timesale_futures_subs(['/ES', '/CL'], fields=[
+        await self.client.subscribe(services.TIMESALE_FUTURES, ['/ES', '/CL'], fields=[
             services.fields.TimesaleFields.SYMBOL,
             services.fields.TimesaleFields.TRADE_TIME,
             services.fields.TimesaleFields.LAST_SIZE,
@@ -2385,7 +2385,7 @@ class StreamClientTest(IsolatedAsyncioTestCase):
         socket.recv.side_effect = [json.dumps(response)]
 
         with self.assertRaises(tda.streaming.exceptions.UnexpectedResponseCode):
-            await self.client.timesale_futures_subs(['/ES', '/CL'])
+            await self.client.subscribe(services.TIMESALE_FUTURES, ['/ES', '/CL'])
 
     @no_duplicates
     @patch('tda.streaming.client.websockets.client.connect', new_callable=AsyncMock)
@@ -2418,12 +2418,12 @@ class StreamClientTest(IsolatedAsyncioTestCase):
         socket.recv.side_effect = [
             json.dumps(self.success_response(1, 'TIMESALE_FUTURES', 'SUBS')),
             json.dumps(stream_item)]
-        await self.client.timesale_futures_subs(['/ES', '/CL'])
+        await self.client.subscribe(services.TIMESALE_FUTURES, ['/ES', '/CL'])
 
         handler = Mock()
         async_handler = AsyncMock()
-        self.client.add_timesale_futures_handler(handler)
-        self.client.add_timesale_futures_handler(async_handler)
+        self.client.add_handler(services.TIMESALE_FUTURES, handler)
+        self.client.add_handler(services.TIMESALE_FUTURES, async_handler)
         await self.client.handle_message()
 
         expected_item = {
@@ -2460,7 +2460,7 @@ class StreamClientTest(IsolatedAsyncioTestCase):
         socket.recv.side_effect = [json.dumps(self.success_response(
             1, 'TIMESALE_OPTIONS', 'SUBS'))]
 
-        await self.client.timesale_options_subs(['/ES', '/CL'])
+        await self.client.subscribe(services.TIMESALE_OPTIONS, ['/ES', '/CL'])
         socket.recv.assert_awaited_once()
         request = self.request_from_socket_mock(socket)
 
@@ -2484,7 +2484,7 @@ class StreamClientTest(IsolatedAsyncioTestCase):
         socket.recv.side_effect = [json.dumps(self.success_response(
             1, 'TIMESALE_OPTIONS', 'SUBS'))]
 
-        await self.client.timesale_options_subs(
+        await self.client.subscribe(services.TIMESALE_OPTIONS, 
             ['GOOG_052920C620', 'MSFT_052920C145'], fields=[
                 services.fields.TimesaleFields.SYMBOL,
                 services.fields.TimesaleFields.TRADE_TIME,
@@ -2515,7 +2515,7 @@ class StreamClientTest(IsolatedAsyncioTestCase):
         socket.recv.side_effect = [json.dumps(response)]
 
         with self.assertRaises(tda.streaming.exceptions.UnexpectedResponseCode):
-            await self.client.timesale_options_subs(
+            await self.client.subscribe(services.TIMESALE_OPTIONS, 
                 ['GOOG_052920C620', 'MSFT_052920C145'])
 
     @no_duplicates
@@ -2550,13 +2550,13 @@ class StreamClientTest(IsolatedAsyncioTestCase):
         socket.recv.side_effect = [
             json.dumps(self.success_response(1, 'TIMESALE_OPTIONS', 'SUBS')),
             json.dumps(stream_item)]
-        await self.client.timesale_options_subs(
+        await self.client.subscribe(services.TIMESALE_OPTIONS, 
             ['GOOG_052920C620', 'MSFT_052920C145'])
 
         handler = Mock()
         async_handler = AsyncMock()
-        self.client.add_timesale_options_handler(handler)
-        self.client.add_timesale_options_handler(async_handler)
+        self.client.add_handler(services.TIMESALE_OPTIONS, handler)
+        self.client.add_handler(services.TIMESALE_OPTIONS, async_handler)
         await self.client.handle_message()
 
         expected_item = {
@@ -2594,7 +2594,7 @@ class StreamClientTest(IsolatedAsyncioTestCase):
         socket.recv.side_effect = [json.dumps(self.success_response(
             1, 'LISTED_BOOK', 'SUBS'))]
 
-        await self.client.listed_book_subs(['GOOG', 'MSFT'])
+        await self.client.subscribe(services.LISTED_BOOK, ['GOOG', 'MSFT'])
         socket.recv.assert_awaited_once()
         request = self.request_from_socket_mock(socket)
 
@@ -2620,7 +2620,7 @@ class StreamClientTest(IsolatedAsyncioTestCase):
         socket.recv.side_effect = [json.dumps(response)]
 
         with self.assertRaises(tda.streaming.exceptions.UnexpectedResponseCode):
-            await self.client.listed_book_subs(['GOOG', 'MSFT'])
+            await self.client.subscribe(services.LISTED_BOOK, ['GOOG', 'MSFT'])
 
     ##########################################################################
     # NASDAQ_BOOK
@@ -2633,7 +2633,7 @@ class StreamClientTest(IsolatedAsyncioTestCase):
         socket.recv.side_effect = [json.dumps(self.success_response(
             1, 'NASDAQ_BOOK', 'SUBS'))]
 
-        await self.client.nasdaq_book_subs(['GOOG', 'MSFT'])
+        await self.client.subscribe(services.NASDAQ_BOOK, ['GOOG', 'MSFT'])
         socket.recv.assert_awaited_once()
         request = self.request_from_socket_mock(socket)
 
@@ -2659,7 +2659,7 @@ class StreamClientTest(IsolatedAsyncioTestCase):
         socket.recv.side_effect = [json.dumps(response)]
 
         with self.assertRaises(tda.streaming.exceptions.UnexpectedResponseCode):
-            await self.client.nasdaq_book_subs(['GOOG', 'MSFT'])
+            await self.client.subscribe(services.NASDAQ_BOOK, ['GOOG', 'MSFT'])
 
     ##########################################################################
     # OPTIONS_BOOK
@@ -2672,7 +2672,7 @@ class StreamClientTest(IsolatedAsyncioTestCase):
         socket.recv.side_effect = [json.dumps(self.success_response(
             1, 'OPTIONS_BOOK', 'SUBS'))]
 
-        await self.client.options_book_subs(
+        await self.client.subscribe(services.OPTIONS_BOOK, 
             ['GOOG_052920C620', 'MSFT_052920C145'])
         socket.recv.assert_awaited_once()
         request = self.request_from_socket_mock(socket)
@@ -2699,7 +2699,7 @@ class StreamClientTest(IsolatedAsyncioTestCase):
         socket.recv.side_effect = [json.dumps(response)]
 
         with self.assertRaises(tda.streaming.exceptions.UnexpectedResponseCode):
-            await self.client.options_book_subs(
+            await self.client.subscribe(services.OPTIONS_BOOK, 
                 ['GOOG_052920C620', 'MSFT_052920C145'])
 
     ##########################################################################
@@ -2709,13 +2709,13 @@ class StreamClientTest(IsolatedAsyncioTestCase):
     @patch('tda.streaming.client.websockets.client.connect', new_callable=AsyncMock)
     async def test_listed_book_handler(self, ws_connect):
         async def subs():
-            await self.client.listed_book_subs(['GOOG', 'MSFT'])
+            await self.client.subscribe(services.LISTED_BOOK, ['GOOG', 'MSFT'])
 
         def register_handler():
             handler = Mock()
             async_handler = AsyncMock()
-            self.client.add_listed_book_handler(handler)
-            self.client.add_listed_book_handler(async_handler)
+            self.client.add_handler(services.LISTED_BOOK, handler)
+            self.client.add_handler(services.LISTED_BOOK, async_handler)
             return handler, async_handler
 
         return await self.__test_book_handler(
@@ -2725,13 +2725,13 @@ class StreamClientTest(IsolatedAsyncioTestCase):
     @patch('tda.streaming.client.websockets.client.connect', new_callable=AsyncMock)
     async def test_nasdaq_book_handler(self, ws_connect):
         async def subs():
-            await self.client.nasdaq_book_subs(['GOOG', 'MSFT'])
+            await self.client.subscribe(services.NASDAQ_BOOK, ['GOOG', 'MSFT'])
 
         def register_handler():
             handler = Mock()
             async_handler = AsyncMock()
-            self.client.add_nasdaq_book_handler(handler)
-            self.client.add_nasdaq_book_handler(async_handler)
+            self.client.add_handler(services.NASDAQ_BOOK, handler)
+            self.client.add_handler(services.NASDAQ_BOOK, async_handler)
             return handler, async_handler
 
         return await self.__test_book_handler(
@@ -2741,13 +2741,13 @@ class StreamClientTest(IsolatedAsyncioTestCase):
     @patch('tda.streaming.client.websockets.client.connect', new_callable=AsyncMock)
     async def test_options_book_handler(self, ws_connect):
         async def subs():
-            await self.client.options_book_subs(['GOOG', 'MSFT'])
+            await self.client.subscribe(services.OPTIONS_BOOK, ['GOOG', 'MSFT'])
 
         def register_handler():
             handler = Mock()
             async_handler = AsyncMock()
-            self.client.add_options_book_handler(handler)
-            self.client.add_options_book_handler(async_handler)
+            self.client.add_handler(services.OPTIONS_BOOK, handler)
+            self.client.add_handler(services.OPTIONS_BOOK, async_handler)
             return handler, async_handler
 
         return await self.__test_book_handler(
@@ -3164,7 +3164,7 @@ class StreamClientTest(IsolatedAsyncioTestCase):
         socket.recv.side_effect = [json.dumps(self.success_response(
             1, 'NEWS_HEADLINE', 'SUBS'))]
 
-        await self.client.news_headline_subs(['GOOG', 'MSFT'])
+        await self.client.subscribe(services.NEWS_HEADLINE, ['GOOG', 'MSFT'])
         socket.recv.assert_awaited_once()
         request = self.request_from_socket_mock(socket)
 
@@ -3190,7 +3190,7 @@ class StreamClientTest(IsolatedAsyncioTestCase):
         socket.recv.side_effect = [json.dumps(response)]
 
         with self.assertRaises(tda.streaming.exceptions.UnexpectedResponseCode):
-            await self.client.news_headline_subs(['GOOG', 'MSFT'])
+            await self.client.subscribe(services.NEWS_HEADLINE, ['GOOG', 'MSFT'])
 
     @no_duplicates
     # TODO: Replace this with real messages.
@@ -3236,12 +3236,12 @@ class StreamClientTest(IsolatedAsyncioTestCase):
         socket.recv.side_effect = [
             json.dumps(self.success_response(1, 'NEWS_HEADLINE', 'SUBS')),
             json.dumps(stream_item)]
-        await self.client.news_headline_subs(['GOOG', 'MSFT'])
+        await self.client.subscribe(services.NEWS_HEADLINE, ['GOOG', 'MSFT'])
 
         handler = Mock()
         async_handler = AsyncMock()
-        self.client.add_news_headline_handler(handler)
-        self.client.add_news_headline_handler(async_handler)
+        self.client.add_handler(services.NEWS_HEADLINE, handler)
+        self.client.add_handler(services.NEWS_HEADLINE, async_handler)
         await self.client.handle_message()
 
         expected_item = {
@@ -3301,12 +3301,12 @@ class StreamClientTest(IsolatedAsyncioTestCase):
         socket.recv.side_effect = [
             json.dumps(self.success_response(1, 'NEWS_HEADLINE', 'SUBS')),
             json.dumps(stream_item)]
-        await self.client.news_headline_subs(['GOOG', 'MSFT'])
+        await self.client.subscribe(services.NEWS_HEADLINE, ['GOOG', 'MSFT'])
 
         handler = Mock()
         async_handler = AsyncMock()
-        self.client.add_news_headline_handler(handler)
-        self.client.add_news_headline_handler(async_handler)
+        self.client.add_handler(services.NEWS_HEADLINE, handler)
+        self.client.add_handler(services.NEWS_HEADLINE, async_handler)
         await self.client.handle_message()
 
         expected_item = {
@@ -3342,11 +3342,11 @@ class StreamClientTest(IsolatedAsyncioTestCase):
 
         handler = Mock()
         async_handler = AsyncMock()
-        self.client.add_chart_equity_handler(handler)
-        self.client.add_chart_equity_handler(async_handler)
+        self.client.add_handler(services.CHART_EQUITY, handler)
+        self.client.add_handler(services.CHART_EQUITY, async_handler)
 
-        await self.client.chart_equity_subs(['GOOG,MSFT'])
-        await self.client.chart_equity_add(['INTC'])
+        await self.client.subscribe(services.CHART_EQUITY, ['GOOG,MSFT'])
+        await self.client.append_subscription(services.CHART_EQUITY, ['INTC'])
 
         handler.assert_called_once_with(stream_item['data'][0])
         async_handler.assert_called_once_with(stream_item['data'][0])
@@ -3369,12 +3369,12 @@ class StreamClientTest(IsolatedAsyncioTestCase):
 
         handler = Mock()
         async_handler = AsyncMock()
-        self.client.add_chart_equity_handler(handler)
-        self.client.add_chart_equity_handler(async_handler)
+        self.client.add_handler(services.CHART_EQUITY, handler)
+        self.client.add_handler(services.CHART_EQUITY, async_handler)
 
-        await self.client.chart_equity_subs(['GOOG,MSFT'])
+        await self.client.subscribe(services.CHART_EQUITY, ['GOOG,MSFT'])
         with self.assertRaises(tda.streaming.exceptions.UnexpectedResponseCode):
-            await self.client.chart_equity_add(['INTC'])
+            await self.client.append_subscription(services.CHART_EQUITY, ['INTC'])
 
         handler.assert_called_once_with(stream_item['data'][0])
         async_handler.assert_called_once_with(stream_item['data'][0])
@@ -3397,12 +3397,12 @@ class StreamClientTest(IsolatedAsyncioTestCase):
 
         handler = Mock()
         async_handler = AsyncMock()
-        self.client.add_chart_equity_handler(handler)
-        self.client.add_chart_equity_handler(async_handler)
+        self.client.add_handler(services.CHART_EQUITY, handler)
+        self.client.add_handler(services.CHART_EQUITY, async_handler)
 
-        await self.client.chart_equity_subs(['GOOG,MSFT'])
+        await self.client.subscribe(services.CHART_EQUITY, ['GOOG,MSFT'])
         with self.assertRaises(tda.streaming.exceptions.UnexpectedResponse):
-            await self.client.chart_equity_add(['INTC'])
+            await self.client.append_subscription(services.CHART_EQUITY, ['INTC'])
 
         handler.assert_called_once_with(stream_item['data'][0])
         async_handler.assert_called_once_with(stream_item['data'][0])
@@ -3429,8 +3429,8 @@ class StreamClientTest(IsolatedAsyncioTestCase):
 
         handler = Mock()
         async_handler = AsyncMock()
-        self.client.add_heartbeat_handler(handler)
-        self.client.add_heartbeat_handler(async_handler)
+        self.client.add_handler(services.HEARTBEAT, handler)
+        self.client.add_handler(services.HEARTBEAT, async_handler)
         await self.client.handle_message()
         self.assert_handler_called_once_with(handler, expected_item)
         self.assert_handler_called_once_with(async_handler, expected_item)
@@ -3444,7 +3444,7 @@ class StreamClientTest(IsolatedAsyncioTestCase):
             json.dumps(self.success_response(1, 'CHART_EQUITY', 'SUBS')),
             json.dumps(self.success_response(2, 'CHART_EQUITY', 'SUBS'))]
 
-        await self.client.chart_equity_subs(['GOOG,MSFT'])
+        await self.client.subscribe(services.CHART_EQUITY, ['GOOG,MSFT'])
 
         with self.assertRaises(tda.streaming.exceptions.UnexpectedResponse):
             await self.client.handle_message()
@@ -3464,7 +3464,7 @@ class StreamClientTest(IsolatedAsyncioTestCase):
             '"18":�,"21":"unavailable","22":"Unknown","24":�,'
             '"28":"D,D","33":�}]}]}']
 
-        await self.client.chart_equity_subs(['GOOG,MSFT'])
+        await self.client.subscribe(services.CHART_EQUITY, ['GOOG,MSFT'])
 
         with self.assertRaises(tda.streaming.client.UnparsableMessage):
             await self.client.handle_message()
@@ -3480,12 +3480,12 @@ class StreamClientTest(IsolatedAsyncioTestCase):
             json.dumps(self.success_response(1, 'CHART_EQUITY', 'SUBS')),
             json.dumps(stream_item_1)]
 
-        await self.client.chart_equity_subs(['GOOG,MSFT'])
+        await self.client.subscribe(services.CHART_EQUITY, ['GOOG,MSFT'])
 
         handler = Mock()
         async_handler = AsyncMock()
-        self.client.add_chart_equity_handler(handler)
-        self.client.add_chart_equity_handler(async_handler)
+        self.client.add_handler(services.CHART_EQUITY, handler)
+        self.client.add_handler(services.CHART_EQUITY, async_handler)
 
         await self.client.handle_message()
         handler.assert_called_once_with(stream_item_1['data'][0])
@@ -3505,12 +3505,12 @@ class StreamClientTest(IsolatedAsyncioTestCase):
             json.dumps(self.success_response(1, 'CHART_EQUITY', 'SUBS')),
             json.dumps(stream_item)]
 
-        await self.client.chart_equity_subs(['GOOG,MSFT'])
+        await self.client.subscribe(services.CHART_EQUITY, ['GOOG,MSFT'])
 
         handler = Mock()
         async_handler = AsyncMock()
-        self.client.add_chart_equity_handler(handler)
-        self.client.add_chart_equity_handler(async_handler)
+        self.client.add_handler(services.CHART_EQUITY, handler)
+        self.client.add_handler(services.CHART_EQUITY, async_handler)
 
         await self.client.handle_message()
         handler.assert_has_calls(
@@ -3528,5 +3528,5 @@ class StreamClientTest(IsolatedAsyncioTestCase):
     @patch('tda.streaming.client.websockets.client.connect', new_callable=AsyncMock)
     async def test_subscribe_without_login(self, ws_connect):
         with self.assertRaisesRegex(ValueError, '.*Socket not open.*'):
-            await self.client.chart_equity_subs(['GOOG,MSFT'])
+            await self.client.subscribe(services.CHART_EQUITY, ['GOOG,MSFT'])
 
