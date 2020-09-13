@@ -35,6 +35,41 @@ Note we we create a new client using the ``auth`` package as described in
 :ref:`auth`. Creating a client directly is possible, but not recommended.
 
 +++++++++++++++++++
+Asyncio Support
++++++++++++++++++++
+
+An asynchronous variant is available through a keyword to the client
+constructor. This allows for higher-performance API usage, at the cost
+of slightly increased application complexity.
+
+.. code-block:: python
+
+  from tda.auth import easy_client
+  from tda.client import Client
+
+  async def main():
+      c = easy_client(
+              api_key='APIKEY',
+              redirect_uri='https://localhost',
+              token_path='/tmp/token.pickle',
+              asyncio=True)
+
+      resp = await c.get_price_history('AAPL',
+              period_type=Client.PriceHistory.PeriodType.YEAR,
+              period=Client.PriceHistory.Period.TWENTY_YEARS,
+              frequency_type=Client.PriceHistory.FrequencyType.DAILY,
+              frequency=Client.PriceHistory.Frequency.DAILY)
+      assert resp.status_code == 200
+      history = resp.json()
+
+  if __name__ == '__main__':
+      import asyncio
+      asyncio.run_until_complete(main())
+
+For more examples, please see the ``examples/async`` directory in
+GitHub.
+
++++++++++++++++++++
 Calling Conventions
 +++++++++++++++++++
 

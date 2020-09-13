@@ -74,7 +74,6 @@ class _TestClient:
     def test_get_order(self):
 
         thing = self.client.get_order(ORDER_ID, ACCOUNT_ID)
-        print(thing)
         self.mock_session.get.assert_called_once_with(
             self.make_url('/v1/accounts/{accountId}/orders/{orderId}'),
             params={})
