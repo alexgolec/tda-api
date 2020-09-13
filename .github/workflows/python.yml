@@ -18,7 +18,7 @@ jobs:
       matrix:
         python:
         - version: 3.6
-          toxenv: py3.6
+          toxenv: py36
         - version: 3.7
           toxenv: py37
         - version: 3.8
