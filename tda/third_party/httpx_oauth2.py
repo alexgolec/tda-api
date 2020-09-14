@@ -1,3 +1,11 @@
+"""
+Due to a lack of synchronous HTTPX support in Authlib, we've placed a
+sync-compatible version of the client in TDA-API directly until the PR
+adding this functionality to authlib is upstreamed and released.
+
+See here: https://github.com/lepture/authlib/pull/270
+"""
+
 import asyncio
 import typing
 from httpx import AsyncClient, Auth, Client, Request, Response
