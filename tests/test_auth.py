@@ -33,7 +33,7 @@ class ClientFromTokenFileTest(unittest.TestCase):
             auth.client_from_token_file(self.json_path, API_KEY)
 
     @no_duplicates
-    @patch('tda.auth.SyncClient')
+    @patch('tda.auth.Client')
     @patch('tda.auth.OAuth2Client')
     def test_pickle_loads(self, session, client):
         self.write_token()
@@ -51,7 +51,7 @@ class ClientFromTokenFileTest(unittest.TestCase):
             update_token=_)
 
     @no_duplicates
-    @patch('tda.auth.SyncClient')
+    @patch('tda.auth.Client')
     @patch('tda.auth.OAuth2Client')
     def test_json_loads(self, session, client):
         self.write_token()
@@ -69,7 +69,7 @@ class ClientFromTokenFileTest(unittest.TestCase):
             update_token=_)
 
     @no_duplicates
-    @patch('tda.auth.SyncClient')
+    @patch('tda.auth.Client')
     @patch('tda.auth.OAuth2Client')
     def test_update_token_updates_token(self, session, client):
         self.write_token()
@@ -87,7 +87,7 @@ class ClientFromTokenFileTest(unittest.TestCase):
 
 
     @no_duplicates
-    @patch('tda.auth.SyncClient')
+    @patch('tda.auth.Client')
     @patch('tda.auth.OAuth2Client')
     def test_api_key_is_normalized(self, session, client):
         self.write_token()
@@ -108,7 +108,7 @@ class ClientFromTokenFileTest(unittest.TestCase):
 class ClientFromAccessFunctionsTest(unittest.TestCase):
 
     @no_duplicates
-    @patch('tda.auth.SyncClient')
+    @patch('tda.auth.Client')
     @patch('tda.auth.OAuth2Client')
     def test_success_with_write_func(self, session, client):
         token = {'token': 'yes'}
@@ -142,7 +142,7 @@ class ClientFromAccessFunctionsTest(unittest.TestCase):
 
 
     @no_duplicates
-    @patch('tda.auth.SyncClient')
+    @patch('tda.auth.Client')
     @patch('tda.auth.OAuth2Client')
     def test_success_no_write_func(self, session, client):
         token = {'token': 'yes'}
@@ -175,7 +175,7 @@ class ClientFromLoginFlow(unittest.TestCase):
         self.token = {'token': 'yes'}
 
     @no_duplicates
-    @patch('tda.auth.SyncClient')
+    @patch('tda.auth.Client')
     @patch('tda.auth.OAuth2Client')
     def test_no_token_file_https(self, session_constructor, client):
         AUTH_URL = 'https://auth.url.com'
@@ -200,7 +200,7 @@ class ClientFromLoginFlow(unittest.TestCase):
             self.assertEqual(self.token, json.load(f))
 
     @no_duplicates
-    @patch('tda.auth.SyncClient')
+    @patch('tda.auth.Client')
     @patch('tda.auth.OAuth2Client')
     def test_no_token_file_http(self, session_constructor, client):
         AUTH_URL = 'https://auth.url.com'
@@ -227,7 +227,7 @@ class ClientFromLoginFlow(unittest.TestCase):
             self.assertEqual(self.token, json.load(f))
 
     @no_duplicates
-    @patch('tda.auth.SyncClient')
+    @patch('tda.auth.Client')
     @patch('tda.auth.OAuth2Client')
     def test_no_token_file_http_redirected_to_https(
             self, session_constructor, client):
@@ -256,7 +256,7 @@ class ClientFromLoginFlow(unittest.TestCase):
             self.assertEqual(self.token, json.load(f))
 
     @no_duplicates
-    @patch('tda.auth.SyncClient')
+    @patch('tda.auth.Client')
     @patch('tda.auth.OAuth2Client')
     def test_normalize_api_key(self, session_constructor, client):
         AUTH_URL = 'https://auth.url.com'
@@ -283,7 +283,7 @@ class ClientFromLoginFlow(unittest.TestCase):
 
 
     @no_duplicates
-    @patch('tda.auth.SyncClient')
+    @patch('tda.auth.Client')
     @patch('tda.auth.OAuth2Client')
     def test_unexpected_redirect_url(self, session_constructor, client):
         AUTH_URL = 'https://auth.url.com'

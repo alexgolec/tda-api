@@ -5,7 +5,7 @@ import logging
 import tda
 import unittest
 
-from tda.client import SyncClient
+from tda.client import Client
 from .utils import MockResponse, no_duplicates
 from unittest.mock import Mock, patch
 

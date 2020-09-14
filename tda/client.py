@@ -1034,7 +1034,7 @@ class BaseClient(EnumEnforcer):
         path = '/v1/accounts/{}/watchlists/{}'.format(account_id, watchlist_id)
         return self._patch_request(path, watchlist_spec)
 
-class SyncClient(BaseClient):
+class Client(BaseClient):
     def _get_request(self, path, params):
         dest = 'https://api.tdameritrade.com' + path
 
@@ -1093,7 +1093,6 @@ class SyncClient(BaseClient):
         self._log_response(resp, req_num)
         tda.debug.register_redactions_from_response(resp)
         return resp
-Client = SyncClient # legacy support
 
 class AsyncClient(BaseClient):
 

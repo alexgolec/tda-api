@@ -6,7 +6,7 @@ import pytz
 import unittest
 from unittest.mock import ANY, MagicMock, Mock, patch
 
-from tda.client import AsyncClient, SyncClient
+from tda.client import AsyncClient, Client
 from tda.orders.generic import OrderBuilder
 
 from .utils import no_duplicates
@@ -48,7 +48,7 @@ EARLIER_DATE_STR = '2001-01-02'
 
 class _TestClient:
     """
-    Test suite used for both SyncClient and AsyncClient
+    Test suite used for both Client and AsyncClient
     """
 
     def setUp(self):
@@ -1449,11 +1449,11 @@ class _TestClient:
             self.make_url('/v1/accounts/{accountId}/watchlists/{watchlistId}'),
             json=watchlist)
 
-class SyncClientTest(_TestClient, unittest.TestCase):
+class ClientTest(_TestClient, unittest.TestCase):
     """
-    Subclass set to use SyncClient and MagicMock
+    Subclass set to use Client and MagicMock
     """
-    client_class    = SyncClient
+    client_class    = Client
     magicmock_class = MagicMock
 
 class AsyncClientTest(_TestClient, unittest.TestCase):

@@ -1,7 +1,7 @@
 ##########################################################################
 # Authentication Wrappers
 
-from .httpx_oauth2 import AsyncOAuth2Client, OAuth2Client
+from .third_party.httpx_oauth2 import AsyncOAuth2Client, OAuth2Client
 
 import json
 import logging
@@ -10,7 +10,7 @@ import pickle
 import sys
 import time
 
-from tda.client import AsyncClient, BaseClient, SyncClient
+from tda.client import AsyncClient, BaseClient, Client
 from tda.debug import register_redactions
 
 
@@ -166,7 +166,7 @@ def client_from_login_flow(webdriver, api_key, redirect_url, token_path,
         client_class  = AsyncClient
     else:
         session_class = OAuth2Client
-        client_class  = SyncClient
+        client_class  = Client
 
     # Return a new session configured to refresh credentials
     return client_class(
@@ -276,7 +276,7 @@ def client_from_access_functions(api_key, token_read_func,
         client_class  = AsyncClient
     else:
         session_class = OAuth2Client
-        client_class  = SyncClient
+        client_class  = Client
 
     return client_class(
         api_key,
