@@ -357,7 +357,7 @@ class BaseClient(EnumEnforcer):
         '''Account balances, positions, and orders for all linked accounts.
         `Official documentation
         <https://developer.tdameritrade.com/account-access/apis/get/
-        accounts-0>`_.
+        accounts-0>`__.
 
         :param fields: Balances displayed by default, additional fields can be
                        added here by adding values from :class:`Account.Fields`.
