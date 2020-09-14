@@ -110,7 +110,7 @@ class BaseClient(EnumEnforcer):
         '''Cancel a specific order for a specific account.
         `Official documentation
         <https://developer.tdameritrade.com/account-access/apis/delete/
-        accounts/%7BaccountId%7D/orders/%7BorderId%7D-0>`_.'''
+        accounts/%7BaccountId%7D/orders/%7BorderId%7D-0>`__.'''
         path = '/v1/accounts/{}/orders/{}'.format(account_id, order_id)
         return self._delete_request(path)
 
@@ -118,7 +118,7 @@ class BaseClient(EnumEnforcer):
         '''Get a specific order for a specific account by its order ID.
         `Official documentation
         <https://developer.tdameritrade.com/account-access/apis/get/accounts/
-        %7BaccountId%7D/orders/%7BorderId%7D-0>`_.'''
+        %7BaccountId%7D/orders/%7BorderId%7D-0>`__.'''
         path = '/v1/accounts/{}/orders/{}'.format(account_id, order_id)
         return self._get_request(path, {})
 
@@ -189,7 +189,7 @@ class BaseClient(EnumEnforcer):
         '''Orders for a specific account. At most one of ``status`` and
         ``statuses`` may be set. `Official documentation
         <https://developer.tdameritrade.com/account-access/apis/get/accounts/
-        %7BaccountId%7D/orders-0>`_.
+        %7BaccountId%7D/orders-0>`__.
 
         :param max_results: The maximum number of orders to retrieve.
         :param from_entered_datetime: Specifies that no orders entered before
@@ -222,7 +222,7 @@ class BaseClient(EnumEnforcer):
         '''Orders for all linked accounts. At most one of ``status`` and
         ``statuses`` may be set.
         `Official documentation
-        <https://developer.tdameritrade.com/account-access/apis/get/orders-0>`_.
+        <https://developer.tdameritrade.com/account-access/apis/get/orders-0>`__.
 
         :param max_results: The maximum number of orders to retrieve.
         :param from_entered_datetime: Specifies that no orders entered before
@@ -255,7 +255,7 @@ class BaseClient(EnumEnforcer):
 
         `Official documentation
         <https://developer.tdameritrade.com/account-access/apis/post/accounts/
-        %7BaccountId%7D/orders-0>`_. '''
+        %7BaccountId%7D/orders-0>`__. '''
         if isinstance(order_spec, OrderBuilder):
             order_spec = order_spec.build()
 
@@ -268,7 +268,7 @@ class BaseClient(EnumEnforcer):
         and a new order will be created.
         `Official documentation
         <https://developer.tdameritrade.com/account-access/apis/put/accounts/
-        %7BaccountId%7D/orders/%7BorderId%7D-0>`_.'''
+        %7BaccountId%7D/orders/%7BorderId%7D-0>`__.'''
         if isinstance(order_spec, OrderBuilder):
             order_spec = order_spec.build()
 
@@ -282,7 +282,7 @@ class BaseClient(EnumEnforcer):
         '''Save an order for a specific account.
         `Official documentation
         <https://developer.tdameritrade.com/account-access/apis/post/accounts/
-        %7BaccountId%7D/savedorders-0>`_.'''
+        %7BaccountId%7D/savedorders-0>`__.'''
         if isinstance(order_spec, OrderBuilder):
             order_spec = order_spec.build()
 
@@ -293,7 +293,7 @@ class BaseClient(EnumEnforcer):
         '''Delete a specific saved order for a specific account.
         `Official documentation
         <https://developer.tdameritrade.com/account-access/apis/delete/
-        accounts/%7BaccountId%7D/savedorders/%7BsavedOrderId%7D-0>`_.'''
+        accounts/%7BaccountId%7D/savedorders/%7BsavedOrderId%7D-0>`__.'''
         path = '/v1/accounts/{}/savedorders/{}'.format(account_id, order_id)
         return self._delete_request(path)
 
@@ -301,7 +301,7 @@ class BaseClient(EnumEnforcer):
         '''Specific saved order by its ID, for a specific account.
         `Official documentation
         <https://developer.tdameritrade.com/account-access/apis/get/accounts/
-        %7BaccountId%7D/savedorders/%7BsavedOrderId%7D-0>`_.'''
+        %7BaccountId%7D/savedorders/%7BsavedOrderId%7D-0>`__.'''
         path = '/v1/accounts/{}/savedorders/{}'.format(account_id, order_id)
         return self._get_request(path, {})
 
@@ -309,7 +309,7 @@ class BaseClient(EnumEnforcer):
         '''Saved orders for a specific account.
         `Official documentation
         <https://developer.tdameritrade.com/account-access/apis/get/accounts/
-        %7BaccountId%7D/savedorders-0>`_.'''
+        %7BaccountId%7D/savedorders-0>`__.'''
         path = '/v1/accounts/{}/savedorders'.format(account_id)
         return self._get_request(path, {})
 
@@ -318,7 +318,7 @@ class BaseClient(EnumEnforcer):
         order will be replaced by the new order.
         `Official documentation
         <https://developer.tdameritrade.com/account-access/apis/put/accounts/
-        %7BaccountId%7D/savedorders/%7BsavedOrderId%7D-0>`_.'''
+        %7BaccountId%7D/savedorders/%7BsavedOrderId%7D-0>`__.'''
         if isinstance(order_spec, OrderBuilder):
             order_spec = order_spec.build()
 
@@ -339,7 +339,7 @@ class BaseClient(EnumEnforcer):
         '''Account balances, positions, and orders for a specific account.
         `Official documentation
         <https://developer.tdameritrade.com/account-access/apis/get/accounts/
-        %7BaccountId%7D-0>`_.
+        %7BaccountId%7D-0>`__.
 
         :param fields: Balances displayed by default, additional fields can be
                        added here by adding values from :class:`Account.Fields`.
@@ -379,7 +379,7 @@ class BaseClient(EnumEnforcer):
             '''Search query type for :func:`search_instruments`. See the
             `official documentation
             <https://developer.tdameritrade.com/instruments/apis/get/
-            instruments>`_ for details on the semantics of each.'''
+            instruments>`__ for details on the semantics of each.'''
             SYMBOL_SEARCH = 'symbol-search'
             SYMBOL_REGEX = 'symbol-regex'
             DESC_SEARCH = 'desc-search'
@@ -390,7 +390,7 @@ class BaseClient(EnumEnforcer):
         '''Search or retrieve instrument data, including fundamental data.
         `Official documentation
         <https://developer.tdameritrade.com/instruments/apis/get/
-        instruments>`_.
+        instruments>`__.
 
         :param projection: Query type. See :class:`Instrument.Projection` for
                             options.
@@ -414,7 +414,7 @@ class BaseClient(EnumEnforcer):
         '''Get an instrument by CUSIP.
         `Official documentation
         <https://developer.tdameritrade.com/instruments/apis/get/instruments/
-        %7Bcusip%7D>`_.'''
+        %7Bcusip%7D>`__.'''
         if not isinstance(cusip, str):
             raise ValueError('CUSIPs must be passed as strings to preserve ' +
                              'leading zeroes')
@@ -442,7 +442,7 @@ class BaseClient(EnumEnforcer):
         '''Retrieve market hours for specified markets.
         `Official documentation
         <https://developer.tdameritrade.com/market-hours/apis/get/marketdata/
-        hours>`_.
+        hours>`__.
 
         :param markets: Market to return hours for. Iterable of
                         :class:`Markets`.
@@ -464,7 +464,7 @@ class BaseClient(EnumEnforcer):
         '''Retrieve market hours for specified single market.
         `Official documentation
         <https://developer.tdameritrade.com/market-hours/apis/get/marketdata/
-        %7Bmarket%7D/hours>`_.
+        %7Bmarket%7D/hours>`__.
 
         :param markets: Market to return hours for. Instance of
                         :class:`Markets`.
@@ -500,7 +500,7 @@ class BaseClient(EnumEnforcer):
         market.
         `Official documentation
         <https://developer.tdameritrade.com/movers/apis/get/marketdata/
-        %7Bindex%7D/movers>`_.
+        %7Bindex%7D/movers>`__.
 
         :param direction: See :class:`Movers.Direction`
         :param change: See :class:`Movers.Change`
@@ -590,7 +590,7 @@ class BaseClient(EnumEnforcer):
         '''Get option chain for an optionable Symbol.
         `Official documentation
         <https://developer.tdameritrade.com/option-chains/apis/get/marketdata/
-        chains>`_.
+        chains>`__.
 
         :param contract_type: Type of contracts to return in the chain. See
                               :class:`Options.ContractType` for choices.
@@ -745,7 +745,7 @@ class BaseClient(EnumEnforcer):
         '''Get price history for a symbol.
         `Official documentation
         <https://developer.tdameritrade.com/price-history/apis/get/marketdata/
-        %7Bsymbol%7D/pricehistory>`_.
+        %7Bsymbol%7D/pricehistory>`__.
 
         :param period_type: The type of period to show.
         :param period: The number of periods to show. Should not be provided if
@@ -804,7 +804,7 @@ class BaseClient(EnumEnforcer):
 
         `Official documentation
         <https://developer.tdameritrade.com/quotes/apis/get/marketdata/
-        %7Bsymbol%7D/quotes>`_.
+        %7Bsymbol%7D/quotes>`__.
         '''
         params = {
             'apikey': self.api_key,
@@ -819,7 +819,7 @@ class BaseClient(EnumEnforcer):
         those containing non-alphanumeric characters like ``/ES``.
         `Official documentation
         <https://developer.tdameritrade.com/quotes/apis/get/marketdata/
-        quotes>`_.'''
+        quotes>`__.'''
         if isinstance(symbols, str):
             symbols = [symbols]
 
@@ -838,7 +838,7 @@ class BaseClient(EnumEnforcer):
         '''Transaction for a specific account.
         `Official documentation
         <https://developer.tdameritrade.com/transaction-history/apis/get/
-        accounts/%7BaccountId%7D/transactions/%7BtransactionId%7D-0>`_.'''
+        accounts/%7BaccountId%7D/transactions/%7BtransactionId%7D-0>`__.'''
         params = {
             'apikey': self.api_key,
         }
@@ -871,7 +871,7 @@ class BaseClient(EnumEnforcer):
         '''Transaction for a specific account.
         `Official documentation
         <https://developer.tdameritrade.com/transaction-history/apis/get/
-        accounts/%7BaccountId%7D/transactions-0>`_.
+        accounts/%7BaccountId%7D/transactions-0>`__.
 
         :param transaction_type: Only transactions with the specified type will
                                   be returned.
@@ -910,7 +910,7 @@ class BaseClient(EnumEnforcer):
         '''Preferences for a specific account.
         `Official documentation
         <https://developer.tdameritrade.com/user-principal/apis/get/accounts/
-        %7BaccountId%7D/preferences-0>`_.'''
+        %7BaccountId%7D/preferences-0>`__.'''
         params = {
             'apikey': self.api_key,
         }
@@ -922,7 +922,7 @@ class BaseClient(EnumEnforcer):
         '''SubscriptionKey for provided accounts or default accounts.
         `Official documentation
         <https://developer.tdameritrade.com/user-principal/apis/get/
-        userprincipals/streamersubscriptionkeys-0>`_.'''
+        userprincipals/streamersubscriptionkeys-0>`__.'''
         if isinstance(account_ids, int) or isinstance(account_ids, str):
             account_ids = [account_ids]
 
@@ -945,7 +945,7 @@ class BaseClient(EnumEnforcer):
         '''User Principal details.
         `Official documentation
         <https://developer.tdameritrade.com/user-principal/apis/get/
-        userprincipals-0>`_.'''
+        userprincipals-0>`__.'''
         fields = self.convert_enum_iterable(
             fields, self.UserPrincipals.Fields)
 
@@ -966,7 +966,7 @@ class BaseClient(EnumEnforcer):
         cannot be modified via this operation.
         `Official documentation
         <https://developer.tdameritrade.com/user-principal/apis/put/accounts/
-        %7BaccountId%7D/preferences-0>`_.'''
+        %7BaccountId%7D/preferences-0>`__.'''
         path = '/v1/accounts/{}/preferences'.format(account_id)
         return self._put_request(path, preferences)
 
@@ -978,7 +978,7 @@ class BaseClient(EnumEnforcer):
         that the symbol or asset type are valid.
         `Official documentation
         <https://developer.tdameritrade.com/watchlist/apis/post/accounts/
-        %7BaccountId%7D/watchlists-0>`_.'''
+        %7BaccountId%7D/watchlists-0>`__.'''
         path = '/v1/accounts/{}/watchlists'.format(account_id)
         return self._post_request(path, watchlist_spec)
 
@@ -986,7 +986,7 @@ class BaseClient(EnumEnforcer):
         '''Delete watchlist for a specific account.
         `Official documentation
         <https://developer.tdameritrade.com/watchlist/apis/delete/accounts/
-        %7BaccountId%7D/watchlists/%7BwatchlistId%7D-0>`_.'''
+        %7BaccountId%7D/watchlists/%7BwatchlistId%7D-0>`__.'''
         path = '/v1/accounts/{}/watchlists/{}'.format(account_id, watchlist_id)
         return self._delete_request(path)
 
@@ -994,7 +994,7 @@ class BaseClient(EnumEnforcer):
         '''Specific watchlist for a specific account.
         `Official documentation
         <https://developer.tdameritrade.com/watchlist/apis/get/accounts/
-        %7BaccountId%7D/watchlists/%7BwatchlistId%7D-0>`_.'''
+        %7BaccountId%7D/watchlists/%7BwatchlistId%7D-0>`__.'''
         path = '/v1/accounts/{}/watchlists/{}'.format(account_id, watchlist_id)
         return self._get_request(path, params={})
 
@@ -1002,7 +1002,7 @@ class BaseClient(EnumEnforcer):
         '''All watchlists for all of the user\'s linked accounts.
         `Official documentation
         <https://developer.tdameritrade.com/watchlist/apis/get/accounts/
-        watchlists-0>`_.'''
+        watchlists-0>`__.'''
         path = '/v1/accounts/watchlists'
         return self._get_request(path, params={})
 
@@ -1010,7 +1010,7 @@ class BaseClient(EnumEnforcer):
         '''All watchlists of an account.
         `Official documentation
         <https://developer.tdameritrade.com/watchlist/apis/get/accounts/
-        %7BaccountId%7D/watchlists-0>`_.'''
+        %7BaccountId%7D/watchlists-0>`__.'''
         path = '/v1/accounts/{}/watchlists'.format(account_id)
         return self._get_request(path, params={})
 
@@ -1019,7 +1019,7 @@ class BaseClient(EnumEnforcer):
         that the symbol or asset type are valid.
         `Official documentation
         <https://developer.tdameritrade.com/watchlist/apis/put/accounts/
-        %7BaccountId%7D/watchlists/%7BwatchlistId%7D-0>`_.'''
+        %7BaccountId%7D/watchlists/%7BwatchlistId%7D-0>`__.'''
         path = '/v1/accounts/{}/watchlists/{}'.format(account_id, watchlist_id)
         return self._put_request(path, watchlist_spec)
 
@@ -1030,7 +1030,7 @@ class BaseClient(EnumEnforcer):
         are valid.
         `Official documentation
         <https://developer.tdameritrade.com/watchlist/apis/patch/accounts/
-        %7BaccountId%7D/watchlists/%7BwatchlistId%7D-0>`_.'''
+        %7BaccountId%7D/watchlists/%7BwatchlistId%7D-0>`__.'''
         path = '/v1/accounts/{}/watchlists/{}'.format(account_id, watchlist_id)
         return self._patch_request(path, watchlist_spec)
 
