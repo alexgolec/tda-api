@@ -7,8 +7,8 @@
 .. image:: https://readthedocs.org/projects/tda-api/badge/?version=stable
   :target: https://tda-api.readthedocs.io/en/stable/?badge=stable
 
-.. image:: https://circleci.com/gh/alexgolec/tda-api.svg?style=shield
-  :target: https://circleci.com/gh/alexgolec/tda-api
+.. image:: https://github.com/alexgolec/tda-api/workflows/tests/badge.svg
+  :target: https://github.com/alexgolec/tda-api/actions?query=workflow%3Atests
 
 .. image:: https://badge.fury.io/py/tda-api.svg
   :target: https://badge.fury.io/py/tda-api
