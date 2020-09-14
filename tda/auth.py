@@ -10,7 +10,7 @@ import pickle
 import sys
 import time
 
-from tda.client import AsyncClient, BaseClient, Client
+from tda.client import AsyncClient, Client
 from tda.debug import register_redactions
 
 
