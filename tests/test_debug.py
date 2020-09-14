@@ -5,6 +5,7 @@ import logging
 import tda
 import unittest
 
+from tda.client import Client
 from .utils import MockResponse, no_duplicates
 from unittest.mock import Mock, patch
 
@@ -126,14 +127,14 @@ class RegisterRedactionsTest(unittest.TestCase):
     @no_duplicates
     @patch('tda.debug.register_redactions', new_callable=Mock)
     def test_register_from_request_success(self, register_redactions):
-        resp = MockResponse({'success': 1}, True)
+        resp = MockResponse({'success': 1}, 200)
         tda.debug.register_redactions_from_response(resp)
         register_redactions.assert_called_with({'success': 1})
 
     @no_duplicates
     @patch('tda.debug.register_redactions', new_callable=Mock)
     def test_register_from_request_not_okay(self, register_redactions):
-        resp = MockResponse({'success': 1}, False)
+        resp = MockResponse({'success': 1}, 403)
         tda.debug.register_redactions_from_response(resp)
         register_redactions.assert_not_called()
 
@@ -144,6 +145,6 @@ class RegisterRedactionsTest(unittest.TestCase):
             def json(self):
                 raise json.decoder.JSONDecodeError('e243rtdagew', '', 0)
 
-        resp = MR({'success': 1}, True)
+        resp = MR({'success': 1}, 200)
         tda.debug.register_redactions_from_response(resp)
         register_redactions.assert_not_called()

@@ -344,7 +344,7 @@ class StreamClient(EnumEnforcer):
         r = self._client.get_user_principals(fields=[
             self._client.UserPrincipals.Fields.STREAMER_CONNECTION_INFO,
             self._client.UserPrincipals.Fields.STREAMER_SUBSCRIPTION_KEYS])
-        assert r.ok, r.raise_for_status()
+        assert r.status_code == 200, r.raise_for_status()
         r = r.json()
 
         await self._init_from_principals(r)

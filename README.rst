@@ -74,7 +74,7 @@ daily historical price data for the past twenty years:
           period=client.Client.PriceHistory.Period.TWENTY_YEARS,
           frequency_type=client.Client.PriceHistory.FrequencyType.DAILY,
           frequency=client.Client.PriceHistory.Frequency.DAILY)
-  assert r.ok, r.raise_for_status()
+  assert r.status_code == 200, r.raise_for_status()
   print(json.dumps(r.json(), indent=4))
 
 Why should I use ``tda-api``?

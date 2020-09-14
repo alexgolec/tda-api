@@ -61,7 +61,7 @@ def register_redactions_from_response(resp):
     Convenience method that calls ``register_redactions`` if resp represents a
     successful response. Note this method assumes that resp has a JSON contents.
     '''
-    if resp.ok:
+    if resp.status_code == 200:
         try:
             register_redactions(resp.json())
         except __json_errors:

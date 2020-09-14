@@ -1,15 +1,15 @@
-from urllib.request import urlopen
-
 import atexit
 import datetime
 import dateutil
+import httpx
 import sys
 import tda
 
-API_KEY = 'YOUR_API_KEY@AMER.OAUTHAP'
-REDIRECT_URI = 'YOUR_REDIRECT_URI'
-TOKEN_PATH = '/YOUR/TOKEN/PATH'
+API_KEY = 'XXXXXX@AMER.OAUTHAP'
+REDIRECT_URI = 'https://localhost:8080/'
+TOKEN_PATH = 'ameritrade-credentials.json'
 YOUR_BIRTHDAY = datetime.datetime(year=1969, month=4, day=20)
+SP500_URL = "https://tda-api.readthedocs.io/en/latest/_static/sp500.txt"
 
 
 def make_webdriver():
@@ -29,8 +29,7 @@ client = tda.auth.easy_client(
     make_webdriver)
 
 # Load S&P 500 composition from documentation
-sp500 = urlopen(
-    'https://tda-api.readthedocs.io/en/latest/_static/sp500.txt').read().decode().split()
+sp500 = httpx.get(SP500_URL, headers={"User-Agent":"Mozilla/5.0"}).read().decode().split()
 
 # Fetch fundamentals for all symbols and filter out the ones with ex-dividend
 # dates in the future and dividend payment dates on your birth month. Note we
@@ -41,7 +40,7 @@ birth_month_dividends = []
 for s in (sp500[:250], sp500[250:]):
     r = client.search_instruments(
         s, tda.client.Client.Instrument.Projection.FUNDAMENTAL)
-    assert r.ok, r.raise_for_status()
+    assert r.status_code == 200, r.raise_for_status()
 
     for symbol, f in r.json().items():
 

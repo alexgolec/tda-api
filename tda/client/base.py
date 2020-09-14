@@ -2,8 +2,8 @@
 completely unopinionated, and provides an easy-to-use wrapper around the TD
 Ameritrade HTTP API.'''
 
+from abc import ABC, abstractmethod
 from enum import Enum
-from requests_oauthlib import OAuth2Session
 
 import datetime
 import json
@@ -13,7 +13,7 @@ import tda
 import time
 
 from tda.orders.generic import OrderBuilder
-from .utils import EnumEnforcer
+from ..utils import EnumEnforcer
 
 
 def get_logger():
@@ -23,7 +23,7 @@ def get_logger():
 ##########################################################################
 # Client
 
-class Client(EnumEnforcer):
+class BaseClient(EnumEnforcer):
     # This docstring will appears as documentation for __init__
     '''A basic, completely unopinionated client. This client provides the most
     direct access to the API possible. All methods return the raw response which
@@ -51,15 +51,15 @@ class Client(EnumEnforcer):
     _DATETIME = datetime.datetime
     _DATE = datetime.date
 
-    def __log_response(self, resp, req_num):
+    def _log_response(self, resp, req_num):
         self.logger.debug('Req {}: GET response: {}, content={}'.format(
             req_num, resp.status_code, resp.text))
 
-    def __req_num(self):
+    def _req_num(self):
         self.request_number += 1
         return self.request_number
 
-    def __assert_type(self, name, value, exp_types):
+    def _assert_type(self, name, value, exp_types):
         value_type = type(value)
         value_type_name = '{}.{}'.format(
             value_type.__module__, value_type.__name__)
@@ -74,89 +74,34 @@ class Client(EnumEnforcer):
                     ', '.join(exp_type_names), name, value_type_name)
             raise ValueError(error_str)
 
-    def __format_datetime(self, var_name, dt):
+    def _format_datetime(self, var_name, dt):
         '''Formats datetime objects appropriately, depending on whether they are
         naive or timezone-aware'''
-        self.__assert_type(var_name, dt, [self._DATETIME])
+        self._assert_type(var_name, dt, [self._DATETIME])
 
         tz_offset = dt.strftime('%z')
         tz_offset = tz_offset if tz_offset else '+0000'
 
         return dt.strftime('%Y-%m-%dT%H:%M:%S') + tz_offset
 
-    def __format_date(self, var_name, dt):
+    def _format_date(self, var_name, dt):
         '''Formats datetime objects appropriately, depending on whether they are
         naive or timezone-aware'''
-        self.__assert_type(var_name, dt, [self._DATE, self._DATETIME])
+        self._assert_type(var_name, dt, [self._DATE, self._DATETIME])
 
         d = datetime.date(year=dt.year, month=dt.month, day=dt.day)
 
         return d.isoformat()
 
-    def __datetime_as_millis(self, var_name, dt):
+    def _datetime_as_millis(self, var_name, dt):
         'Converts datetime objects to compatible millisecond values'
-        self.__assert_type(var_name, dt, [self._DATETIME])
+        self._assert_type(var_name, dt, [self._DATETIME])
 
         return int(dt.timestamp() * 1000)
 
-    def __get_request(self, path, params):
-        dest = 'https://api.tdameritrade.com' + path
-
-        req_num = self.__req_num()
-        self.logger.debug('Req {}: GET to {}, params={}'.format(
-            req_num, dest, json.dumps(params, indent=4)))
-
-        resp = self.session.get(dest, params=params)
-        self.__log_response(resp, req_num)
-        tda.debug.register_redactions_from_response(resp)
-        return resp
-
-    def __post_request(self, path, data):
-        dest = 'https://api.tdameritrade.com' + path
-
-        req_num = self.__req_num()
-        self.logger.debug('Req {}: POST to {}, json={}'.format(
-            req_num, dest, json.dumps(data, indent=4)))
-
-        resp = self.session.post(dest, json=data)
-        self.__log_response(resp, req_num)
-        tda.debug.register_redactions_from_response(resp)
-        return resp
-
-    def __put_request(self, path, data):
-        dest = 'https://api.tdameritrade.com' + path
-
-        req_num = self.__req_num()
-        self.logger.debug('Req {}: PUT to {}, json={}'.format(
-            req_num, dest, json.dumps(data, indent=4)))
-
-        resp = self.session.put(dest, json=data)
-        self.__log_response(resp, req_num)
-        tda.debug.register_redactions_from_response(resp)
-        return resp
-
-    def __patch_request(self, path, data):
-        dest = 'https://api.tdameritrade.com' + path
-
-        req_num = self.__req_num()
-        self.logger.debug('Req {}: PATCH to {}, json={}'.format(
-            req_num, dest, json.dumps(data, indent=4)))
-
-        resp = self.session.patch(dest, json=data)
-        self.__log_response(resp, req_num)
-        tda.debug.register_redactions_from_response(resp)
-        return resp
-
-    def __delete_request(self, path):
-        dest = 'https://api.tdameritrade.com' + path
-
-        req_num = self.__req_num()
-        self.logger.debug('Req {}: DELETE to {}'.format(req_num, dest))
-
-        resp = self.session.delete(dest)
-        self.__log_response(resp, req_num)
-        tda.debug.register_redactions_from_response(resp)
-        return resp
+    @abstractmethod
+    def _get_request(self, *args, **kwargs):
+        return
 
     ##########################################################################
     # Orders
@@ -167,7 +112,7 @@ class Client(EnumEnforcer):
         <https://developer.tdameritrade.com/account-access/apis/delete/
         accounts/%7BaccountId%7D/orders/%7BorderId%7D-0>`__.'''
         path = '/v1/accounts/{}/orders/{}'.format(account_id, order_id)
-        return self.__delete_request(path)
+        return self._delete_request(path)
 
     def get_order(self, order_id, account_id):
         '''Get a specific order for a specific account by its order ID.
@@ -175,7 +120,7 @@ class Client(EnumEnforcer):
         <https://developer.tdameritrade.com/account-access/apis/get/accounts/
         %7BaccountId%7D/orders/%7BorderId%7D-0>`__.'''
         path = '/v1/accounts/{}/orders/{}'.format(account_id, order_id)
-        return self.__get_request(path, {})
+        return self._get_request(path, {})
 
     class Order:
         class Status(Enum):
@@ -197,7 +142,7 @@ class Client(EnumEnforcer):
             FILLED = 'FILLED'
             EXPIRED = 'EXPIRED'
 
-    def __make_order_query(self,
+    def _make_order_query(self,
                            *,
                            max_results=None,
                            from_entered_datetime=None,
@@ -217,9 +162,9 @@ class Client(EnumEnforcer):
             to_entered_datetime = datetime.datetime.utcnow()
 
         params = {
-            'fromEnteredTime': self.__format_datetime(
+            'fromEnteredTime': self._format_datetime(
                 'from_entered_datetime', from_entered_datetime),
-            'toEnteredTime': self.__format_datetime(
+            'toEnteredTime': self._format_datetime(
                 'to_entered_datetime', to_entered_datetime),
         }
 
@@ -260,7 +205,7 @@ class Client(EnumEnforcer):
                          See :class:`Order.Status` for options.
         '''
         path = '/v1/accounts/{}/orders'.format(account_id)
-        return self.__get_request(path, self.__make_order_query(
+        return self._get_request(path, self._make_order_query(
             max_results=max_results,
             from_entered_datetime=from_entered_datetime,
             to_entered_datetime=to_entered_datetime,
@@ -293,7 +238,7 @@ class Client(EnumEnforcer):
                          See :class:`Order.Status` for options.
         '''
         path = '/v1/orders'
-        return self.__get_request(path, self.__make_order_query(
+        return self._get_request(path, self._make_order_query(
             max_results=max_results,
             from_entered_datetime=from_entered_datetime,
             to_entered_datetime=to_entered_datetime,
@@ -315,7 +260,7 @@ class Client(EnumEnforcer):
             order_spec = order_spec.build()
 
         path = '/v1/accounts/{}/orders'.format(account_id)
-        return self.__post_request(path, order_spec)
+        return self._post_request(path, order_spec)
 
     def replace_order(self, account_id, order_id, order_spec):
         '''Replace an existing order for an account. The existing order will be
@@ -328,7 +273,7 @@ class Client(EnumEnforcer):
             order_spec = order_spec.build()
 
         path = '/v1/accounts/{}/orders/{}'.format(account_id, order_id)
-        return self.__put_request(path, order_spec)
+        return self._put_request(path, order_spec)
 
     ##########################################################################
     # Saved Orders
@@ -342,7 +287,7 @@ class Client(EnumEnforcer):
             order_spec = order_spec.build()
 
         path = '/v1/accounts/{}/savedorders'.format(account_id)
-        return self.__post_request(path, order_spec)
+        return self._post_request(path, order_spec)
 
     def delete_saved_order(self, account_id, order_id):
         '''Delete a specific saved order for a specific account.
@@ -350,7 +295,7 @@ class Client(EnumEnforcer):
         <https://developer.tdameritrade.com/account-access/apis/delete/
         accounts/%7BaccountId%7D/savedorders/%7BsavedOrderId%7D-0>`__.'''
         path = '/v1/accounts/{}/savedorders/{}'.format(account_id, order_id)
-        return self.__delete_request(path)
+        return self._delete_request(path)
 
     def get_saved_order(self, account_id, order_id):
         '''Specific saved order by its ID, for a specific account.
@@ -358,7 +303,7 @@ class Client(EnumEnforcer):
         <https://developer.tdameritrade.com/account-access/apis/get/accounts/
         %7BaccountId%7D/savedorders/%7BsavedOrderId%7D-0>`__.'''
         path = '/v1/accounts/{}/savedorders/{}'.format(account_id, order_id)
-        return self.__get_request(path, {})
+        return self._get_request(path, {})
 
     def get_saved_orders_by_path(self, account_id):
         '''Saved orders for a specific account.
@@ -366,7 +311,7 @@ class Client(EnumEnforcer):
         <https://developer.tdameritrade.com/account-access/apis/get/accounts/
         %7BaccountId%7D/savedorders-0>`__.'''
         path = '/v1/accounts/{}/savedorders'.format(account_id)
-        return self.__get_request(path, {})
+        return self._get_request(path, {})
 
     def replace_saved_order(self, account_id, order_id, order_spec):
         '''Replace an existing saved order for an account. The existing saved
@@ -378,7 +323,7 @@ class Client(EnumEnforcer):
             order_spec = order_spec.build()
 
         path = '/v1/accounts/{}/savedorders/{}'.format(account_id, order_id)
-        return self.__put_request(path, order_spec)
+        return self._put_request(path, order_spec)
 
     ##########################################################################
     # Accounts
@@ -406,7 +351,7 @@ class Client(EnumEnforcer):
             params['fields'] = ','.join(fields)
 
         path = '/v1/accounts/{}'.format(account_id)
-        return self.__get_request(path, params)
+        return self._get_request(path, params)
 
     def get_accounts(self, *, fields=None):
         '''Account balances, positions, and orders for all linked accounts.
@@ -424,7 +369,7 @@ class Client(EnumEnforcer):
             params['fields'] = ','.join(fields)
 
         path = '/v1/accounts'
-        return self.__get_request(path, params)
+        return self._get_request(path, params)
 
     ##########################################################################
     # Instruments
@@ -463,7 +408,7 @@ class Client(EnumEnforcer):
         }
 
         path = '/v1/instruments'
-        return self.__get_request(path, params)
+        return self._get_request(path, params)
 
     def get_instrument(self, cusip):
         '''Get an instrument by CUSIP.
@@ -479,7 +424,7 @@ class Client(EnumEnforcer):
         }
 
         path = '/v1/instruments/{}'.format(cusip)
-        return self.__get_request(path, params)
+        return self._get_request(path, params)
 
     ##########################################################################
     # Market Hours
@@ -509,11 +454,11 @@ class Client(EnumEnforcer):
         params = {
             'apikey': self.api_key,
             'markets': ','.join(markets),
-            'date': self.__format_date('date', date),
+            'date': self._format_date('date', date),
         }
 
         path = '/v1/marketdata/hours'
-        return self.__get_request(path, params)
+        return self._get_request(path, params)
 
     def get_hours_for_single_market(self, market, date):
         '''Retrieve market hours for specified single market.
@@ -530,11 +475,11 @@ class Client(EnumEnforcer):
 
         params = {
             'apikey': self.api_key,
-            'date': self.__format_date('date', date),
+            'date': self._format_date('date', date),
         }
 
         path = '/v1/marketdata/{}/hours'.format(market)
-        return self.__get_request(path, params)
+        return self._get_request(path, params)
 
     ##########################################################################
     # Movers
@@ -570,7 +515,7 @@ class Client(EnumEnforcer):
         }
 
         path = '/v1/marketdata/{}/movers'.format(index)
-        return self.__get_request(path, params)
+        return self._get_request(path, params)
 
     ##########################################################################
     # Option Chains
@@ -709,10 +654,10 @@ class Client(EnumEnforcer):
         if strike_range is not None:
             params['range'] = strike_range
         if strike_from_date is not None:
-            params['fromDate'] = self.__format_date(
+            params['fromDate'] = self._format_date(
                 'strike_from_date', strike_from_date)
         if strike_to_date is not None:
-            params['toDate'] = self.__format_date(
+            params['toDate'] = self._format_date(
                 'strike_to_date', strike_to_date)
         if volatility is not None:
             params['volatility'] = volatility
@@ -728,7 +673,7 @@ class Client(EnumEnforcer):
             params['optionType'] = option_type
 
         path = '/v1/marketdata/chains'
-        return self.__get_request(path, params)
+        return self._get_request(path, params)
 
     ##########################################################################
     # Price History
@@ -836,16 +781,16 @@ class Client(EnumEnforcer):
         if frequency is not None:
             params['frequency'] = frequency
         if start_datetime is not None:
-            params['startDate'] = self.__datetime_as_millis(
+            params['startDate'] = self._datetime_as_millis(
                 'start_datetime', start_datetime)
         if end_datetime is not None:
-            params['endDate'] = self.__datetime_as_millis(
+            params['endDate'] = self._datetime_as_millis(
                 'end_datetime', end_datetime)
         if need_extended_hours_data is not None:
             params['needExtendedHoursData'] = need_extended_hours_data
 
         path = '/v1/marketdata/{}/pricehistory'.format(symbol)
-        return self.__get_request(path, params)
+        return self._get_request(path, params)
 
     ##########################################################################
     # Quotes
@@ -867,7 +812,7 @@ class Client(EnumEnforcer):
 
         import urllib
         path = '/v1/marketdata/{}/quotes'.format(symbol)
-        return self.__get_request(path, params)
+        return self._get_request(path, params)
 
     def get_quotes(self, symbols):
         '''Get quote for a symbol. This method supports all symbols, including
@@ -884,7 +829,7 @@ class Client(EnumEnforcer):
         }
 
         path = '/v1/marketdata/quotes'
-        return self.__get_request(path, params)
+        return self._get_request(path, params)
 
     ##########################################################################
     # Transaction History
@@ -900,7 +845,7 @@ class Client(EnumEnforcer):
 
         path = '/v1/accounts/{}/transactions/{}'.format(
             account_id, transaction_id)
-        return self.__get_request(path, params)
+        return self._get_request(path, params)
 
     class Transactions:
         class TransactionType(Enum):
@@ -951,12 +896,12 @@ class Client(EnumEnforcer):
         if symbol is not None:
             params['symbol'] = symbol
         if start_date is not None:
-            params['startDate'] = self.__format_date('start_date', start_date)
+            params['startDate'] = self._format_date('start_date', start_date)
         if end_date is not None:
-            params['endDate'] = self.__format_date('end_date', end_date)
+            params['endDate'] = self._format_date('end_date', end_date)
 
         path = '/v1/accounts/{}/transactions'.format(account_id)
-        return self.__get_request(path, params)
+        return self._get_request(path, params)
 
     ##########################################################################
     # User Info and Preferences
@@ -971,7 +916,7 @@ class Client(EnumEnforcer):
         }
 
         path = '/v1/accounts/{}/preferences'.format(account_id)
-        return self.__get_request(path, params)
+        return self._get_request(path, params)
 
     def get_streamer_subscription_keys(self, account_ids):
         '''SubscriptionKey for provided accounts or default accounts.
@@ -987,7 +932,7 @@ class Client(EnumEnforcer):
         }
 
         path = '/v1/userprincipals/streamersubscriptionkeys'
-        return self.__get_request(path, params)
+        return self._get_request(path, params)
 
     class UserPrincipals:
         class Fields(Enum):
@@ -1012,7 +957,7 @@ class Client(EnumEnforcer):
             params['fields'] = ','.join(fields)
 
         path = '/v1/userprincipals'
-        return self.__get_request(path, params)
+        return self._get_request(path, params)
 
     def update_preferences(self, account_id, preferences):
         '''Update preferences for a specific account.
@@ -1023,7 +968,7 @@ class Client(EnumEnforcer):
         <https://developer.tdameritrade.com/user-principal/apis/put/accounts/
         %7BaccountId%7D/preferences-0>`__.'''
         path = '/v1/accounts/{}/preferences'.format(account_id)
-        return self.__put_request(path, preferences)
+        return self._put_request(path, preferences)
 
     ##########################################################################
     # Watchlist
@@ -1035,7 +980,7 @@ class Client(EnumEnforcer):
         <https://developer.tdameritrade.com/watchlist/apis/post/accounts/
         %7BaccountId%7D/watchlists-0>`__.'''
         path = '/v1/accounts/{}/watchlists'.format(account_id)
-        return self.__post_request(path, watchlist_spec)
+        return self._post_request(path, watchlist_spec)
 
     def delete_watchlist(self, account_id, watchlist_id):
         '''Delete watchlist for a specific account.
@@ -1043,7 +988,7 @@ class Client(EnumEnforcer):
         <https://developer.tdameritrade.com/watchlist/apis/delete/accounts/
         %7BaccountId%7D/watchlists/%7BwatchlistId%7D-0>`__.'''
         path = '/v1/accounts/{}/watchlists/{}'.format(account_id, watchlist_id)
-        return self.__delete_request(path)
+        return self._delete_request(path)
 
     def get_watchlist(self, account_id, watchlist_id):
         '''Specific watchlist for a specific account.
@@ -1051,7 +996,7 @@ class Client(EnumEnforcer):
         <https://developer.tdameritrade.com/watchlist/apis/get/accounts/
         %7BaccountId%7D/watchlists/%7BwatchlistId%7D-0>`__.'''
         path = '/v1/accounts/{}/watchlists/{}'.format(account_id, watchlist_id)
-        return self.__get_request(path, params={})
+        return self._get_request(path, params={})
 
     def get_watchlists_for_multiple_accounts(self):
         '''All watchlists for all of the user\'s linked accounts.
@@ -1059,7 +1004,7 @@ class Client(EnumEnforcer):
         <https://developer.tdameritrade.com/watchlist/apis/get/accounts/
         watchlists-0>`__.'''
         path = '/v1/accounts/watchlists'
-        return self.__get_request(path, params={})
+        return self._get_request(path, params={})
 
     def get_watchlists_for_single_account(self, account_id):
         '''All watchlists of an account.
@@ -1067,7 +1012,7 @@ class Client(EnumEnforcer):
         <https://developer.tdameritrade.com/watchlist/apis/get/accounts/
         %7BaccountId%7D/watchlists-0>`__.'''
         path = '/v1/accounts/{}/watchlists'.format(account_id)
-        return self.__get_request(path, params={})
+        return self._get_request(path, params={})
 
     def replace_watchlist(self, account_id, watchlist_id, watchlist_spec):
         '''Replace watchlist for a specific account. This method does not verify
@@ -1076,7 +1021,7 @@ class Client(EnumEnforcer):
         <https://developer.tdameritrade.com/watchlist/apis/put/accounts/
         %7BaccountId%7D/watchlists/%7BwatchlistId%7D-0>`__.'''
         path = '/v1/accounts/{}/watchlists/{}'.format(account_id, watchlist_id)
-        return self.__put_request(path, watchlist_spec)
+        return self._put_request(path, watchlist_spec)
 
     def update_watchlist(self, account_id, watchlist_id, watchlist_spec):
         '''Partially update watchlist for a specific account: change watchlist
@@ -1087,4 +1032,5 @@ class Client(EnumEnforcer):
         <https://developer.tdameritrade.com/watchlist/apis/patch/accounts/
         %7BaccountId%7D/watchlists/%7BwatchlistId%7D-0>`__.'''
         path = '/v1/accounts/{}/watchlists/{}'.format(account_id, watchlist_id)
-        return self.__patch_request(path, watchlist_spec)
+        return self._patch_request(path, watchlist_spec)
+

@@ -1,7 +1,9 @@
 asynctest
 colorama
 coverage
-requests_oauthlib
+tox
+authlib==0.14.3
+httpx==0.14.3
 python-dateutil
 pytest
 pytz

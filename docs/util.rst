@@ -28,7 +28,7 @@ usage:
   # Assume client and order already exist and are valid
   account_id = 123456
   r = client.place_order(account_id, order)
-  assert r.ok, raise_for_status()
+  assert r.status_code == 200, raise_for_status()
   order_id = Utils(client, account_id).extract_order_id(r)
   assert order_id is not None
 

@@ -37,13 +37,13 @@ run this outside regular trading hours you may not see anything):
       await stream_client.login()
       await stream_client.quality_of_service(StreamClient.QOSLevel.EXPRESS)
       await stream_client.nasdaq_book_subs(['GOOG'])
-      stream_client.add_timesale_options_handler(
+      stream_client.add_nasdaq_book_handler(
               lambda msg: print(json.dumps(msg, indent=4)))
 
       while True:
           await stream_client.handle_message()
 
-  asyncio.get_event_loop().run_until_complete(read_stream())
+  asyncio.run(read_stream())
 
 This API uses Python
 `coroutines <https://docs.python.org/3/library/asyncio-task.html>`__ to simplify 
@@ -427,7 +427,7 @@ You can identify on which exchange a symbol is listed by using
 .. code-block:: python
 
   r = c.search_instruments(['GOOG'], projection=c.Instrument.Projection.FUNDAMENTAL)
-  assert r.ok, r.raise_for_status()
+  assert r.status_code == 200, r.raise_for_status()
   print(r.json()['GOOG']['exchange'])  # Outputs NASDAQ
 
 However, many symbols have order books available on these streams even though 

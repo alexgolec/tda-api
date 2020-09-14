@@ -13,6 +13,9 @@ client provides access to all endpoints of the API in as easy and direct a way
 as possible. For example, here is how you can fetch the past 20 years of data 
 for Apple stock: 
 
+**Do not attempt to use more than one Client object per token file, as
+this will likely cause issues with the underlying OAuth2 session management**
+
 .. code-block:: python
 
   from tda.auth import easy_client
@@ -28,11 +31,46 @@ for Apple stock:
           period=Client.PriceHistory.Period.TWENTY_YEARS,
           frequency_type=Client.PriceHistory.FrequencyType.DAILY,
           frequency=Client.PriceHistory.Frequency.DAILY)
-  assert resp.ok
+  assert resp.status_code == 200
   history = resp.json()
 
 Note we we create a new client using the ``auth`` package as described in
 :ref:`auth`. Creating a client directly is possible, but not recommended.
+
++++++++++++++++++++
+Asyncio Support
++++++++++++++++++++
+
+An asynchronous variant is available through a keyword to the client
+constructor. This allows for higher-performance API usage, at the cost
+of slightly increased application complexity.
+
+.. code-block:: python
+
+  from tda.auth import easy_client
+  from tda.client import Client
+
+  async def main():
+      c = easy_client(
+              api_key='APIKEY',
+              redirect_uri='https://localhost',
+              token_path='/tmp/token.pickle',
+              asyncio=True)
+
+      resp = await c.get_price_history('AAPL',
+              period_type=Client.PriceHistory.PeriodType.YEAR,
+              period=Client.PriceHistory.Period.TWENTY_YEARS,
+              frequency_type=Client.PriceHistory.FrequencyType.DAILY,
+              frequency=Client.PriceHistory.Frequency.DAILY)
+      assert resp.status_code == 200
+      history = resp.json()
+
+  if __name__ == '__main__':
+      import asyncio
+      asyncio.run_until_complete(main())
+
+For more examples, please see the ``examples/async`` directory in
+GitHub.
 
 +++++++++++++++++++
 Calling Conventions
@@ -67,7 +105,7 @@ users can simply use the following pattern:
 .. code-block:: python
 
   r = client.some_endpoint()
-  assert r.ok, r.raise_for_status()
+  assert r.status_code == 200, r.raise_for_status()
   data = r.json()
 
 The API indicates errors using the response status code, and this pattern will 
