@@ -58,7 +58,7 @@ daily historical price data for the past twenty years:
   from tda import auth, client
   from webdriver_manager.chrome import ChromeDriverManager
   import json
-  # path to saved stored token after successful authentication
+  # path to save stored token after successful authentication
   token_path = './token.pickle'
   # consumer key for application found on TD Ameritrade developer website
   api_key = 'YOUR_API_KEY@AMER.OAUTHAP'
