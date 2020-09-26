@@ -11,3 +11,4 @@ selenium
 sphinx_rtd_theme
 twine
 websockets
+webdriver-manager

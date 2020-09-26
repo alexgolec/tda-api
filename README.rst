@@ -56,16 +56,18 @@ daily historical price data for the past twenty years:
 .. code-block:: python
 
   from tda import auth, client
+  from webdriver_manager.chrome import ChromeDriverManager
   import json
-
-  token_path = '/path/to/token.pickle'
+  # path to saved stored token after successful authentication
+  token_path = './token.pickle'
+  # consumer key for application found on TD Ameritrade developer website
   api_key = 'YOUR_API_KEY@AMER.OAUTHAP'
-  redirect_uri = 'https://your.redirecturi.com'
+  redirect_uri = 'https://localhost'
   try:
       c = auth.client_from_token_file(token_path, api_key)
   except FileNotFoundError:
       from selenium import webdriver
-      with webdriver.Chrome() as driver:
+      with webdriver.Chrome(ChromeDriverManager().install()) as driver:
           c = auth.client_from_login_flow(
               driver, api_key, redirect_uri, token_path)
 
