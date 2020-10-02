@@ -36,9 +36,12 @@ run this outside regular trading hours you may not see anything):
   async def read_stream():
       await stream_client.login()
       await stream_client.quality_of_service(StreamClient.QOSLevel.EXPRESS)
-      await stream_client.nasdaq_book_subs(['GOOG'])
+ 
+      # Always add handlers before subscribing because many streams start sending 
+      # data immediately after success, and messages with no handlers are dropped.
       stream_client.add_nasdaq_book_handler(
               lambda msg: print(json.dumps(msg, indent=4)))
+      await stream_client.nasdaq_book_subs(['GOOG'])
 
       while True:
           await stream_client.handle_message()
