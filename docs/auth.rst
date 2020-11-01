@@ -102,15 +102,6 @@ to the token file.
 
 .. autofunction:: tda.auth.client_from_login_flow_terminal
 
-Once you have a token written on disk, you can reuse it without going through 
-the login flow again. 
-
-.. autofunction:: tda.auth.client_from_token_file
-
-The following is a convenient wrapper around these two methods, calling each 
-when appropriate: 
-
-.. autofunction:: tda.auth.easy_client
 
 ``tda-api`` also provides an easy implementation of the client-side login flow
 using a `selenium <https://selenium-python.readthedocs.io/>`__ webdriver to open
