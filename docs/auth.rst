@@ -93,12 +93,31 @@ using them easy.
 Fetching a Token and Creating a Client
 --------------------------------------
 
-``tda-api`` provides an easy implementation of the client-side login flow in the 
-``auth`` package. It uses a `selenium 
-<https://selenium-python.readthedocs.io/>`__ webdriver to open the TD Ameritrade 
-authentication URL, take your login credentials, catch the post-login redirect, 
-and fetch a reusable token. It returns a fully-configured :ref:`client`, ready 
+``tda-api`` provides an implementation of the client-side login flow using the 
+terminal in the ``auth`` package. It outputs a URL that you can visit using a 
+web browser, and then expects you to paste the URL into the program. 
+It returns a fully-configured :ref:`client`, ready 
 to send API calls. It also handles token refreshing, and writes updated tokens 
+to the token file.
+
+.. autofunction:: tda.auth.client_from_login_flow_terminal
+
+Once you have a token written on disk, you can reuse it without going through 
+the login flow again. 
+
+.. autofunction:: tda.auth.client_from_token_file
+
+The following is a convenient wrapper around these two methods, calling each 
+when appropriate: 
+
+.. autofunction:: tda.auth.easy_client
+
+``tda-api`` also provides an easy implementation of the client-side login flow
+using a `selenium <https://selenium-python.readthedocs.io/>`__ webdriver to open
+the TD Ameritrade authentication URL, take your login credentials, catch the
+post-login redirect, and fetch a reusable token. It returns a fully-configured
+:ref:`client`, ready to send API calls. It also handles token refreshing, and
+writes updated tokens 
 to the token file.
 
 These functions are webdriver-agnostic, meaning you can use whatever 

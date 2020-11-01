@@ -85,7 +85,6 @@ class ClientFromTokenFileTest(unittest.TestCase):
         with open(self.json_path, 'r') as f:
             self.assertEqual(json.load(f), updated_token)
 
-
     @no_duplicates
     @patch('tda.auth.Client')
     @patch('tda.auth.OAuth2Client')
@@ -139,7 +138,6 @@ class ClientFromAccessFunctionsTest(unittest.TestCase):
         token_write_func.assert_not_called()
         update_token()
         token_write_func.assert_called_once()
-
 
     @no_duplicates
     @patch('tda.auth.Client')
@@ -278,9 +276,8 @@ class ClientFromLoginFlow(unittest.TestCase):
                              redirect_wait_time_seconds=0.0))
 
         self.assertEqual(
-                'API_KEY@AMER.OAUTHAP',
-                session_constructor.call_args[0][0])
-
+            'API_KEY@AMER.OAUTHAP',
+            session_constructor.call_args[0][0])
 
     @no_duplicates
     @patch('tda.auth.Client')
@@ -299,11 +296,69 @@ class ClientFromLoginFlow(unittest.TestCase):
         webdriver.current_url = 'https://bogus.com' + '/token_params'
 
         with self.assertRaisesRegex(auth.RedirectTimeoutError,
-                'timed out waiting for redirect'):
+                                    'timed out waiting for redirect'):
             auth.client_from_login_flow(
-                    webdriver, API_KEY, redirect_url,
-                    self.json_path,
-                    redirect_wait_time_seconds=0.0)
+                webdriver, API_KEY, redirect_url,
+                self.json_path,
+                redirect_wait_time_seconds=0.0)
+
+
+class ClientFromLoginFlowTerminal(unittest.TestCase):
+
+    def setUp(self):
+        self.tmp_dir = tempfile.TemporaryDirectory()
+        self.json_path = os.path.join(self.tmp_dir.name, 'token.json')
+        self.token = {'token': 'yes'}
+
+    @no_duplicates
+    @patch('tda.auth.Client')
+    @patch('tda.auth.OAuth2Client')
+    @patch('builtins.input', lambda *args: 'y')
+    def test_no_token_file_https(self, session_constructor, client):
+        AUTH_URL = 'https://auth.url.com'
+
+        session = MagicMock()
+        session_constructor.return_value = session
+        session.create_authorization_url.return_value = AUTH_URL, None
+        session.fetch_token.return_value = self.token
+
+        input.return_value = REDIRECT_URL + '/token_params'
+        client.return_value = 'returned client'
+
+        self.assertEqual('returned client',
+                         auth.client_from_login_flow_terminal(
+                             API_KEY, REDIRECT_URL,
+                             self.json_path,
+                         ))
+
+        with open(self.json_path, 'r') as f:
+            self.assertEqual(self.token, json.load(f))
+
+    @no_duplicates
+    @patch('tda.auth.Client')
+    @patch('tda.auth.OAuth2Client')
+    @patch('builtins.input', lambda *args: 'y')
+    def test_normalize_api_key(self, session_constructor, client):
+        AUTH_URL = 'https://auth.url.com'
+
+        session = MagicMock()
+        session_constructor.return_value = session
+        session.create_authorization_url.return_value = AUTH_URL, None
+        session.fetch_token.return_value = self.token
+
+        input.return_value = REDIRECT_URL + '/token_params'
+
+        client.return_value = 'returned client'
+
+        self.assertEqual('returned client',
+                         auth.client_from_login_flow_terminal(
+                             'API_KEY', REDIRECT_URL,
+                             self.json_path,
+                         ))
+
+        self.assertEqual(
+            'API_KEY@AMER.OAUTHAP',
+            session_constructor.call_args[0][0])
 
 
 class EasyClientTest(unittest.TestCase):

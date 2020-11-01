@@ -4,6 +4,7 @@ coverage
 tox
 authlib==0.14.3
 httpx==0.14.3
+nose
 python-dateutil
 pytest
 pytz

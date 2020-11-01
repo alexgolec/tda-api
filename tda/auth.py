@@ -9,6 +9,8 @@ import os
 import pickle
 import sys
 import time
+# The following import is required to get macOS to not limit input() reads for the terminal based login flow.
+import readline
 
 from tda.client import AsyncClient, Client
 from tda.debug import register_redactions
@@ -37,7 +39,7 @@ def __token_loader(token_path):
                 return json.loads(token_data.decode())
             except ValueError:
                 get_logger().warning(
-                    "Unable to load JSON token from file {}, falling back to pickle"\
+                    "Unable to load JSON token from file {}, falling back to pickle"
                     .format(token_path)
                 )
                 return pickle.loads(token_data)
@@ -57,7 +59,6 @@ def __register_token_redactions(token):
     register_redactions(token)
 
 
-
 def client_from_token_file(token_path, api_key, asyncio=False):
     '''
     Returns a session from an existing token file. The session will perform
@@ -75,7 +76,7 @@ def client_from_token_file(token_path, api_key, asyncio=False):
     load = __token_loader(token_path)
 
     return client_from_access_functions(
-            api_key, load, __update_token(token_path), asyncio=asyncio)
+        api_key, load, __update_token(token_path), asyncio=asyncio)
 
 
 class RedirectTimeoutError(Exception):
@@ -110,7 +111,7 @@ def client_from_login_flow(webdriver, api_key, redirect_url, token_path,
 
     oauth = OAuth2Client(api_key, redirect_uri=redirect_url)
     authorization_url, state = oauth.create_authorization_url(
-            'https://auth.tdameritrade.com/auth')
+        'https://auth.tdameritrade.com/auth')
 
     # Open the login page and wait for the redirect
     print('\n**************************************************************\n')
@@ -127,10 +128,10 @@ def client_from_login_flow(webdriver, api_key, redirect_url, token_path,
     # Tolerate redirects to HTTPS on the callback URL
     if redirect_url.startswith('http://'):
         print(('WARNING: Your redirect URL ({}) will transmit data over HTTP, ' +
-                'which is a potentially severe security vulnerability. ' +
-                'Please go to your app\'s configuration with TDAmeritrade ' +
-                'and update your redirect URL to begin with \'https\' ' +
-                'to stop seeing this message.').format(redirect_url))
+               'which is a potentially severe security vulnerability. ' +
+               'Please go to your app\'s configuration with TDAmeritrade ' +
+               'and update your redirect URL to begin with \'https\' ' +
+               'to stop seeing this message.').format(redirect_url))
 
         redirect_urls = (redirect_url, 'https' + redirect_url[4:])
     else:
@@ -163,10 +164,79 @@ def client_from_login_flow(webdriver, api_key, redirect_url, token_path,
 
     if asyncio:
         session_class = AsyncOAuth2Client
-        client_class  = AsyncClient
+        client_class = AsyncClient
     else:
         session_class = OAuth2Client
-        client_class  = Client
+        client_class = Client
+
+    # Return a new session configured to refresh credentials
+    return client_class(
+        api_key,
+        session_class(api_key, token=token,
+                      auto_refresh_url='https://api.tdameritrade.com/v1/oauth2/token',
+                      auto_refresh_kwargs={'client_id': api_key},
+                      update_token=update_token))
+
+
+def client_from_login_flow_terminal(api_key, redirect_url, token_path, asyncio=False):
+    '''
+    Uses the terminal to perform an OAuth webapp login flow and creates a
+    client wrapped around the resulting token. The client will be configured to
+    refresh the token as necessary, writing each updated version to
+    ``token_path``.
+
+    :param api_key: Your TD Ameritrade application's API key, also known as the
+                    client ID.
+    :param redirect_url: Your TD Ameritrade application's redirect URL. Note
+                         this must *exactly* match the value you've entered in
+                         your application configuration, otherwise login will
+                         fail with a security error.
+    :param token_path: Path to which the new token will be written. If the token
+                       file already exists, it will be overwritten with a new
+                       one. Updated tokens will be written to this path as well.
+    '''
+    get_logger().info(('Creating new token with redirect URL \'{}\' ' +
+                       'and token path \'{}\'').format(redirect_url, token_path))
+
+    api_key = __normalize_api_key(api_key)
+
+    oauth = OAuth2Client(api_key, redirect_uri=redirect_url)
+    authorization_url, state = oauth.create_authorization_url(
+        'https://auth.tdameritrade.com/auth')
+
+    # Open the login page and wait for the redirect
+    print('\n**************************************************************\n')
+    print('Open the following page in a browser. Login, and then paste the URL that your browser is sent to below.')
+    print()
+    print(authorization_url)
+    print()
+    print('If you encounter any issues, see here for troubleshooting: ' +
+          'https://tda-api.readthedocs.io/en/stable/auth.html' +
+          '#troubleshooting')
+    print('\n**************************************************************\n')
+
+    current_url = input("Redirected URL:  ")
+
+    token = oauth.fetch_token(
+        'https://api.tdameritrade.com/v1/oauth2/token',
+        authorization_response=current_url,
+        access_type='offline',
+        client_id=api_key,
+        include_client_id=True)
+
+    # Don't emit token details in debug logs
+    __register_token_redactions(token)
+
+    # Record the token
+    update_token = __update_token(token_path)
+    update_token(token)
+
+    if asyncio:
+        session_class = AsyncOAuth2Client
+        client_class = AsyncClient
+    else:
+        session_class = OAuth2Client
+        client_class = Client
 
     # Return a new session configured to refresh credentials
     return client_class(
@@ -263,9 +333,9 @@ def client_from_access_functions(api_key, token_read_func,
     api_key = __normalize_api_key(api_key)
 
     session_kwargs = {
-            'token': token,
-            'auto_refresh_url': 'https://api.tdameritrade.com/v1/oauth2/token',
-            'auto_refresh_kwargs': {'client_id': api_key},
+        'token': token,
+        'auto_refresh_url': 'https://api.tdameritrade.com/v1/oauth2/token',
+        'auto_refresh_kwargs': {'client_id': api_key},
     }
 
     if token_write_func is not None:
@@ -273,10 +343,10 @@ def client_from_access_functions(api_key, token_read_func,
 
     if asyncio:
         session_class = AsyncOAuth2Client
-        client_class  = AsyncClient
+        client_class = AsyncClient
     else:
         session_class = OAuth2Client
-        client_class  = Client
+        client_class = Client
 
     return client_class(
         api_key,
