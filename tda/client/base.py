@@ -560,7 +560,7 @@ class BaseClient(EnumEnforcer):
             MARCH = 'MAR'
             APRIL = 'APR'
             MAY = 'MAY'
-            JUN = 'JUN'
+            JUNE = 'JUN'
             JULY = 'JUL'
             AUGUST = 'AUG'
             SEPTEMBER = 'SEP'
