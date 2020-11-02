@@ -30,8 +30,8 @@ setuptools.setup(
     ],
     python_requires='>=3.6',
     install_requires=[
-        'authlib==0.14.3',
-        'httpx==0.14.3',
+        'authlib==0.15.2',
+        'httpx==0.16.1',
         'python-dateutil',
         'selenium', 
         'websockets'],
