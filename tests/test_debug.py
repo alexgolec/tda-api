@@ -148,3 +148,12 @@ class RegisterRedactionsTest(unittest.TestCase):
         resp = MR({'success': 1}, 200)
         tda.debug.register_redactions_from_response(resp)
         register_redactions.assert_not_called()
+
+  class EnableDebugLoggingTest(unittest.TestCase):
+
+    @patch('logging.Logger.addHandler')
+    def test_enable_doesnt_throw_exceptions(self, _):
+      try:
+        tda.debug.enable_bug_report_logging()
+      except AttributeError:
+        self.fail("debug.enable_bug_report_logging() raised AttributeError unexpectedly")
