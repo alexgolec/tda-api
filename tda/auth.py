@@ -263,9 +263,8 @@ def client_from_access_functions(api_key, token_read_func,
     api_key = __normalize_api_key(api_key)
 
     session_kwargs = {
-            'token': token,
-            'auto_refresh_url': 'https://api.tdameritrade.com/v1/oauth2/token',
-            'auto_refresh_kwargs': {'client_id': api_key},
+        'token': token,
+        'token_endpoint': 'https://api.tdameritrade.com/v1/oauth2/token',
     }
 
     if token_write_func is not None:
