@@ -129,7 +129,7 @@ def _enable_bug_report_logging(output=sys.stderr, loggers=None):
     if loggers is None:
         loggers = (
             tda.auth.get_logger(),
-            tda.client.get_logger(),
+            tda.client.base.get_logger(),
             tda.streaming.get_logger(),
             get_logger())
 
