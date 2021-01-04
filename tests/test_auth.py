@@ -46,8 +46,7 @@ class ClientFromTokenFileTest(unittest.TestCase):
         session.assert_called_once_with(
             API_KEY,
             token=self.token,
-            auto_refresh_url=_,
-            auto_refresh_kwargs=_,
+            token_endpoint=_,
             update_token=_)
 
     @no_duplicates
@@ -64,8 +63,7 @@ class ClientFromTokenFileTest(unittest.TestCase):
         session.assert_called_once_with(
             API_KEY,
             token=self.token,
-            auto_refresh_url=_,
-            auto_refresh_kwargs=_,
+            token_endpoint=_,
             update_token=_)
 
     @no_duplicates
@@ -100,8 +98,7 @@ class ClientFromTokenFileTest(unittest.TestCase):
         session.assert_called_once_with(
             'API_KEY@AMER.OAUTHAP',
             token=self.token,
-            auto_refresh_url=_,
-            auto_refresh_kwargs=_,
+            token_endpoint=_,
             update_token=_)
 
 
@@ -128,8 +125,7 @@ class ClientFromAccessFunctionsTest(unittest.TestCase):
         session.assert_called_once_with(
             'API_KEY@AMER.OAUTHAP',
             token=token,
-            auto_refresh_url=_,
-            auto_refresh_kwargs=_,
+            token_endpoint=_,
             update_token=_)
         token_read_func.assert_called_once()
 
@@ -159,8 +155,7 @@ class ClientFromAccessFunctionsTest(unittest.TestCase):
         session.assert_called_once_with(
             'API_KEY@AMER.OAUTHAP',
             token=token,
-            auto_refresh_url=_,
-            auto_refresh_kwargs=_)
+            token_endpoint=_)
         token_read_func.assert_called_once()
 
 
