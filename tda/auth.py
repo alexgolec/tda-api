@@ -84,7 +84,7 @@ class RedirectTimeoutError(Exception):
 
 def client_from_login_flow(webdriver, api_key, redirect_url, token_path,
                            redirect_wait_time_seconds=0.1, max_waits=3000,
-                           asyncio=False):
+                           asyncio=False, token_write_func=None):
     '''
     Uses the webdriver to perform an OAuth webapp login flow and creates a
     client wrapped around the resulting token. The client will be configured to
@@ -158,7 +158,9 @@ def client_from_login_flow(webdriver, api_key, redirect_url, token_path,
     __register_token_redactions(token)
 
     # Record the token
-    update_token = __update_token(token_path)
+    update_token = (
+            __update_token(token_path) if token_write_func is None
+            else token_write_func)
     update_token(token)
 
     if asyncio:
