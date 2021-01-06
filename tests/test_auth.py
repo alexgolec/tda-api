@@ -169,6 +169,7 @@ class ClientFromLoginFlow(unittest.TestCase):
         self.json_path = os.path.join(self.tmp_dir.name, 'token.json')
         self.token = {'token': 'yes'}
 
+
     @no_duplicates
     @patch('tda.auth.Client')
     @patch('tda.auth.OAuth2Client')
@@ -299,6 +300,37 @@ class ClientFromLoginFlow(unittest.TestCase):
                     webdriver, API_KEY, redirect_url,
                     self.json_path,
                     redirect_wait_time_seconds=0.0)
+
+
+    @no_duplicates
+    @patch('tda.auth.Client')
+    @patch('tda.auth.OAuth2Client')
+    def test_custom_token_write_func(self, session_constructor, client):
+        AUTH_URL = 'https://auth.url.com'
+
+        session = MagicMock()
+        session_constructor.return_value = session
+        session.create_authorization_url.return_value = AUTH_URL, None
+        session.fetch_token.return_value = self.token
+
+        webdriver = MagicMock()
+        webdriver.current_url = REDIRECT_URL + '/token_params'
+
+        client.return_value = 'returned client'
+
+        def dummy_token_write_func(*args, **kwargs):
+            pass
+
+        self.assertEqual('returned client',
+                         auth.client_from_login_flow(
+                             webdriver, API_KEY, REDIRECT_URL,
+                             self.json_path,
+                             redirect_wait_time_seconds=0.0,
+                             token_write_func=dummy_token_write_func))
+
+        session_constructor.assert_called_with(
+                _, token=_, auto_refresh_url=_, auto_refresh_kwargs=_,
+                update_token=dummy_token_write_func)
 
 
 class EasyClientTest(unittest.TestCase):
