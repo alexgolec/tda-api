@@ -57,7 +57,7 @@ class ClientFromTokenFileTest(unittest.TestCase):
     @patch('tda.auth.OAuth2Client')
     def test_pickle_loads_with_environ_variable(self, session, client):
         import os
-        os.environ["TDA_LOAD_WITH_PICKLE"] = ""
+        os.environ["TDA_USE_PICKLE"] = ""
         try:
             self.write_token()
 
@@ -74,7 +74,7 @@ class ClientFromTokenFileTest(unittest.TestCase):
         except Exception as e:
             raise e
         finally:
-            del os.environ["TDA_LOAD_WITH_PICKLE"]
+            del os.environ["TDA_USE_PICKLE"]
 
     @no_duplicates
     @patch('tda.auth.Client')

@@ -18,27 +18,49 @@ def get_logger():
     return logging.getLogger(__name__)
 
 
-def __update_token(token_path):
-    def update_token(t, *args, **kwargs):
-        get_logger().info('Updating token to file {}'.format(token_path))
+def __use_pickle(token_path):
+    return token_path.endswith(".pickle") or "TDA_USE_PICKLE" in os.environ
 
-        with open(token_path, 'w') as f:
-            json.dump(t, f)
-    return update_token
+def __update_token(token_path):
+
+    if __use_pickle(token_path):
+        def update_token(t, *args, **kwargs):
+            get_logger().info('Updating token to file {} using pickle'.format(token_path))
+
+            with open(token_path, 'wb') as f:
+                pickle.dump(t, f)
+
+        return update_token
+
+    else:
+        def update_token(t, *args, **kwargs):
+            get_logger().info('Updating token to file {} using JSON'.format(token_path))
+
+            with open(token_path, 'w') as f:
+                json.dump(t, f)
+
+        return update_token
 
 
 def __token_loader(token_path):
-    def load_token():
-        get_logger().info('Loading token from file {}'.format(token_path))
 
-        with open(token_path, 'rb') as f:
-            token_data = f.read()
-            if token_path.endswith(".pickle") or "TDA_LOAD_WITH_PICKLE" in os.environ:
-                return pickle.loads(token_data)
-            else:
-                return json.loads(token_data.decode())
+    if __use_pickle(token_path):
+        def load_token():
+            get_logger().info('Loading token from file {} using pickle'.format(token_path))
 
-    return load_token
+            with open(token_path, 'rb') as f:
+                return pickle.load(f)
+
+        return load_token
+
+    else:
+        def load_token():
+            get_logger().info('Loading token from file {} using JSON'.format(token_path))
+
+            with open(token_path, 'r') as f:
+                return json.load(f)
+
+        return load_token
 
 
 def __normalize_api_key(api_key):
