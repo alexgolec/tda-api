@@ -18,11 +18,14 @@ class ClientFromTokenFileTest(unittest.TestCase):
     def setUp(self):
         self.tmp_dir = tempfile.TemporaryDirectory()
         self.pickle_path = os.path.join(self.tmp_dir.name, 'token.pickle')
+        self.pickle_alt_path = os.path.join(self.tmp_dir.name, 'token.notpickle')
         self.json_path = os.path.join(self.tmp_dir.name, 'token.json')
         self.token = {'token': 'yes'}
 
     def write_token(self):
         with open(self.pickle_path, 'wb') as f:
+            pickle.dump(self.token, f)
+        with open(self.pickle_alt_path, 'wb') as f:
             pickle.dump(self.token, f)
         with open(self.json_path, 'w') as f:
             json.dump(self.token, f)
@@ -48,6 +51,30 @@ class ClientFromTokenFileTest(unittest.TestCase):
             token=self.token,
             token_endpoint=_,
             update_token=_)
+
+    @no_duplicates
+    @patch('tda.auth.Client')
+    @patch('tda.auth.OAuth2Client')
+    def test_pickle_loads_with_environ_variable(self, session, client):
+        import os
+        os.environ["TDA_LOAD_WITH_PICKLE"] = ""
+        try:
+            self.write_token()
+
+            client.return_value = 'returned client'
+
+            self.assertEqual('returned client',
+                             auth.client_from_token_file(self.pickle_alt_path, API_KEY))
+            client.assert_called_once_with(API_KEY, _)
+            session.assert_called_once_with(
+                API_KEY,
+                token=self.token,
+                token_endpoint=_,
+                update_token=_)
+        except Exception as e:
+            raise e
+        finally:
+            del os.environ["TDA_LOAD_WITH_PICKLE"]
 
     @no_duplicates
     @patch('tda.auth.Client')

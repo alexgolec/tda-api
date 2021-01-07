@@ -33,14 +33,11 @@ def __token_loader(token_path):
 
         with open(token_path, 'rb') as f:
             token_data = f.read()
-            try:
-                return json.loads(token_data.decode())
-            except ValueError:
-                get_logger().warning(
-                    "Unable to load JSON token from file {}, falling back to pickle"\
-                    .format(token_path)
-                )
+            if token_path.endswith(".pickle") or "TDA_LOAD_WITH_PICKLE" in os.environ:
                 return pickle.loads(token_data)
+            else:
+                return json.loads(token_data.decode())
+
     return load_token
 
 
