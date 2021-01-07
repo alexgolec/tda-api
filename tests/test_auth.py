@@ -41,7 +41,8 @@ class ClientFromTokenFileTest(unittest.TestCase):
         client.return_value = 'returned client'
 
         self.assertEqual('returned client',
-                         auth.client_from_token_file(self.pickle_path, API_KEY))
+                         auth.client_from_token_file(self.pickle_path, API_KEY, refresh_immediately=False))
+        # refresh_immediately=True will attempt to JSON serialize a MagicMock
         client.assert_called_once_with(API_KEY, _)
         session.assert_called_once_with(
             API_KEY,
@@ -58,7 +59,8 @@ class ClientFromTokenFileTest(unittest.TestCase):
         client.return_value = 'returned client'
 
         self.assertEqual('returned client',
-                         auth.client_from_token_file(self.json_path, API_KEY))
+                         auth.client_from_token_file(self.json_path, API_KEY, refresh_immediately=False))
+        # refresh_immediately=True will attempt to JSON serialize a MagicMock
         client.assert_called_once_with(API_KEY, _)
         session.assert_called_once_with(
             API_KEY,
@@ -72,7 +74,8 @@ class ClientFromTokenFileTest(unittest.TestCase):
     def test_update_token_updates_token(self, session, client):
         self.write_token()
 
-        auth.client_from_token_file(self.json_path, API_KEY)
+        auth.client_from_token_file(self.json_path, API_KEY, refresh_immediately=False)
+        # refresh_immediately=True will attempt to JSON serialize a MagicMock
         session.assert_called_once()
 
         session_call = session.mock_calls[0]
@@ -93,7 +96,8 @@ class ClientFromTokenFileTest(unittest.TestCase):
         client.return_value = 'returned client'
 
         self.assertEqual('returned client',
-                         auth.client_from_token_file(self.json_path, 'API_KEY'))
+                         auth.client_from_token_file(self.json_path, 'API_KEY', refresh_immediately=False))
+        # refresh_immediately=True will attempt to JSON serialize a MagicMock
         client.assert_called_once_with('API_KEY@AMER.OAUTHAP', _)
         session.assert_called_once_with(
             'API_KEY@AMER.OAUTHAP',
@@ -103,6 +107,58 @@ class ClientFromTokenFileTest(unittest.TestCase):
 
 
 class ClientFromAccessFunctionsTest(unittest.TestCase):
+
+    @no_duplicates
+    @patch('tda.auth.Client')
+    @patch('tda.auth.OAuth2Client')
+    def test_refresh_is_called_with_refresh_immediately_param_true(self, session, client):
+        token = {'token': 'yes'}
+
+        token_read_func = MagicMock()
+        token_read_func.return_value = token
+
+        token_write_func = MagicMock()
+
+        client.return_value = 'returned client'
+        self.assertEqual('returned client',
+                         auth.client_from_access_functions(
+                             'API_KEY@AMER.OAUTHAP',
+                             token_read_func,
+                             token_write_func,
+                             refresh_immediately=True))
+
+        session.assert_called_once_with(
+            'API_KEY@AMER.OAUTHAP',
+            token=token,
+            token_endpoint=_,
+            update_token=_)
+        token_write_func.assert_called_once()
+
+    @no_duplicates
+    @patch('tda.auth.Client')
+    @patch('tda.auth.OAuth2Client')
+    def test_refresh_is_not_called_with_refresh_immediately_param_false(self, session, client):
+        token = {'token': 'yes'}
+
+        token_read_func = MagicMock()
+        token_read_func.return_value = token
+
+        token_write_func = MagicMock()
+
+        client.return_value = 'returned client'
+        self.assertEqual('returned client',
+                         auth.client_from_access_functions(
+                             'API_KEY@AMER.OAUTHAP',
+                             token_read_func,
+                             token_write_func,
+                             refresh_immediately=False))
+
+        session.assert_called_once_with(
+            'API_KEY@AMER.OAUTHAP',
+            token=token,
+            token_endpoint=_,
+            update_token=_)
+        token_write_func.assert_not_called()
 
     @no_duplicates
     @patch('tda.auth.Client')
@@ -120,7 +176,8 @@ class ClientFromAccessFunctionsTest(unittest.TestCase):
                          auth.client_from_access_functions(
                              'API_KEY@AMER.OAUTHAP',
                              token_read_func,
-                             token_write_func))
+                             token_write_func,
+                             refresh_immediately=False))
 
         session.assert_called_once_with(
             'API_KEY@AMER.OAUTHAP',

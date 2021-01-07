@@ -58,7 +58,7 @@ def __register_token_redactions(token):
 
 
 
-def client_from_token_file(token_path, api_key, asyncio=False):
+def client_from_token_file(token_path, api_key, asyncio=False, refresh_immediately=True):
     '''
     Returns a session from an existing token file. The session will perform
     an auth refresh as needed. It will also update the token on disk whenever
@@ -70,12 +70,14 @@ def client_from_token_file(token_path, api_key, asyncio=False):
                        :func:`~tda.auth.easy_client` to create one.
     :param api_key: Your TD Ameritrade application's API key, also known as the
                     client ID.
+    :param refresh_immediately: Immediately refresh the token on startup.
     '''
 
     load = __token_loader(token_path)
 
     return client_from_access_functions(
-            api_key, load, __update_token(token_path), asyncio=asyncio)
+            api_key, load, __update_token(token_path), asyncio=asyncio,
+            refresh_immediately=refresh_immediately)
 
 
 class RedirectTimeoutError(Exception):
@@ -180,7 +182,7 @@ def client_from_login_flow(webdriver, api_key, redirect_url, token_path,
 
 
 def easy_client(api_key, redirect_uri, token_path, webdriver_func=None,
-                asyncio=False):
+                asyncio=False, refresh_immediately=True):
     '''Convenient wrapper around :func:`client_from_login_flow` and
     :func:`client_from_token_file`. If ``token_path`` exists, loads the token
     from it. Otherwise open a login flow to fetch a new token. Returns a client
@@ -205,11 +207,13 @@ def easy_client(api_key, redirect_uri, token_path, webdriver_func=None,
     :param webdriver_func: Function that returns a webdriver for use in fetching
                            a new token. Will only be called if the token file
                            cannot be found.
+    :param refresh_immediately: If loading a token from a file, immediately refresh
+                                the token on startup.
     '''
     logger = get_logger()
 
     if os.path.isfile(token_path):
-        c = client_from_token_file(token_path, api_key, asyncio=asyncio)
+        c = client_from_token_file(token_path, api_key, asyncio=asyncio, refresh_immediately=refresh_immediately)
         logger.info('Returning client loaded from token file \'{}\''.format(
             token_path))
         return c
@@ -230,7 +234,8 @@ def easy_client(api_key, redirect_uri, token_path, webdriver_func=None,
 
 
 def client_from_access_functions(api_key, token_read_func,
-                                 token_write_func=None, asyncio=False):
+                                 token_write_func=None, asyncio=False,
+                                 refresh_immediately=True):
     '''
     Returns a session from an existing token file, using the accessor methods to 
     read and write the token. This is an advanced method for users who do not 
@@ -255,6 +260,7 @@ def client_from_access_functions(api_key, token_read_func,
                              recommended. Note old tokens become unusable on 
                              refresh, so not setting this parameter risks 
                              permanently losing refreshed tokens.
+    :param refresh_immediately: Immediately refresh the token on startup.
     '''
     token = token_read_func()
 
@@ -279,6 +285,12 @@ def client_from_access_functions(api_key, token_read_func,
         session_class = OAuth2Client
         client_class  = Client
 
-    return client_class(
-        api_key,
-        session_class(api_key, **session_kwargs))
+    session = session_class(api_key, **session_kwargs)
+    if refresh_immediately:
+        token = session.refresh_token(session_kwargs["token_endpoint"])
+        if token_write_func is not None:
+            # update_token is not called automatically when manually refreshing
+            # the token
+            token_write_func(token)
+
+    return client_class(api_key, session)
