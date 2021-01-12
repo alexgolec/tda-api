@@ -10,6 +10,7 @@ API_KEY = 'XXXXXX@AMER.OAUTHAP'
 REDIRECT_URI = 'http://localhost:8080/'
 TOKEN_PATH = 'ameritrade-credentials.json'
 
+
 def make_webdriver():
     # Import selenium here because it's slow to import
     from selenium import webdriver

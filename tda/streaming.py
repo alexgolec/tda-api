@@ -82,7 +82,8 @@ class _Handler:
 
 class StreamClient(EnumEnforcer):
 
-    def __init__(self, client, *, account_id=None, enforce_enums=True, ssl_context=None):
+    def __init__(self, client, *, account_id=None,
+                 enforce_enums=True, ssl_context=None):
         super().__init__(enforce_enums)
 
         self._ssl_context = ssl_context
@@ -193,7 +194,7 @@ class StreamClient(EnumEnforcer):
             principals['streamerInfo']['streamerSocketUrl'])
         if self._ssl_context:
             self._socket = await websockets.client.connect(
-                    wss_url, ssl=self._ssl_context)
+                wss_url, ssl=self._ssl_context)
         else:
             self._socket = await websockets.client.connect(wss_url)
 
@@ -299,7 +300,7 @@ class StreamClient(EnumEnforcer):
                     for handler in self._handlers[d['service']]:
                         labeled_d = handler.label_message(d)
                         h = handler(labeled_d)
-                        
+
                         # Check if h is an awaitable, if so schedule it
                         # This allows for both sync and async handlers
                         if inspect.isawaitable(h):
@@ -318,7 +319,6 @@ class StreamClient(EnumEnforcer):
                         # This allows for both sync and async handlers
                         if inspect.isawaitable(h):
                             asyncio.ensure_future(h)
-
 
     ##########################################################################
     # LOGIN

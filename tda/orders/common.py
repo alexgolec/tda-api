@@ -60,7 +60,7 @@ class Session(Enum):
     #: After-market session, from 4:00pm to 8:00pm Eastern.
     PM = 'PM'
 
-    #: Orders are active during all trading sessions except the overnight 
+    #: Orders are active during all trading sessions except the overnight
     #: session. This is the union of ``NORMAL``, ``AM``, and ``PM``.
     SEAMLESS = 'SEAMLESS'
 
@@ -74,7 +74,7 @@ class OrderType(Enum):
     #: `More Info <https://www.investopedia.com/terms/m/marketorder.asp>`__.
     MARKET = 'MARKET'
 
-    #: Execute the order at your price or better. 
+    #: Execute the order at your price or better.
     #: `More info <https://www.investopedia.com/terms/l/limitorder.asp>`__.
     LIMIT = 'LIMIT'
 

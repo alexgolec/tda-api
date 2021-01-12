@@ -37,7 +37,7 @@ def __token_loader(token_path):
                 return json.loads(token_data.decode())
             except ValueError:
                 get_logger().warning(
-                    "Unable to load JSON token from file {}, falling back to pickle"\
+                    "Unable to load JSON token from file {}, falling back to pickle"
                     .format(token_path)
                 )
                 return pickle.loads(token_data)
@@ -57,7 +57,6 @@ def __register_token_redactions(token):
     register_redactions(token)
 
 
-
 def client_from_token_file(token_path, api_key, asyncio=False):
     '''
     Returns a session from an existing token file. The session will perform
@@ -75,7 +74,7 @@ def client_from_token_file(token_path, api_key, asyncio=False):
     load = __token_loader(token_path)
 
     return client_from_access_functions(
-            api_key, load, __update_token(token_path), asyncio=asyncio)
+        api_key, load, __update_token(token_path), asyncio=asyncio)
 
 
 class RedirectTimeoutError(Exception):
@@ -110,7 +109,7 @@ def client_from_login_flow(webdriver, api_key, redirect_url, token_path,
 
     oauth = OAuth2Client(api_key, redirect_uri=redirect_url)
     authorization_url, state = oauth.create_authorization_url(
-            'https://auth.tdameritrade.com/auth')
+        'https://auth.tdameritrade.com/auth')
 
     # Open the login page and wait for the redirect
     print('\n**************************************************************\n')
@@ -127,10 +126,10 @@ def client_from_login_flow(webdriver, api_key, redirect_url, token_path,
     # Tolerate redirects to HTTPS on the callback URL
     if redirect_url.startswith('http://'):
         print(('WARNING: Your redirect URL ({}) will transmit data over HTTP, ' +
-                'which is a potentially severe security vulnerability. ' +
-                'Please go to your app\'s configuration with TDAmeritrade ' +
-                'and update your redirect URL to begin with \'https\' ' +
-                'to stop seeing this message.').format(redirect_url))
+               'which is a potentially severe security vulnerability. ' +
+               'Please go to your app\'s configuration with TDAmeritrade ' +
+               'and update your redirect URL to begin with \'https\' ' +
+               'to stop seeing this message.').format(redirect_url))
 
         redirect_urls = (redirect_url, 'https' + redirect_url[4:])
     else:
@@ -159,16 +158,16 @@ def client_from_login_flow(webdriver, api_key, redirect_url, token_path,
 
     # Record the token
     update_token = (
-            __update_token(token_path) if token_write_func is None
-            else token_write_func)
+        __update_token(token_path) if token_write_func is None
+        else token_write_func)
     update_token(token)
 
     if asyncio:
         session_class = AsyncOAuth2Client
-        client_class  = AsyncClient
+        client_class = AsyncClient
     else:
         session_class = OAuth2Client
-        client_class  = Client
+        client_class = Client
 
     # Return a new session configured to refresh credentials
     return client_class(
@@ -232,28 +231,28 @@ def easy_client(api_key, redirect_uri, token_path, webdriver_func=None,
 def client_from_access_functions(api_key, token_read_func,
                                  token_write_func=None, asyncio=False):
     '''
-    Returns a session from an existing token file, using the accessor methods to 
-    read and write the token. This is an advanced method for users who do not 
-    have access to a standard writable filesystem, such as users of AWS Lambda 
-    and other serverless products who must persist token updates on 
-    non-filesystem places, such as S3. 99.9% of users should not use this 
+    Returns a session from an existing token file, using the accessor methods to
+    read and write the token. This is an advanced method for users who do not
+    have access to a standard writable filesystem, such as users of AWS Lambda
+    and other serverless products who must persist token updates on
+    non-filesystem places, such as S3. 99.9% of users should not use this
     function.
 
-    Users are free to customize how they represent the token file. In theory, 
-    since they have direct access to the token, they can get creative about how 
-    they store it and fetch it. In practice, it is *highly* recommended to 
-    simply accept the token object and use ``pickle`` to serialize and 
+    Users are free to customize how they represent the token file. In theory,
+    since they have direct access to the token, they can get creative about how
+    they store it and fetch it. In practice, it is *highly* recommended to
+    simply accept the token object and use ``pickle`` to serialize and
     deserialize it, without inspecting it in any way.
 
     :param api_key: Your TD Ameritrade application's API key, also known as the
                     client ID.
-    :param token_read_func: Function that takes no arguments and returns a token 
+    :param token_read_func: Function that takes no arguments and returns a token
                             object.
-    :param token_write_func: Function that a token object and writes it. Will be 
-                             called whenever the token is updated, such as when 
-                             it is refreshed. Optional, but *highly* 
-                             recommended. Note old tokens become unusable on 
-                             refresh, so not setting this parameter risks 
+    :param token_write_func: Function that a token object and writes it. Will be
+                             called whenever the token is updated, such as when
+                             it is refreshed. Optional, but *highly*
+                             recommended. Note old tokens become unusable on
+                             refresh, so not setting this parameter risks
                              permanently losing refreshed tokens.
     '''
     token = token_read_func()
@@ -274,10 +273,10 @@ def client_from_access_functions(api_key, token_read_func,
 
     if asyncio:
         session_class = AsyncOAuth2Client
-        client_class  = AsyncClient
+        client_class = AsyncClient
     else:
         session_class = OAuth2Client
-        client_class  = Client
+        client_class = Client
 
     return client_class(
         api_key,

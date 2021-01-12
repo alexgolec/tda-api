@@ -143,12 +143,12 @@ class BaseClient(EnumEnforcer):
             EXPIRED = 'EXPIRED'
 
     def _make_order_query(self,
-                           *,
-                           max_results=None,
-                           from_entered_datetime=None,
-                           to_entered_datetime=None,
-                           status=None,
-                           statuses=None):
+                          *,
+                          max_results=None,
+                          from_entered_datetime=None,
+                          to_entered_datetime=None,
+                          status=None,
+                          statuses=None):
         status = self.convert_enum(status, self.Order.Status)
         statuses = self.convert_enum_iterable(statuses, self.Order.Status)
 
@@ -248,9 +248,9 @@ class BaseClient(EnumEnforcer):
     def place_order(self, account_id, order_spec):
         '''Place an order for a specific account. If order creation was
         successful, the response will contain the ID of the generated order. See
-        :meth:`tda.utils.Utils.extract_order_id` for more details. Note unlike 
-        most methods in this library, responses for successful calls to this 
-        method typically do not contain ``json()`` data, and attempting to 
+        :meth:`tda.utils.Utils.extract_order_id` for more details. Note unlike
+        most methods in this library, responses for successful calls to this
+        method typically do not contain ``json()`` data, and attempting to
         extract it will likely result in an exception.
 
         `Official documentation
@@ -1033,4 +1033,3 @@ class BaseClient(EnumEnforcer):
         %7BaccountId%7D/watchlists/%7BwatchlistId%7D-0>`__.'''
         path = '/v1/accounts/{}/watchlists/{}'.format(account_id, watchlist_id)
         return self._patch_request(path, watchlist_spec)
-

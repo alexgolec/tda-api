@@ -3,6 +3,7 @@ from ..debug import register_redactions_from_response
 
 import json
 
+
 class AsyncClient(BaseClient):
 
     async def _get_request(self, path, params):

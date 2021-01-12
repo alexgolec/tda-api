@@ -29,7 +29,9 @@ client = tda.auth.easy_client(
     make_webdriver)
 
 # Load S&P 500 composition from documentation
-sp500 = httpx.get(SP500_URL, headers={"User-Agent":"Mozilla/5.0"}).read().decode().split()
+sp500 = httpx.get(
+    SP500_URL, headers={
+        "User-Agent": "Mozilla/5.0"}).read().decode().split()
 
 # Fetch fundamentals for all symbols and filter out the ones with ex-dividend
 # dates in the future and dividend payment dates on your birth month. Note we

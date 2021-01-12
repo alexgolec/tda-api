@@ -3,6 +3,7 @@ from ..debug import register_redactions_from_response
 
 import json
 
+
 class Client(BaseClient):
     def _get_request(self, path, params):
         dest = 'https://api.tdameritrade.com' + path

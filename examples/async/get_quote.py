@@ -27,6 +27,7 @@ client = tda.auth.easy_client(
     TOKEN_PATH,
     make_webdriver, asyncio=True)
 
+
 async def main():
     r = await client.get_quote("AAPL")
     print(r.json())

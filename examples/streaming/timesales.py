@@ -7,10 +7,12 @@ import pprint
 API_KEY = "XXXXXX"
 ACCOUNT_ID = "XXXXXX"
 
+
 class MyStreamConsumer:
     """
     We use a class to enforce good code organization practices
     """
+
     def __init__(self, api_key, account_id, queue_size=1,
                  credentials_path='./ameritrade-credentials.pickle'):
         """
@@ -40,13 +42,15 @@ class MyStreamConsumer:
             api_key=self.api_key,
             redirect_uri='https://localhost:8080',
             token_path=self.credentials_path)
-        self.stream_client = StreamClient(self.tda_client, account_id=self.account_id)
+        self.stream_client = StreamClient(
+            self.tda_client, account_id=self.account_id)
 
         # The streaming client wants you to add a handler for every service type
-        self.stream_client.add_timesale_equity_handler(self.handle_timesale_equity)
+        self.stream_client.add_timesale_equity_handler(
+            self.handle_timesale_equity)
 
     async def stream(self):
-        await self.stream_client.login() # Log into the streaming service
+        await self.stream_client.login()  # Log into the streaming service
         await self.stream_client.quality_of_service(StreamClient.QOSLevel.EXPRESS)
         await self.stream_client.timesale_equity_subs(self.symbols)
 

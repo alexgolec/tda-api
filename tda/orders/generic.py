@@ -178,7 +178,7 @@ class OrderBuilder(EnumEnforcer):
     # StopPrice
     def set_stop_price(self, stop_price):
         '''
-        Set the stop price. Note price can be passed as either a `float` or an 
+        Set the stop price. Note price can be passed as either a `float` or an
         `str`. See :ref:`number_truncation`.
         '''
         if isinstance(stop_price, str):
@@ -301,7 +301,7 @@ class OrderBuilder(EnumEnforcer):
     # Price
     def set_price(self, price):
         '''
-        Set the order price. Note price can be passed as either a `float` or an 
+        Set the order price. Note price can be passed as either a `float` or an
         `str`. See :ref:`number_truncation`.
         '''
         if isinstance(price, str):

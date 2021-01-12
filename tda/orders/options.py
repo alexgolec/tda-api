@@ -12,44 +12,45 @@ def _parse_expiration_date(expiration_date):
         pass
 
     raise ValueError(
-            'expiration date must follow format ' +
-            '[Month with leading zero][Day with leading zero]' +
-            '[two digit year]')
+        'expiration date must follow format ' +
+        '[Month with leading zero][Day with leading zero]' +
+        '[two digit year]')
 
 
 class OptionSymbol:
     '''
-    Construct an option symbol from its constituent parts. Options symbols 
-    have the following format: ``[Underlying]_[Two digit month][Two digit 
-    day][Two digit year]['P' or 'C'][Strike price]``. Examples include: 
+    Construct an option symbol from its constituent parts. Options symbols
+    have the following format: ``[Underlying]_[Two digit month][Two digit
+    day][Two digit year]['P' or 'C'][Strike price]``. Examples include:
 
      * ``GOOG_012122P620``: GOOG Jan 21 2022 620 Put
      * ``TSLA_112020C1360``: TSLA Nov 20 2020 1360 Call
      * ``SPY_121622C335``: SPY Dec 16 2022 335 Call
 
-    Note while each of the individual parts is validated by itself, the 
+    Note while each of the individual parts is validated by itself, the
     option symbol itself may not represent a traded option:
 
      * Some underlyings do not support options.
-     * Not all dates have valid option expiration dates. 
-     * Not all strike prices are valid options strikes. 
+     * Not all dates have valid option expiration dates.
+     * Not all strike prices are valid options strikes.
 
-    You can use :meth:`~tda.client.Client.get_option_chain` to obtain real 
-    option symbols for an underlying, as well as extensive data in pricing, 
+    You can use :meth:`~tda.client.Client.get_option_chain` to obtain real
+    option symbols for an underlying, as well as extensive data in pricing,
     bid/ask spread, volume, etc.
 
     :param underlying_symbol: Symbol of the underlying. Not validated.
-    :param expiration_date: Expiration date. Accepts ``datetime.date``, 
-                            ``datetime.datetime``, or strings with the 
-                            format ``[Two digit month][Two digit day][Two 
+    :param expiration_date: Expiration date. Accepts ``datetime.date``,
+                            ``datetime.datetime``, or strings with the
+                            format ``[Two digit month][Two digit day][Two
                             digit year]``.
     :param contract_type: ``P`` for put or ``C`` for call.
-    :param strike_price_as_string: Strike price, represented by a string as 
-                                   you would see at the end of a real option 
+    :param strike_price_as_string: Strike price, represented by a string as
+                                   you would see at the end of a real option
                                    symbol.
     '''
-    def __init__(self, underlying_symbol, expiration_date, contract_type, 
-            strike_price_as_string):
+
+    def __init__(self, underlying_symbol, expiration_date, contract_type,
+                 strike_price_as_string):
         self.underlying_symbol = underlying_symbol
 
         if contract_type not in ('C', 'P'):
@@ -60,18 +61,18 @@ class OptionSymbol:
             self.expiration_date = _parse_expiration_date(expiration_date)
         elif isinstance(expiration_date, datetime.datetime):
             self.expiration_date = datetime.date(
-                    year=expiration_date.year,
-                    month=expiration_date.month,
-                    day=expiration_date.day)
+                year=expiration_date.year,
+                month=expiration_date.month,
+                day=expiration_date.day)
         elif isinstance(expiration_date, datetime.date):
             self.expiration_date = expiration_date
         else:
             raise ValueError(
-                    'expiration_date must be a string with format %m%d%y ' +
-                    '(e.g. 01092020) or one of datetime.date or ' +
-                    'datetime.datetime')
+                'expiration_date must be a string with format %m%d%y ' +
+                '(e.g. 01092020) or one of datetime.date or ' +
+                'datetime.datetime')
 
-        assert(type(self.expiration_date) == datetime.date)
+        assert(isinstance(self.expiration_date, datetime.date))
 
         strike = None
         try:
@@ -81,10 +82,9 @@ class OptionSymbol:
         if (strike is None or not isinstance(strike_price_as_string, str)
                 or strike <= 0):
             raise ValueError(
-                    'Strike price must be a string representing a positive ' +
-                    'float')
+                'Strike price must be a string representing a positive ' +
+                'float')
         self.strike_price = strike_price_as_string
-
 
     @classmethod
     def parse_symbol(cls, symbol):
@@ -93,8 +93,8 @@ class OptionSymbol:
         [Two digit day][Two digit year]['P' or 'C'][Strike price]``.
         '''
         format_error_str = (
-                'option symbol must have format ' +
-                '[Underlying]_[Expiration][P/C][Strike]')
+            'option symbol must have format ' +
+            '[Underlying]_[Expiration][P/C][Strike]')
 
         # Underlying
         try:
@@ -102,8 +102,8 @@ class OptionSymbol:
         except ValueError:
             underlying, rest = None, None
         if underlying is None:
-            raise ValueError('option symbol missing underscore \'_\', '+
-                    format_error_str)
+            raise ValueError('option symbol missing underscore \'_\', ' +
+                             format_error_str)
 
         # Expiration
         type_split = rest.split('P')
@@ -117,23 +117,22 @@ class OptionSymbol:
                 contract_type = 'C'
             else:
                 raise ValueError(
-                        'option must have contract type \'C\' r \'\P\', ' +
-                        format_error_str)
+                    r'option must have contract type \'C\' r \'\P\', ' +
+                    format_error_str)
 
         expiration_date = _parse_expiration_date(expiration_date)
 
         return OptionSymbol(underlying, expiration_date, contract_type, strike)
-
 
     def build(self):
         '''
         Returns the option symbol represented by this builder.
         '''
         return '{}_{}{}{}'.format(
-                self.underlying_symbol,
-                self.expiration_date.strftime('%m%d%y'),
-                self.contract_type,
-                self.strike_price
+            self.underlying_symbol,
+            self.expiration_date.strftime('%m%d%y'),
+            self.contract_type,
+            self.strike_price
         )
 
 
@@ -175,7 +174,7 @@ def option_buy_to_open_limit(symbol, quantity, price):
             .set_price(price)
             .set_order_strategy_type(OrderStrategyType.SINGLE)
             .add_option_leg(OptionInstruction.BUY_TO_OPEN, symbol, quantity)
-    )
+            )
 
 
 # Sell to Open
@@ -205,7 +204,7 @@ def option_sell_to_open_limit(symbol, quantity, price):
             .set_price(price)
             .set_order_strategy_type(OrderStrategyType.SINGLE)
             .add_option_leg(OptionInstruction.SELL_TO_OPEN, symbol, quantity)
-    )
+            )
 
 
 # Buy to Close
@@ -236,7 +235,7 @@ def option_buy_to_close_limit(symbol, quantity, price):
             .set_price(price)
             .set_order_strategy_type(OrderStrategyType.SINGLE)
             .add_option_leg(OptionInstruction.BUY_TO_CLOSE, symbol, quantity)
-    )
+            )
 
 
 # Sell to Close
@@ -267,7 +266,7 @@ def option_sell_to_close_limit(symbol, quantity, price):
             .set_price(price)
             .set_order_strategy_type(OrderStrategyType.SINGLE)
             .add_option_leg(OptionInstruction.SELL_TO_CLOSE, symbol, quantity)
-    )
+            )
 
 
 ################################################################################
@@ -278,7 +277,7 @@ def option_sell_to_close_limit(symbol, quantity, price):
 def bull_call_vertical_open(
         long_call_symbol, short_call_symbol, quantity, net_debit):
     '''
-    Returns a pre-filled :class:`~tda.orders.generic.OrderBuilder` that opens a 
+    Returns a pre-filled :class:`~tda.orders.generic.OrderBuilder` that opens a
     bull call vertical position. See :ref:`vertical_spreads` for details.
     '''
     from tda.orders.common import OptionInstruction, OrderType, OrderStrategyType
@@ -294,6 +293,7 @@ def bull_call_vertical_open(
                 OptionInstruction.BUY_TO_OPEN, long_call_symbol, quantity)
             .add_option_leg(
                 OptionInstruction.SELL_TO_OPEN, short_call_symbol, quantity))
+
 
 def bull_call_vertical_close(
         long_call_symbol, short_call_symbol, quantity, net_credit):
@@ -338,6 +338,7 @@ def bear_call_vertical_open(
             .add_option_leg(
                 OptionInstruction.BUY_TO_OPEN, long_call_symbol, quantity))
 
+
 def bear_call_vertical_close(
         short_call_symbol, long_call_symbol, quantity, net_debit):
     '''
@@ -381,6 +382,7 @@ def bull_put_vertical_open(
             .add_option_leg(
                 OptionInstruction.SELL_TO_OPEN, short_put_symbol, quantity))
 
+
 def bull_put_vertical_close(
         long_put_symbol, short_put_symbol, quantity, net_debit):
     '''
@@ -423,6 +425,7 @@ def bear_put_vertical_open(
                 OptionInstruction.SELL_TO_OPEN, short_put_symbol, quantity)
             .add_option_leg(
                 OptionInstruction.BUY_TO_OPEN, long_put_symbol, quantity))
+
 
 def bear_put_vertical_close(
         short_put_symbol, long_put_symbol, quantity, net_credit):

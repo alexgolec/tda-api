@@ -51,15 +51,15 @@ class EnumEnforcer:
 
 class UnsuccessfulOrderException(ValueError):
     '''
-    Raised by :meth:`Utils.extract_order_id` when attempting to extract an 
+    Raised by :meth:`Utils.extract_order_id` when attempting to extract an
     order ID from a :meth:`Client.place_order` response that was not successful.
     '''
 
 
 class AccountIdMismatchException(ValueError):
     '''
-    Raised by :meth:`Utils.extract_order_id` when attempting to extract an 
-    order ID from a :meth:`Client.place_order` with a different account ID than 
+    Raised by :meth:`Utils.extract_order_id` when attempting to extract an
+    order ID from a :meth:`Client.place_order` with a different account ID than
     the one with which the :class:`Utils` was initialized.
     '''
 
@@ -98,7 +98,7 @@ class Utils(EnumEnforcer):
         '''
         if place_order_response.status_code != 200:
             raise UnsuccessfulOrderException(
-                    'order not successful: status {}'.format(place_order_response.status_code))
+                'order not successful: status {}'.format(place_order_response.status_code))
 
         try:
             location = place_order_response.headers['Location']
@@ -115,6 +115,6 @@ class Utils(EnumEnforcer):
 
         if str(account_id) != str(self.account_id):
             raise AccountIdMismatchException(
-                    'order request account ID != Utils.account_id')
+                'order request account ID != Utils.account_id')
 
         return order_id
