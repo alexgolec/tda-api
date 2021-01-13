@@ -2,8 +2,8 @@ asynctest
 colorama
 coverage
 tox
-authlib==0.15.2
-httpx==0.16.1
+authlib
+httpx
 nose
 python-dateutil
 pytest
