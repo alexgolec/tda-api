@@ -105,7 +105,7 @@ users can simply use the following pattern:
 .. code-block:: python
 
   r = client.some_endpoint()
-  assert r.status_code == 200, r.raise_for_status()
+  assert r.status_code == httpx.codes.OK, r.raise_for_status()
   data = r.json()
 
 The API indicates errors using the response status code, and this pattern will 

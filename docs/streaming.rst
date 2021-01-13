@@ -430,7 +430,7 @@ You can identify on which exchange a symbol is listed by using
 .. code-block:: python
 
   r = c.search_instruments(['GOOG'], projection=c.Instrument.Projection.FUNDAMENTAL)
-  assert r.status_code == 200, r.raise_for_status()
+  assert r.status_code == httpx.codes.OK, r.raise_for_status()
   print(r.json()['GOOG']['exchange'])  # Outputs NASDAQ
 
 However, many symbols have order books available on these streams even though 
