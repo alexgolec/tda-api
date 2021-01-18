@@ -162,6 +162,14 @@ class ClientFromAccessFunctionsTest(unittest.TestCase):
 REDIRECT_URL = 'https://redirect.url.com'
 
 
+class AnyStringWith(str):
+    '''
+    Utility for checking whether a function was called with the given string as 
+    a substring.
+    '''
+    def __eq__(self, other):
+        return self in other
+
 class ClientFromLoginFlow(unittest.TestCase):
 
     def setUp(self):
@@ -198,7 +206,8 @@ class ClientFromLoginFlow(unittest.TestCase):
     @no_duplicates
     @patch('tda.auth.Client')
     @patch('tda.auth.OAuth2Client')
-    def test_no_token_file_http(self, session_constructor, client):
+    @patch('builtins.print')
+    def test_no_token_file_http(self, print_func, session_constructor, client):
         AUTH_URL = 'https://auth.url.com'
 
         redirect_url = 'http://redirect.url.com'
@@ -221,6 +230,8 @@ class ClientFromLoginFlow(unittest.TestCase):
 
         with open(self.json_path, 'r') as f:
             self.assertEqual(self.token, json.load(f))
+
+        print_func.assert_any_call(AnyStringWith('will transmit data over HTTP'))
 
     @no_duplicates
     @patch('tda.auth.Client')
@@ -331,6 +342,124 @@ class ClientFromLoginFlow(unittest.TestCase):
         session_constructor.assert_called_with(
                 _, token=_, auto_refresh_url=_, auto_refresh_kwargs=_,
                 update_token=dummy_token_write_func)
+
+
+class ClientFromManualFlow(unittest.TestCase):
+
+    def setUp(self):
+        self.tmp_dir = tempfile.TemporaryDirectory()
+        self.json_path = os.path.join(self.tmp_dir.name, 'token.json')
+        self.token = {'token': 'yes'}
+
+
+    @no_duplicates
+    @patch('tda.auth.Client')
+    @patch('tda.auth.OAuth2Client')
+    @patch('tda.auth.input')
+    def test_no_token_file(self, input_func, session_constructor, client):
+        AUTH_URL = 'https://auth.url.com'
+
+        session = MagicMock()
+        session_constructor.return_value = session
+        session.create_authorization_url.return_value = AUTH_URL, None
+        session.fetch_token.return_value = self.token
+
+        client.return_value = 'returned client'
+        input_func.return_value = 'http://redirect.url.com/?data'
+
+        self.assertEqual('returned client',
+                         auth.client_from_manual_flow(
+                             API_KEY, REDIRECT_URL, self.json_path))
+
+        with open(self.json_path, 'r') as f:
+            self.assertEqual(self.token, json.load(f))
+
+    @no_duplicates
+    @patch('tda.auth.Client')
+    @patch('tda.auth.OAuth2Client')
+    @patch('tda.auth.input')
+    def test_normalize_api_key(self, input_func, session_constructor, client):
+        AUTH_URL = 'https://auth.url.com'
+
+        session = MagicMock()
+        session_constructor.return_value = session
+        session.create_authorization_url.return_value = AUTH_URL, None
+        session.fetch_token.return_value = self.token
+
+        webdriver = MagicMock()
+        webdriver.current_url = REDIRECT_URL + '/token_params'
+
+        client.return_value = 'returned client'
+        input_func.return_value = 'http://redirect.url.com/?data'
+
+        self.assertEqual('returned client',
+                         auth.client_from_manual_flow(
+                             'API_KEY', REDIRECT_URL, self.json_path))
+
+        self.assertEqual(
+                'API_KEY@AMER.OAUTHAP',
+                session_constructor.call_args[0][0])
+
+
+    @no_duplicates
+    @patch('tda.auth.Client')
+    @patch('tda.auth.OAuth2Client')
+    @patch('tda.auth.input')
+    def test_custom_token_write_func(self, input_func, session_constructor, client):
+        AUTH_URL = 'https://auth.url.com'
+
+        session = MagicMock()
+        session_constructor.return_value = session
+        session.create_authorization_url.return_value = AUTH_URL, None
+        session.fetch_token.return_value = self.token
+
+        webdriver = MagicMock()
+        webdriver.current_url = REDIRECT_URL + '/token_params'
+
+        client.return_value = 'returned client'
+        input_func.return_value = 'http://redirect.url.com/?data'
+
+        def dummy_token_write_func(*args, **kwargs):
+            pass
+
+        self.assertEqual('returned client',
+                         auth.client_from_manual_flow(
+                             API_KEY, REDIRECT_URL,
+                             self.json_path,
+                             token_write_func=dummy_token_write_func))
+
+        session_constructor.assert_called_with(
+                _, token=_, auto_refresh_url=_, auto_refresh_kwargs=_,
+                update_token=dummy_token_write_func)
+
+
+    @no_duplicates
+    @patch('tda.auth.Client')
+    @patch('tda.auth.OAuth2Client')
+    @patch('tda.auth.input')
+    @patch('builtins.print')
+    def test_print_warning_on_http_redirect_uri(
+            self, print_func, input_func, session_constructor, client):
+        AUTH_URL = 'https://auth.url.com'
+
+        redirect_url = 'http://redirect.url.com'
+
+        session = MagicMock()
+        session_constructor.return_value = session
+        session.create_authorization_url.return_value = AUTH_URL, None
+        session.fetch_token.return_value = self.token
+
+        client.return_value = 'returned client'
+        input_func.return_value = 'http://redirect.url.com/?data'
+
+        self.assertEqual('returned client',
+                         auth.client_from_manual_flow(
+                             API_KEY, redirect_url, self.json_path))
+
+        with open(self.json_path, 'r') as f:
+            self.assertEqual(self.token, json.load(f))
+
+        print_func.assert_any_call(AnyStringWith('will transmit data over HTTP'))
 
 
 class EasyClientTest(unittest.TestCase):

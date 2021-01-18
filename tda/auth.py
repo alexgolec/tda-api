@@ -81,6 +81,40 @@ class RedirectTimeoutError(Exception):
     pass
 
 
+def __fetch_and_register_token_from_redirect(
+        oauth, redirected_url, api_key, token_path, token_write_func, asyncio):
+    token = oauth.fetch_token(
+        'https://api.tdameritrade.com/v1/oauth2/token',
+        authorization_response=redirected_url,
+        access_type='offline',
+        client_id=api_key,
+        include_client_id=True)
+
+    # Don't emit token details in debug logs
+    __register_token_redactions(token)
+
+    # Record the token
+    update_token = (
+        __update_token(token_path) if token_write_func is None
+        else token_write_func)
+    update_token(token)
+
+    if asyncio:
+        session_class = AsyncOAuth2Client
+        client_class = AsyncClient
+    else:
+        session_class = OAuth2Client
+        client_class = Client
+
+    # Return a new session configured to refresh credentials
+    return client_class(
+        api_key,
+        session_class(api_key, token=token,
+                      auto_refresh_url='https://api.tdameritrade.com/v1/oauth2/token',
+                      auto_refresh_kwargs={'client_id': api_key},
+                      update_token=update_token))
+
+
 def client_from_login_flow(webdriver, api_key, redirect_url, token_path,
                            redirect_wait_time_seconds=0.1, max_waits=3000,
                            asyncio=False, token_write_func=None):
@@ -146,36 +180,81 @@ def client_from_login_flow(webdriver, api_key, redirect_url, token_path,
         time.sleep(redirect_wait_time_seconds)
         num_waits += 1
 
-    token = oauth.fetch_token(
-        'https://api.tdameritrade.com/v1/oauth2/token',
-        authorization_response=current_url,
-        access_type='offline',
-        client_id=api_key,
-        include_client_id=True)
+    return __fetch_and_register_token_from_redirect(
+        oauth, current_url, api_key, token_path, token_write_func,
+        asyncio)
 
-    # Don't emit token details in debug logs
-    __register_token_redactions(token)
 
-    # Record the token
-    update_token = (
-        __update_token(token_path) if token_write_func is None
-        else token_write_func)
-    update_token(token)
+def client_from_manual_flow(api_key, redirect_url, token_path,
+                            asyncio=False, token_write_func=None):
+    '''
+    Walks the user through performing an OAuth login flow by manually
+    copy-pasting URLs, and returns a client wrapped around the resulting token.
+    The client will be configured to refresh the token as necessary, writing
+    each updated version to ``token_path``.
 
-    if asyncio:
-        session_class = AsyncOAuth2Client
-        client_class = AsyncClient
-    else:
-        session_class = OAuth2Client
-        client_class = Client
+    Note this method is more complicated and error prone, and should be avoided
+    in favor of :func:`client_from_login_flow` wherever possible.
 
-    # Return a new session configured to refresh credentials
-    return client_class(
-        api_key,
-        session_class(api_key, token=token,
-                      auto_refresh_url='https://api.tdameritrade.com/v1/oauth2/token',
-                      auto_refresh_kwargs={'client_id': api_key},
-                      update_token=update_token))
+    :param api_key: Your TD Ameritrade application's API key, also known as the
+                    client ID.
+    :param redirect_url: Your TD Ameritrade application's redirect URL. Note
+                         this must *exactly* match the value you've entered in
+                         your application configuration, otherwise login will
+                         fail with a security error.
+    :param token_path: Path to which the new token will be written. If the token
+                       file already exists, it will be overwritten with a new
+                       one. Updated tokens will be written to this path as well.
+    '''
+    get_logger().info(('Creating new token with redirect URL \'{}\' ' +
+                       'and token path \'{}\'').format(redirect_url, token_path))
+
+    api_key = __normalize_api_key(api_key)
+
+    oauth = OAuth2Client(api_key, redirect_uri=redirect_url)
+    authorization_url, state = oauth.create_authorization_url(
+        'https://auth.tdameritrade.com/auth')
+
+    print('\n**************************************************************\n')
+    print('This is the manual login and token creation flow for tda-api.')
+    print('Please follow these instructions exactly:')
+    print()
+    print(' 1. Open the following link by copy-pasting it into the browser')
+    print('    of your choice:')
+    print()
+    print('        ' + authorization_url)
+    print()
+    print(' 2. Log in with your account credentials. You may be asked to')
+    print('    perform two-factor authentication using text messaging or')
+    print('    another method, as well as whether to trust the browser.')
+    print()
+    print(' 3. When asked whether to allow your app access to your account,')
+    print('    select "Allow".')
+    print()
+    print(' 4. Your browser should be redirected to your redirect URI. Copy')
+    print('    the ENTIRE address, paste it into the following prompt, and press')
+    print('    Enter/Return.')
+    print()
+    print('If you encounter any issues, see here for troubleshooting:')
+    print('https://tda-api.readthedocs.io/en/stable/auth.html')
+    print('#troubleshooting')
+    print('\n**************************************************************\n')
+
+    if redirect_url.startswith('http://'):
+        print(('WARNING: Your redirect URL ({}) will transmit data over HTTP, ' +
+               'which is a potentially severe security vulnerability. ' +
+               'Please go to your app\'s configuration with TDAmeritrade ' +
+               'and update your redirect URL to begin with \'https\' ' +
+               'to stop seeing this message.').format(redirect_url))
+
+    # Workaround for Mac OS freezing on reading input
+    import readline
+
+    redirected_url = input('Redirect URL> ').strip()
+
+    return __fetch_and_register_token_from_redirect(
+        oauth, redirected_url, api_key, token_path, token_write_func,
+        asyncio)
 
 
 def easy_client(api_key, redirect_uri, token_path, webdriver_func=None,
