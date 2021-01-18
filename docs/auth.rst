@@ -109,6 +109,14 @@ browsers/>`__.
 
 .. autofunction:: tda.auth.client_from_login_flow
 
+.. _manual_login:
+
+If for some reason you cannot open a web browser, such as when running in a 
+cloud environment, the following function will guide you through the process of 
+manually creating a token by copy-pasting relevant URLs.
+
+.. autofunction:: tda.auth.client_from_manual_flow
+
 Once you have a token written on disk, you can reuse it without going through 
 the login flow again. 
 
@@ -239,3 +247,22 @@ you're confident is valid, please `file a ticket
 <https://github.com/alexgolec/tda-api/issues>`__. Just remember, **never share 
 your token file, not even with** ``tda-api`` **developers**. Sharing the token
 file is as dangerous as sharing your TD Ameritrade username and password. 
+
+
+++++++++++++++++++++++++++++++
+What If I Can't Use a Browser?
+++++++++++++++++++++++++++++++
+
+Unfortunately, there is no way to create a token without a browser: one way or 
+another, you have to open up the login URL to enter your username and password 
+on TDAmeritrade's website. (Some OAuth APIs support `alternate login flows
+<https://auth0.com/docs/flows>`__, but TDAmeritrade does not.) Still, there are
+many situations in which the machine on which you're running cannot perform this 
+login flow, such as in a cloud or headless server setting, or when your browser
+is somehow misconfigured. 
+
+Fortunately, you don't have to run the login flow on the same machine as 
+``tda-api``. The library provides a helpful :ref:`manual login flow<manual_login>` which will guide 
+you through the process of performing the login. It requires a little more care 
+than the easy selenium-based flow, but it should help you log in if you're 
+stuck otherwise. 
