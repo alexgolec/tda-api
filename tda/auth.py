@@ -181,19 +181,19 @@ def client_from_login_flow(webdriver, api_key, redirect_url, token_path,
         num_waits += 1
 
     return __fetch_and_register_token_from_redirect(
-            oauth, current_url, api_key, token_path, token_write_func,
-            asyncio)
+        oauth, current_url, api_key, token_path, token_write_func,
+        asyncio)
 
 
 def client_from_manual_flow(api_key, redirect_url, token_path,
-        asyncio=False, token_write_func=None):
+                            asyncio=False, token_write_func=None):
     '''
-    Walks the user through performing an OAuth login flow by manually 
-    copy-pasting URLs, and returns a client wrapped around the resulting token. 
-    The client will be configured to refresh the token as necessary, writing 
+    Walks the user through performing an OAuth login flow by manually
+    copy-pasting URLs, and returns a client wrapped around the resulting token.
+    The client will be configured to refresh the token as necessary, writing
     each updated version to ``token_path``.
 
-    Note this method is more complicated and error prone, and should be avoided 
+    Note this method is more complicated and error prone, and should be avoided
     in favor of :func:`client_from_login_flow` wherever possible.
 
     :param api_key: Your TD Ameritrade application's API key, also known as the
@@ -253,8 +253,8 @@ def client_from_manual_flow(api_key, redirect_url, token_path,
     redirected_url = input('Redirect URL> ').strip()
 
     return __fetch_and_register_token_from_redirect(
-            oauth, redirected_url, api_key, token_path, token_write_func,
-            asyncio)
+        oauth, redirected_url, api_key, token_path, token_write_func,
+        asyncio)
 
 
 def easy_client(api_key, redirect_uri, token_path, webdriver_func=None,
