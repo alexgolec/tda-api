@@ -157,10 +157,12 @@ class BaseClient(EnumEnforcer):
 
         params = {}
         if from_entered_datetime is not None:
-            params['fromEnteredTime'] = from_entered_datetime
+            params['fromEnteredTime'] = self._format_datetime(
+                'from_entered_datetime', from_entered_datetime)
 
         if to_entered_datetime is not None:
-            params['toEnteredTime'] = to_entered_datetime
+            params['toEnteredTime'] = self._format_datetime(
+                'to_entered_datetime', to_entered_datetime)
 
         if max_results:
             params['maxResults'] = max_results
