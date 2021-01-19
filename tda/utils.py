@@ -96,7 +96,7 @@ class Utils(EnumEnforcer):
                            ``Utils`` object.
 
         '''
-        if place_order_response.status_code != 200:
+        if place_order_response.status_code != 201:
             raise UnsuccessfulOrderException(
                 'order not successful: status {}'.format(place_order_response.status_code))
 
