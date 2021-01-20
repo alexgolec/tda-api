@@ -607,14 +607,14 @@ class BaseClient(EnumEnforcer):
         :param strike: Return options only at this strike price.
         :param strike_range: Return options for the given range. See
                              :class:`Options.StrikeRange` for choices.
-        :param from_date: Only return expirations after this date. For
-                                 strategies, expiration refers to the nearest
-                                 term expiration in the strategy. Accepts
-                                 ``datetime.date`` and ``datetime.datetime``.
+        :param from_date: Only return expirations after this date. For 
+                          strategies, expiration refers to the nearest term 
+                          expiration in the strategy. Accepts ``datetime.date``
+                          and ``datetime.datetime``.
         :param to_date: Only return expirations before this date. For
-                               strategies, expiration refers to the nearest
-                               term expiration in the strategy. Accepts
-                               ``datetime.date`` and ``datetime.datetime``.
+                        strategies, expiration refers to the nearest term
+                        expiration in the strategy. Accepts ``datetime.date``
+                        and ``datetime.datetime``.
         :param volatility: Volatility to use in calculations. Applies only to
                            ``ANALYTICAL`` strategy chains.
         :param underlying_price: Underlying price to use in calculations.
