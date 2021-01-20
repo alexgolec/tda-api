@@ -754,8 +754,8 @@ class BaseClient(EnumEnforcer):
                                is formed.
         :param frequency: The number of the frequencyType to be included in each
                           candle.
-        :param start_datetime: End date. Default is previous trading day.
-        :param end_datetime: Start date.
+        :param start_datetime: Start date.
+        :param end_datetime: End date. Default is previous trading day.
         :param need_extended_hours_data: If true, return extended hours data.
                                          Otherwise return regular market hours
                                          only.
