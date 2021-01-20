@@ -851,7 +851,7 @@ class _TestClient:
     
     def test_get_option_chain_from_date_datetime(self):
         self.client.get_option_chain(
-            'AAPL', strike_from_date=NOW_DATETIME)
+            'AAPL', from_date=NOW_DATETIME)
         self.mock_session.get.assert_called_once_with(
             self.make_url('/v1/marketdata/chains'), params={
                 'apikey': API_KEY,
@@ -860,7 +860,7 @@ class _TestClient:
 
     
     def test_get_option_chain_from_date_date(self):
-        self.client.get_option_chain('AAPL', strike_from_date=NOW_DATE)
+        self.client.get_option_chain('AAPL', from_date=NOW_DATE)
         self.mock_session.get.assert_called_once_with(
             self.make_url('/v1/marketdata/chains'), params={
                 'apikey': API_KEY,
@@ -870,14 +870,30 @@ class _TestClient:
     
     def test_get_option_chain_from_date_str(self):
         with self.assertRaises(ValueError) as cm:
-            self.client.get_option_chain('AAPL', strike_from_date='2020-01-01')
+            self.client.get_option_chain('AAPL', from_date='2020-01-01')
         self.assertEqual(str(cm.exception),
                          "expected type in (datetime.date, datetime.datetime) for " +
-                         "strike_from_date, got 'builtins.str'")
+                         "from_date, got 'builtins.str'")
 
     
+    def test_get_option_chain_strike_from_date_date(self):
+        self.client.get_option_chain('AAPL', strike_from_date=NOW_DATE)
+        self.mock_session.get.assert_called_once_with(
+            self.make_url('/v1/marketdata/chains'), params={
+                'apikey': API_KEY,
+                'symbol': 'AAPL',
+                'fromDate': NOW_DATE_ISO})
+
+    def test_get_option_chain_strike_from_date_and_from_date(self):
+        with self.assertRaises(AssertionError) as err:
+            self.client.get_option_chain(
+                    'AAPL', strike_from_date=NOW_DATE, from_date=NOW_DATE)
+            self.assertEqual(str(err.exception),
+                    'strike_from_date and from_date cannot be set simultaneously')
+
+
     def test_get_option_chain_to_date_datetime(self):
-        self.client.get_option_chain('AAPL', strike_to_date=NOW_DATETIME)
+        self.client.get_option_chain('AAPL', to_date=NOW_DATETIME)
         self.mock_session.get.assert_called_once_with(
             self.make_url('/v1/marketdata/chains'), params={
                 'apikey': API_KEY,
@@ -886,7 +902,7 @@ class _TestClient:
 
     
     def test_get_option_chain_to_date_date(self):
-        self.client.get_option_chain('AAPL', strike_to_date=NOW_DATE)
+        self.client.get_option_chain('AAPL', to_date=NOW_DATE)
         self.mock_session.get.assert_called_once_with(
             self.make_url('/v1/marketdata/chains'), params={
                 'apikey': API_KEY,
@@ -896,12 +912,29 @@ class _TestClient:
     
     def test_get_option_chain_to_date_str(self):
         with self.assertRaises(ValueError) as cm:
-            self.client.get_option_chain('AAPL', strike_to_date='2020-01-01')
+            self.client.get_option_chain('AAPL', to_date='2020-01-01')
         self.assertEqual(str(cm.exception),
                          "expected type in (datetime.date, datetime.datetime) for " +
-                         "strike_to_date, got 'builtins.str'")
+                         "to_date, got 'builtins.str'")
 
     
+    def test_get_option_chain_strike_to_date_date(self):
+        self.client.get_option_chain('AAPL', strike_to_date=NOW_DATE)
+        self.mock_session.get.assert_called_once_with(
+            self.make_url('/v1/marketdata/chains'), params={
+                'apikey': API_KEY,
+                'symbol': 'AAPL',
+                'toDate': NOW_DATE_ISO})
+
+
+    def test_get_option_chain_strike_to_date_and_to_date(self):
+        with self.assertRaises(AssertionError) as err:
+            self.client.get_option_chain(
+                    'AAPL', strike_to_date=NOW_DATE, to_date=NOW_DATE)
+            self.assertEqual(str(err.exception),
+                    'strike_to_date and to_date cannot be set simultaneously')
+
+
     def test_get_option_chain_volatility(self):
         self.client.get_option_chain('AAPL', volatility=40.0)
         self.mock_session.get.assert_called_once_with(
