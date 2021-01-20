@@ -3,6 +3,7 @@ module.'''
 
 import datetime
 import dateutil.parser
+import httpx
 import re
 
 
@@ -96,7 +97,7 @@ class Utils(EnumEnforcer):
                            ``Utils`` object.
 
         '''
-        if place_order_response.status_code != 200:
+        if place_order_response.is_error:
             raise UnsuccessfulOrderException(
                 'order not successful: status {}'.format(place_order_response.status_code))
 

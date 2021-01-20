@@ -4,6 +4,7 @@ import asyncio
 import asynctest
 import difflib
 import inspect
+import httpx
 import json
 
 def account_principals():
@@ -111,14 +112,19 @@ class ResyncProxy:
             return super().__getattribute__(key)
         return getattr(self.cls, key)
 
-class MockResponse:
-    def __init__(self, json, status_code, headers=None):
-        self._json = json
-        self.status_code = status_code
-        self.headers = headers if headers is not None else {}
 
-    def json(self):
-        return self._json
+# TODO: Figure out if httpx supports cleaner response mocking, because this is 
+# pretty janky.
+class MockResponse(httpx.Response):
+    def __init__(self, json, status_code, headers=None):
+        resp_args = {
+            'status_code': status_code,
+            'json': json,
+        }
+        if headers:
+            resp_args['headers'] = headers
+        httpx.Response.__init__(
+                self, **resp_args)
 
 
 class AsyncMagicMock:
