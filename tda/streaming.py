@@ -835,6 +835,8 @@ class StreamClient(EnumEnforcer):
                        the fields to return in streaming entries. If unset, all
                        fields will be requested.
         '''
+        if fields and self.LevelOneEquityFields.SYMBOL not in fields:
+            fields.append(self.LevelOneEquityFields.SYMBOL)
         await self._service_op(
             symbols, 'QUOTE', 'SUBS', self.LevelOneEquityFields,
             fields=fields)
@@ -978,6 +980,8 @@ class StreamClient(EnumEnforcer):
                        the fields to return in streaming entries. If unset, all
                        fields will be requested.
         '''
+        if fields and self.LevelOneOptionFields.SYMBOL not in fields:
+            fields.append(self.LevelOneOptionFields.SYMBOL)
         await self._service_op(
             symbols, 'OPTION', 'SUBS', self.LevelOneOptionFields,
             fields=fields)
@@ -1135,6 +1139,8 @@ class StreamClient(EnumEnforcer):
                        the fields to return in streaming entries. If unset, all
                        fields will be requested.
         '''
+        if fields and self.LevelOneFuturesFields.SYMBOL not in fields:
+            fields.append(self.LevelOneFuturesFields.SYMBOL)
         await self._service_op(
             symbols, 'LEVELONE_FUTURES', 'SUBS', self.LevelOneFuturesFields,
             fields=fields)
@@ -1265,6 +1271,8 @@ class StreamClient(EnumEnforcer):
                        the fields to return in streaming entries. If unset, all
                        fields will be requested.
         '''
+        if fields and self.LevelOneForexFields.SYMBOL not in fields:
+            fields.append(self.LevelOneForexFields.SYMBOL)
         await self._service_op(
             symbols, 'LEVELONE_FOREX', 'SUBS', self.LevelOneForexFields,
             fields=fields)
@@ -1414,6 +1422,8 @@ class StreamClient(EnumEnforcer):
                        representing the fields to return in streaming entries.
                        If unset, all fields will be requested.
         '''
+        if fields and self.LevelOneFuturesOptionsFields.SYMBOL not in fields:
+            fields.append(self.LevelOneFuturesOptionsFields.SYMBOL)
         await self._service_op(
             symbols, 'LEVELONE_FUTURES_OPTIONS', 'SUBS',
             self.LevelOneFuturesOptionsFields, fields=fields)
@@ -1460,6 +1470,8 @@ class StreamClient(EnumEnforcer):
 
         :param symbols: Equity symbols to subscribe to
         '''
+        if fields and self.TimesaleFields.SYMBOL not in fields:
+            fields.append(self.TimesaleFields.SYMBOL)
         await self._service_op(
             symbols, 'TIMESALE_EQUITY', 'SUBS',
             self.TimesaleFields, fields=fields)
@@ -1481,6 +1493,8 @@ class StreamClient(EnumEnforcer):
 
         :param symbols: Futures symbols to subscribe to
         '''
+        if fields and self.TimesaleFields.SYMBOL not in fields:
+            fields.append(self.TimesaleFields.SYMBOL)
         await self._service_op(
             symbols, 'TIMESALE_FUTURES', 'SUBS',
             self.TimesaleFields, fields=fields)
@@ -1502,6 +1516,8 @@ class StreamClient(EnumEnforcer):
 
         :param symbols: Options symbols to subscribe to
         '''
+        if fields and self.TimesaleFields.SYMBOL not in fields:
+            fields.append(self.TimesaleFields.SYMBOL)
         await self._service_op(
             symbols, 'TIMESALE_OPTIONS', 'SUBS',
             self.TimesaleFields, fields=fields)
