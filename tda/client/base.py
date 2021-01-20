@@ -607,8 +607,8 @@ class BaseClient(EnumEnforcer):
         :param strike: Return options only at this strike price.
         :param strike_range: Return options for the given range. See
                              :class:`Options.StrikeRange` for choices.
-        :param from_date: Only return expirations after this date. For 
-                          strategies, expiration refers to the nearest term 
+        :param from_date: Only return expirations after this date. For
+                          strategies, expiration refers to the nearest term
                           expiration in the strategy. Accepts ``datetime.date``
                           and ``datetime.datetime``.
         :param to_date: Only return expirations before this date. For
@@ -635,7 +635,7 @@ class BaseClient(EnumEnforcer):
                 'removed in a future version of tda-api. Please use ' +
                 'from_date instead.', Warning)
             assert from_date is None, \
-                    'strike_from_date and from_date cannot be set simultaneously'
+                'strike_from_date and from_date cannot be set simultaneously'
             from_date = strike_from_date
 
         if strike_to_date:
@@ -644,7 +644,7 @@ class BaseClient(EnumEnforcer):
                 'removed in a future version of tda-api. Please use ' +
                 'to_date instead.', Warning)
             assert to_date is None, \
-                    'strike_to_date and to_date cannot be set simultaneously'
+                'strike_to_date and to_date cannot be set simultaneously'
             to_date = strike_to_date
 
         contract_type = self.convert_enum(
