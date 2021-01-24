@@ -5,7 +5,7 @@ import asyncio
 import pprint
 
 API_KEY = "XXXXXX"
-ACCOUNT_ID = "XXXXXX"
+ACCOUNT_ID = 000000
 
 
 class MyStreamConsumer:
