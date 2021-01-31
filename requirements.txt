@@ -6,7 +6,8 @@ tox
 authlib
 httpx
 nose
-pyreadline
+pyreadline  # XXX: This project is no longer maintained. If weird things start 
+            # happening around taking input, look here first.
 python-dateutil
 pytest
 pytz
