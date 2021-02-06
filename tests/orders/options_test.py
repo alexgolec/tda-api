@@ -131,6 +131,42 @@ class OptionSymbolTest(unittest.TestCase):
         self.assertEqual('GOOG_121520P2200.25', op.build())
 
     @no_duplicates
+    def test_init_success_point_zero_in_strike(self):
+        op = OptionSymbol('GOOG', '121520', 'P', '2200.0')
+        self.assertEqual(op.underlying_symbol, 'GOOG')
+        self.assertEqual(
+                op.expiration_date, datetime.date(
+                    year=2020, month=12, day=15))
+        self.assertEqual(op.contract_type, 'P')
+        self.assertEqual(op.strike_price, '2200')
+
+        self.assertEqual('GOOG_121520P2200', op.build())
+
+    @no_duplicates
+    def test_init_success_point_zeroes_in_strike(self):
+        op = OptionSymbol('GOOG', '121520', 'P', '2200.0000')
+        self.assertEqual(op.underlying_symbol, 'GOOG')
+        self.assertEqual(
+                op.expiration_date, datetime.date(
+                    year=2020, month=12, day=15))
+        self.assertEqual(op.contract_type, 'P')
+        self.assertEqual(op.strike_price, '2200')
+
+        self.assertEqual('GOOG_121520P2200', op.build())
+
+    @no_duplicates
+    def test_init_success_zeroes_in_strike_without_point(self):
+        op = OptionSymbol('GOOG', '121520', 'P', '2200')
+        self.assertEqual(op.underlying_symbol, 'GOOG')
+        self.assertEqual(
+                op.expiration_date, datetime.date(
+                    year=2020, month=12, day=15))
+        self.assertEqual(op.contract_type, 'P')
+        self.assertEqual(op.strike_price, '2200')
+
+        self.assertEqual('GOOG_121520P2200', op.build())
+
+    @no_duplicates
     def test_init_invalid_date(self):
         with self.assertRaisesRegex(
                 ValueError, 'expiration date must follow format'):

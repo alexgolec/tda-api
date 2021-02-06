@@ -84,6 +84,14 @@ class OptionSymbol:
             raise ValueError(
                 'Strike price must be a string representing a positive ' +
                 'float')
+
+        # Remove extraneous zeroes at the end
+        strike_copy = strike_price_as_string
+        while strike_copy[-1] == '0':
+            strike_copy = strike_copy[:-1]
+        if strike_copy[-1] == '.':
+            strike_price_as_string = strike_copy[:-1]
+
         self.strike_price = strike_price_as_string
 
     @classmethod
