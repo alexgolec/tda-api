@@ -5,6 +5,10 @@
    :width: 40
    :target: https://github.com/alexgolec/tda-api
 
+.. image:: _static/patreon.png
+   :width: 110
+   :target: https://www.patreon.com/alexgolec
+
 .. image:: _static/discord-logo.png
    :width: 50
    :target: https://discord.gg/M3vjtHj
