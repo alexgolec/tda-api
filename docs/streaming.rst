@@ -556,3 +556,57 @@ to the user.
 .. autoclass:: tda.streaming::StreamClient.AccountActivityFields
   :members:
   :undoc-members:
+
+
++++++++++++++++
+Troubleshooting
++++++++++++++++
+
+There are a number of issues you might encounter when using the streaming 
+client. This section attempts to provide a non-authoritative listing of the 
+issues you may encounter when using this client. 
+
+Unfortunately, use of the streaming client by non-TDAmeritrade apps is poorly
+documented and apparently completely unsupported. This section attempts
+to provide a non-authoritative listing of the issues you may encounter, but 
+please note that these are best effort explanations resulting from reverse 
+engineering and crowdsourced experience. Take them with a grain of salt. 
+
+If you have specific questions, please join our `Discord server 
+<https://discord.gg/nfrd9gh>`__ to discuss with the community.
+
+
+-------------------------------------------------------------------------------
+``ConnectionClosedOK: code = 1000 (OK), no reason`` Immediately on Stream Start
+-------------------------------------------------------------------------------
+
+There are two known causes for this issue:
+
+*Use of Linked Account ID*. TDA allows you to link multiple accounts together, 
+so that logging in to one main account allows you to have access to data from 
+all other linked accounts. This is not a problem for the HTTP client, but the 
+streaming client is a little more restrictive. In particular, it appears that 
+opening a ``StreamClient`` with an account ID that is different from the account
+ID corresponding to the username that was used to create the token is disallowed. 
+
+If you're encountering this issue, make sure you are using the account ID of the 
+account which was used during token login. If you're unsure which account was 
+used to create the token, delete your token and create a new one, taking note of 
+the account ID.
+
+*Multiple Concurrent Streams*. TDA allows only one open stream per account ID. 
+If you open a second one, it will immediately close itself with this error. This 
+is not a limitation of ``tda-api``, this is a TDAmeritrade limitation. If you 
+want to use multiple streams, you need to have multiple accounts, create a 
+separate token under each, and pass each one's account ID into its own client. 
+
+
+--------------------------------------------------------------------------------
+``ConnectionClosedError: code = 1006 (connection closed abnormally [internal])``
+--------------------------------------------------------------------------------
+
+This is an error that is occasionally raised due to internal failures or system 
+maintenance on TDA's side. If you are encountering this error, it is almost 
+certainly not the fault of the ``tda-api`` library, especially if the stream was 
+properly functioning for a time before you saw the error. The solution is often 
+either reconnecting the stream on failure or trying again later.
