@@ -248,7 +248,9 @@ def client_from_manual_flow(api_key, redirect_url, token_path,
                'to stop seeing this message.').format(redirect_url))
 
     # Workaround for Mac OS freezing on reading input
-    import readline
+    import platform
+    if platform.system() == 'Darwin':  # pragma: no cover
+        import readline
 
     redirected_url = input('Redirect URL> ').strip()
 
