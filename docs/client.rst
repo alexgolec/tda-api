@@ -31,7 +31,7 @@ this will likely cause issues with the underlying OAuth2 session management**
           period=Client.PriceHistory.Period.TWENTY_YEARS,
           frequency_type=Client.PriceHistory.FrequencyType.DAILY,
           frequency=Client.PriceHistory.Frequency.DAILY)
-  assert resp.status_code == 200
+  assert resp.status_code == httpx.codes.OK
   history = resp.json()
 
 Note we we create a new client using the ``auth`` package as described in
@@ -62,7 +62,7 @@ of slightly increased application complexity.
               period=Client.PriceHistory.Period.TWENTY_YEARS,
               frequency_type=Client.PriceHistory.FrequencyType.DAILY,
               frequency=Client.PriceHistory.Frequency.DAILY)
-      assert resp.status_code == 200
+      assert resp.status_code == httpx.codes.OK
       history = resp.json()
 
   if __name__ == '__main__':
