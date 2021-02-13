@@ -33,7 +33,7 @@ class EnumEnforcer:
                      'official documentation, and the missing value.')
         raise UnrecognizedValueException(
             error_str.format(
-                actual=type(value).__name__,
+                actual=value,
                 enum=enum_type.__name__,
                 subclass=self.__class__.__name__,
                 repo_url="https://github.com/alexgolec/tda-api",
