@@ -32,10 +32,10 @@ class BaseClient(EnumEnforcer):
     checking status codes. For methods which support responses, they can be
     found in the response object's ``json()`` method.'''
 
-    def __init__(self, api_key, session, *, enforce_enums=True):
+    def __init__(self, api_key, session, *, enforce_enums=True, allow_values=False):
         '''Create a new client with the given API key and session. Set
         `enforce_enums=False` to disable strict input type checking.'''
-        super().__init__(enforce_enums)
+        super().__init__(enforce_enums, allow_values=allow_values)
 
         self.api_key = api_key
         self.session = session
