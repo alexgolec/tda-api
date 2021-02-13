@@ -212,7 +212,7 @@ class _TestClient:
             self.make_url('/v1/accounts/{accountId}/orders'), params={
                 'fromEnteredTime': MIN_ISO,
                 'toEnteredTime': NOW_DATETIME_ISO,
-                'status': 'FILLED,EXPIRED'
+                'status': ['FILLED', 'EXPIRED']
             })
 
     
@@ -224,7 +224,7 @@ class _TestClient:
             self.make_url('/v1/accounts/{accountId}/orders'), params={
                 'fromEnteredTime': MIN_ISO,
                 'toEnteredTime': NOW_DATETIME_ISO,
-                'status': 'FILLED'
+                'status': ['FILLED']
             })
 
     
@@ -237,7 +237,7 @@ class _TestClient:
             self.make_url('/v1/accounts/{accountId}/orders'), params={
                 'fromEnteredTime': MIN_ISO,
                 'toEnteredTime': NOW_DATETIME_ISO,
-                'status': 'FILLED,EXPIRED'
+                'status': ['FILLED', 'EXPIRED']
             })
 
     # get_orders_by_query
@@ -327,7 +327,7 @@ class _TestClient:
             self.make_url('/v1/orders'), params={
                 'fromEnteredTime': MIN_ISO,
                 'toEnteredTime': NOW_DATETIME_ISO,
-                'status': 'FILLED,EXPIRED'
+                'status': ['FILLED', 'EXPIRED']
             })
 
     
@@ -338,7 +338,7 @@ class _TestClient:
             self.make_url('/v1/orders'), params={
                 'fromEnteredTime': MIN_ISO,
                 'toEnteredTime': NOW_DATETIME_ISO,
-                'status': 'FILLED'
+                'status': ['FILLED']
             })
 
     
@@ -350,7 +350,7 @@ class _TestClient:
             self.make_url('/v1/orders'), params={
                 'fromEnteredTime': MIN_ISO,
                 'toEnteredTime': NOW_DATETIME_ISO,
-                'status': 'FILLED,EXPIRED'
+                'status': ['FILLED', 'EXPIRED']
             })
 
     # place_order
