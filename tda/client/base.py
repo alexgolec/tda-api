@@ -175,7 +175,7 @@ class BaseClient(EnumEnforcer):
         if status:
             params['status'] = status
         if statuses:
-            params['status'] = ','.join(statuses)
+            params['status'] = statuses
 
         return params
 
