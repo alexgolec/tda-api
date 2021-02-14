@@ -79,4 +79,4 @@ for symbol in birth_month_dividends:
     order = tda.orders.equities.equity_buy_market(symbol, 1)
 
     r = client.place_order(account_id, order)
-    assert resp.status_code == httpx.codes.OK, resp.raise_for_status()
+    assert r.status_code == httpx.codes.OK, r.raise_for_status()
