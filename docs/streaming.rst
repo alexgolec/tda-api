@@ -255,8 +255,10 @@ By default, TD Ameritrade delivers delayed quotes. However, as of this writing,
 real time streaming is available for all streams, including quotes and level two 
 depth of book data. It is also available for free, which in the author's opinion
 is an impressive feature for a retail brokerage. For most users it's enough to 
-sign the relevant `exchange agreements <https://invest.ameritrade.com/grid/p/
-site#r=jPage/cgi-bin/apps/u/AccountSettings>`__, although your mileage may vary. 
+`sign the relevant exchange agreements <https://invest.ameritrade.com/grid/p/
+site#r=jPage/cgi-bin/apps/u/AccountSettings>`__ and then `subscribe to the
+relevant streams <https://invest.ameritrade.com/grid/p/
+site#r=jPage/cgi-bin/apps/u/Subscriptions>`__, although your mileage may vary.
 
 Please remember that your use of this API is subject to agreeing to 
 TDAmeritrade's terms of service. Please don't reach out to us asking for help 
