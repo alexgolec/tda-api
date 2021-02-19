@@ -9,6 +9,7 @@ import os
 import pickle
 import sys
 import time
+import warnings
 
 from tda.client import AsyncClient, Client
 from tda.debug import register_redactions
@@ -79,6 +80,70 @@ def client_from_token_file(token_path, api_key, asyncio=False):
 
 class RedirectTimeoutError(Exception):
     pass
+
+
+class TokenMetadata:
+    '''
+    Provides the functionality required to maintain and update our view of the
+    token's metadata.
+    '''
+
+    def __init__(self, creation_timestamp):
+        self.creation_timestamp = creation_timestamp
+
+
+    @classmethod
+    def from_loaded_token(cls, token):
+        '''
+        Returns a new ``TokenMetadata`` object extracted from the metadata of 
+        the loaded token object. If the token has a legacy format which contains 
+        no metadata, assign default values.
+        '''
+        if cls.is_metadata_aware_token(token):
+            return TokenMetadata(token['creation_timestamp'])
+        elif cls.is_legacy_token(token):
+            return TokenMetadata(None)
+        else:
+            get_logger().warn('Unrecognized token format')
+            return TokenMetadata(None)
+
+
+    @classmethod
+    def is_legacy_token(cls, token):
+        return 'creation_timestamp' not in token
+
+
+    @classmethod
+    def is_metadata_aware_token(cls, token):
+        return 'creation_timestamp' in token and 'token' in token
+
+
+    def wrap_writer(self, token_write_func):
+        '''
+        Hook the call to the token write function so that the write function is 
+        passed the metadata-aware version of the token.
+        '''
+        def wrapped_token_write_func(token):
+            return token_write_func(self.wrap_token_in_metadata(token))
+        return wrapped_token_write_func
+
+
+    def wrap_token_in_metadata(self, token):
+        return {
+            'creation_timestamp': self.creation_timestamp,
+            'token': token,
+        }
+
+
+    def ensure_refresh_token_update(self, token, update_interval_seconds=None):
+        '''
+        If the refresh token is older than update_interval_seconds, update it by 
+        issuing a call to the token refresh endpoint and return a new session 
+        wrapped around the resulting token. Returns None if the refresh token 
+        was not updated.
+        '''
+        if update_interval_seconds is None:
+            update_interval_seconds = 60*60*24*85
 
 
 def __fetch_and_register_token_from_redirect(
