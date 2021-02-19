@@ -87,16 +87,18 @@ class TokenMetadata:
     Provides the functionality required to maintain and update our view of the
     token's metadata.
     '''
+    # XXX: Token metadata is currently not considered sensitive enough to wrap
+    #      register for redactions. If we add anything sensitive to the token
+    #      metadata, we'll need to update the redaction registration logic.
 
     def __init__(self, creation_timestamp):
         self.creation_timestamp = creation_timestamp
 
-
     @classmethod
     def from_loaded_token(cls, token):
         '''
-        Returns a new ``TokenMetadata`` object extracted from the metadata of 
-        the loaded token object. If the token has a legacy format which contains 
+        Returns a new ``TokenMetadata`` object extracted from the metadata of
+        the loaded token object. If the token has a legacy format which contains
         no metadata, assign default values.
         '''
         if cls.is_metadata_aware_token(token):
@@ -107,26 +109,22 @@ class TokenMetadata:
             get_logger().warn('Unrecognized token format')
             return TokenMetadata(None)
 
-
     @classmethod
     def is_legacy_token(cls, token):
         return 'creation_timestamp' not in token
-
 
     @classmethod
     def is_metadata_aware_token(cls, token):
         return 'creation_timestamp' in token and 'token' in token
 
-
     def wrap_writer(self, token_write_func):
         '''
-        Hook the call to the token write function so that the write function is 
+        Hook the call to the token write function so that the write function is
         passed the metadata-aware version of the token.
         '''
         def wrapped_token_write_func(token):
             return token_write_func(self.wrap_token_in_metadata(token))
         return wrapped_token_write_func
-
 
     def wrap_token_in_metadata(self, token):
         return {
@@ -134,16 +132,15 @@ class TokenMetadata:
             'token': token,
         }
 
-
     def ensure_refresh_token_update(self, token, update_interval_seconds=None):
         '''
-        If the refresh token is older than update_interval_seconds, update it by 
-        issuing a call to the token refresh endpoint and return a new session 
-        wrapped around the resulting token. Returns None if the refresh token 
+        If the refresh token is older than update_interval_seconds, update it by
+        issuing a call to the token refresh endpoint and return a new session
+        wrapped around the resulting token. Returns None if the refresh token
         was not updated.
         '''
         if update_interval_seconds is None:
-            update_interval_seconds = 60*60*24*85
+            update_interval_seconds = 60 * 60 * 24 * 85
 
 
 def __fetch_and_register_token_from_redirect(
@@ -155,13 +152,16 @@ def __fetch_and_register_token_from_redirect(
         client_id=api_key,
         include_client_id=True)
 
+    metadata_manager = TokenMetadata(int(time.time()))
+
     # Don't emit token details in debug logs
     __register_token_redactions(token)
 
-    # Record the token
+    # Set up token writing and perform the initial token write
     update_token = (
         __update_token(token_path) if token_write_func is None
         else token_write_func)
+    update_token = metadata_manager.wrap_writer(update_token)
     update_token(token)
 
     if asyncio:
@@ -180,6 +180,7 @@ def __fetch_and_register_token_from_redirect(
                       update_token=update_token))
 
 
+# TODO: Raise an exception when passing both token_path and token_write_func
 def client_from_login_flow(webdriver, api_key, redirect_url, token_path,
                            redirect_wait_time_seconds=0.1, max_waits=3000,
                            asyncio=False, token_write_func=None):
