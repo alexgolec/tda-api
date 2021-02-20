@@ -164,9 +164,9 @@ class BaseClient(EnumEnforcer):
 
         params = {
             'fromEnteredTime': self._format_date(
-                'from_entered_datetime', from_entered_datetime.date()),
+                'from_entered_datetime', from_entered_datetime),
             'toEnteredTime': self._format_date(
-                'to_entered_datetime', to_entered_datetime.date()),
+                'to_entered_datetime', to_entered_datetime),
         }
 
         if max_results:

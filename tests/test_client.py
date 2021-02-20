@@ -26,10 +26,9 @@ SYMBOL = 'AAPL'
 TRANSACTION_ID = 400000
 WATCHLIST_ID = 5000000
 
-MIN_ISO = '1900-01-01T00:00:00+0000'
-
 NOW_DATETIME = datetime.datetime(2020, 1, 2, 3, 4, 5)
 NOW_DATE = datetime.date(2020, 1, 2)
+MIN_ISO = (NOW_DATE + datetime.timedelta(days=-60)).isoformat()
 NOW_DATETIME_ISO = '2020-01-02T03:04:05+0000'
 NOW_DATE_ISO = '2020-01-02'
 
@@ -42,7 +41,7 @@ class mockdatetime(datetime.datetime):
 
 EARLIER_DATETIME = datetime.datetime(2001, 1, 2, 3, 4, 5,
                                      tzinfo=pytz.timezone('America/New_York'))
-EARLIER_ISO = '2001-01-02T03:04:05-0456'
+EARLIER_ISO = '2001-01-02'
 EARLIER_MILLIS = 978422405000
 EARLIER_DATE_STR = '2001-01-02'
 
@@ -104,7 +103,7 @@ class _TestClient:
         self.mock_session.get.assert_called_once_with(
             self.make_url('/v1/accounts/{accountId}/orders'), params={
                 'fromEnteredTime': MIN_ISO,
-                'toEnteredTime': NOW_DATETIME_ISO
+                'toEnteredTime': NOW_DATE_ISO
             })
 
     
@@ -114,7 +113,7 @@ class _TestClient:
         self.mock_session.get.assert_called_once_with(
             self.make_url('/v1/accounts/{accountId}/orders'), params={
                 'fromEnteredTime': MIN_ISO,
-                'toEnteredTime': NOW_DATETIME_ISO
+                'toEnteredTime': NOW_DATE_ISO
             })
 
     
@@ -124,7 +123,7 @@ class _TestClient:
             self.client.get_orders_by_path(
                 ACCOUNT_ID, from_entered_datetime='2020-01-01')
         self.assertEqual(str(cm.exception),
-                         "expected type 'datetime.datetime' for " +
+                         "expected type in (datetime.date, datetime.datetime) for " +
                          "from_entered_datetime, got 'builtins.str'")
 
     
@@ -134,7 +133,7 @@ class _TestClient:
             self.client.get_orders_by_path(
                 ACCOUNT_ID, to_entered_datetime='2020-01-01')
         self.assertEqual(str(cm.exception),
-                         "expected type 'datetime.datetime' for " +
+                         "expected type in (datetime.date, datetime.datetime) for " +
                          "to_entered_datetime, got 'builtins.str'")
 
     
@@ -144,7 +143,7 @@ class _TestClient:
         self.mock_session.get.assert_called_once_with(
             self.make_url('/v1/accounts/{accountId}/orders'), params={
                 'fromEnteredTime': MIN_ISO,
-                'toEnteredTime': NOW_DATETIME_ISO,
+                'toEnteredTime': NOW_DATE_ISO,
                 'maxResults': 100,
             })
 
@@ -156,7 +155,7 @@ class _TestClient:
         self.mock_session.get.assert_called_once_with(
             self.make_url('/v1/accounts/{accountId}/orders'), params={
                 'fromEnteredTime': EARLIER_ISO,
-                'toEnteredTime': NOW_DATETIME_ISO,
+                'toEnteredTime': NOW_DATE_ISO,
             })
 
     
@@ -185,7 +184,7 @@ class _TestClient:
         self.mock_session.get.assert_called_once_with(
             self.make_url('/v1/accounts/{accountId}/orders'), params={
                 'fromEnteredTime': MIN_ISO,
-                'toEnteredTime': NOW_DATETIME_ISO,
+                'toEnteredTime': NOW_DATE_ISO,
                 'status': 'FILLED'
             })
 
@@ -197,7 +196,7 @@ class _TestClient:
         self.mock_session.get.assert_called_once_with(
             self.make_url('/v1/accounts/{accountId}/orders'), params={
                 'fromEnteredTime': MIN_ISO,
-                'toEnteredTime': NOW_DATETIME_ISO,
+                'toEnteredTime': NOW_DATE_ISO,
                 'status': 'FILLED'
             })
 
@@ -211,7 +210,7 @@ class _TestClient:
         self.mock_session.get.assert_called_once_with(
             self.make_url('/v1/accounts/{accountId}/orders'), params={
                 'fromEnteredTime': MIN_ISO,
-                'toEnteredTime': NOW_DATETIME_ISO,
+                'toEnteredTime': NOW_DATE_ISO,
                 'status': 'FILLED,EXPIRED'
             })
 
@@ -223,7 +222,7 @@ class _TestClient:
         self.mock_session.get.assert_called_once_with(
             self.make_url('/v1/accounts/{accountId}/orders'), params={
                 'fromEnteredTime': MIN_ISO,
-                'toEnteredTime': NOW_DATETIME_ISO,
+                'toEnteredTime': NOW_DATE_ISO,
                 'status': 'FILLED'
             })
 
@@ -236,7 +235,7 @@ class _TestClient:
         self.mock_session.get.assert_called_once_with(
             self.make_url('/v1/accounts/{accountId}/orders'), params={
                 'fromEnteredTime': MIN_ISO,
-                'toEnteredTime': NOW_DATETIME_ISO,
+                'toEnteredTime': NOW_DATE_ISO,
                 'status': 'FILLED,EXPIRED'
             })
 
@@ -249,7 +248,7 @@ class _TestClient:
         self.mock_session.get.assert_called_once_with(
             self.make_url('/v1/orders'), params={
                 'fromEnteredTime': MIN_ISO,
-                'toEnteredTime': NOW_DATETIME_ISO
+                'toEnteredTime': NOW_DATE_ISO
             })
 
     
@@ -259,7 +258,7 @@ class _TestClient:
         self.mock_session.get.assert_called_once_with(
             self.make_url('/v1/orders'), params={
                 'fromEnteredTime': MIN_ISO,
-                'toEnteredTime': NOW_DATETIME_ISO,
+                'toEnteredTime': NOW_DATE_ISO,
                 'maxResults': 100,
             })
 
@@ -270,7 +269,7 @@ class _TestClient:
         self.mock_session.get.assert_called_once_with(
             self.make_url('/v1/orders'), params={
                 'fromEnteredTime': EARLIER_ISO,
-                'toEnteredTime': NOW_DATETIME_ISO,
+                'toEnteredTime': NOW_DATE_ISO,
             })
 
     
@@ -301,7 +300,7 @@ class _TestClient:
         self.mock_session.get.assert_called_once_with(
             self.make_url('/v1/orders'), params={
                 'fromEnteredTime': MIN_ISO,
-                'toEnteredTime': NOW_DATETIME_ISO,
+                'toEnteredTime': NOW_DATE_ISO,
                 'status': 'FILLED'
             })
 
@@ -313,7 +312,7 @@ class _TestClient:
         self.mock_session.get.assert_called_once_with(
             self.make_url('/v1/orders'), params={
                 'fromEnteredTime': MIN_ISO,
-                'toEnteredTime': NOW_DATETIME_ISO,
+                'toEnteredTime': NOW_DATE_ISO,
                 'status': 'FILLED'
             })
 
@@ -326,7 +325,7 @@ class _TestClient:
         self.mock_session.get.assert_called_once_with(
             self.make_url('/v1/orders'), params={
                 'fromEnteredTime': MIN_ISO,
-                'toEnteredTime': NOW_DATETIME_ISO,
+                'toEnteredTime': NOW_DATE_ISO,
                 'status': 'FILLED,EXPIRED'
             })
 
@@ -337,7 +336,7 @@ class _TestClient:
         self.mock_session.get.assert_called_once_with(
             self.make_url('/v1/orders'), params={
                 'fromEnteredTime': MIN_ISO,
-                'toEnteredTime': NOW_DATETIME_ISO,
+                'toEnteredTime': NOW_DATE_ISO,
                 'status': 'FILLED'
             })
 
@@ -349,7 +348,7 @@ class _TestClient:
         self.mock_session.get.assert_called_once_with(
             self.make_url('/v1/orders'), params={
                 'fromEnteredTime': MIN_ISO,
-                'toEnteredTime': NOW_DATETIME_ISO,
+                'toEnteredTime': NOW_DATE_ISO,
                 'status': 'FILLED,EXPIRED'
             })
 
