@@ -82,7 +82,10 @@ class ClientFromTokenFileTest(unittest.TestCase):
         updated_token = {'updated': 'token'}
         update_token(updated_token)
         with open(self.json_path, 'r') as f:
-            self.assertEqual(json.load(f), updated_token)
+            self.assertEqual(json.load(f), {
+                'creation_timestamp': None,
+                'token': updated_token,
+            })
 
 
     @no_duplicates
@@ -105,16 +108,19 @@ class ClientFromTokenFileTest(unittest.TestCase):
 
 class ClientFromAccessFunctionsTest(unittest.TestCase):
 
+
     @no_duplicates
     @patch('tda.auth.Client')
     @patch('tda.auth.OAuth2Client')
-    def test_success_with_write_func(self, session, client):
+    def test_success_with_write_func_legacy_token(self, session, client):
         token = {'token': 'yes'}
 
         token_read_func = MagicMock()
         token_read_func.return_value = token
 
-        token_write_func = MagicMock()
+        token_writes = []
+        def token_write_func(token):
+            token_writes.append(token)
 
         client.return_value = 'returned client'
         self.assertEqual('returned client',
@@ -133,9 +139,51 @@ class ClientFromAccessFunctionsTest(unittest.TestCase):
         # Verify that the write function is called when the updater is called
         session_call = session.mock_calls[0]
         update_token = session_call[2]['update_token']
-        token_write_func.assert_not_called()
-        update_token()
-        token_write_func.assert_called_once()
+
+        update_token(token)
+        self.assertEqual([{
+            'creation_timestamp': None,
+            'token': token,
+        }], token_writes)
+
+
+    @no_duplicates
+    @patch('tda.auth.Client')
+    @patch('tda.auth.OAuth2Client')
+    def test_success_with_write_func_metadata_aware_token(self, session, client):
+        token = {
+                'creation_timestamp': MOCK_NOW,
+                'token': {'token': 'yes'}
+        }
+
+        token_read_func = MagicMock()
+        token_read_func.return_value = token
+
+        token_writes = []
+        def token_write_func(token):
+            token_writes.append(token)
+
+        client.return_value = 'returned client'
+        self.assertEqual('returned client',
+                         auth.client_from_access_functions(
+                             'API_KEY@AMER.OAUTHAP',
+                             token_read_func,
+                             token_write_func))
+
+        session.assert_called_once_with(
+            'API_KEY@AMER.OAUTHAP',
+            token=token['token'],
+            token_endpoint=_,
+            update_token=_)
+        token_read_func.assert_called_once()
+
+        # Verify that the write function is called when the updater is called
+        session_call = session.mock_calls[0]
+        update_token = session_call[2]['update_token']
+
+        update_token(token['token'])
+        self.assertEqual([token], token_writes)
+
 
 
     @no_duplicates

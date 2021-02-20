@@ -78,6 +78,43 @@ def client_from_token_file(token_path, api_key, asyncio=False):
         api_key, load, __update_token(token_path), asyncio=asyncio)
 
 
+def __fetch_and_register_token_from_redirect(
+        oauth, redirected_url, api_key, token_path, token_write_func, asyncio):
+    token = oauth.fetch_token(
+        'https://api.tdameritrade.com/v1/oauth2/token',
+        authorization_response=redirected_url,
+        access_type='offline',
+        client_id=api_key,
+        include_client_id=True)
+
+    metadata_manager = TokenMetadata(int(time.time()))
+
+    # Don't emit token details in debug logs
+    __register_token_redactions(token)
+
+    # Set up token writing and perform the initial token write
+    update_token = (
+        __update_token(token_path) if token_write_func is None
+        else token_write_func)
+    update_token = metadata_manager.wrap_writer(update_token)
+    update_token(token)
+
+    if asyncio:
+        session_class = AsyncOAuth2Client
+        client_class = AsyncClient
+    else:
+        session_class = OAuth2Client
+        client_class = Client
+
+    # Return a new session configured to refresh credentials
+    return client_class(
+        api_key,
+        session_class(api_key, token=token,
+                      auto_refresh_url='https://api.tdameritrade.com/v1/oauth2/token',
+                      auto_refresh_kwargs={'client_id': api_key},
+                      update_token=update_token))
+
+
 class RedirectTimeoutError(Exception):
     pass
 
@@ -141,43 +178,6 @@ class TokenMetadata:
         '''
         if update_interval_seconds is None:
             update_interval_seconds = 60 * 60 * 24 * 85
-
-
-def __fetch_and_register_token_from_redirect(
-        oauth, redirected_url, api_key, token_path, token_write_func, asyncio):
-    token = oauth.fetch_token(
-        'https://api.tdameritrade.com/v1/oauth2/token',
-        authorization_response=redirected_url,
-        access_type='offline',
-        client_id=api_key,
-        include_client_id=True)
-
-    metadata_manager = TokenMetadata(int(time.time()))
-
-    # Don't emit token details in debug logs
-    __register_token_redactions(token)
-
-    # Set up token writing and perform the initial token write
-    update_token = (
-        __update_token(token_path) if token_write_func is None
-        else token_write_func)
-    update_token = metadata_manager.wrap_writer(update_token)
-    update_token(token)
-
-    if asyncio:
-        session_class = AsyncOAuth2Client
-        client_class = AsyncClient
-    else:
-        session_class = OAuth2Client
-        client_class = Client
-
-    # Return a new session configured to refresh credentials
-    return client_class(
-        api_key,
-        session_class(api_key, token=token,
-                      auto_refresh_url='https://api.tdameritrade.com/v1/oauth2/token',
-                      auto_refresh_kwargs={'client_id': api_key},
-                      update_token=update_token))
 
 
 # TODO: Raise an exception when passing both token_path and token_write_func
@@ -404,6 +404,11 @@ def client_from_access_functions(api_key, token_read_func,
     '''
     token = token_read_func()
 
+    # Extract metadata and unpack the token, if necessary
+    metadata = TokenMetadata.from_loaded_token(token)
+    if TokenMetadata.is_metadata_aware_token(token):
+        token = token['token']
+
     # Don't emit token details in debug logs
     __register_token_redactions(token)
 
@@ -416,7 +421,8 @@ def client_from_access_functions(api_key, token_read_func,
     }
 
     if token_write_func is not None:
-        session_kwargs['update_token'] = token_write_func
+        wrapped_token_write_func = metadata.wrap_writer(token_write_func)
+        session_kwargs['update_token'] = wrapped_token_write_func
 
     if asyncio:
         session_class = AsyncOAuth2Client
