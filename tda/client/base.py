@@ -157,16 +157,16 @@ class BaseClient(EnumEnforcer):
             raise ValueError('at most one of status or statuses may be set')
 
         if from_entered_datetime is None:
-            from_entered_datetime = datetime.datetime(
-                year=1900, month=1, day=1)
+            today = datetime.datetime.utcnow()
+            from_entered_datetime = today + datetime.timedelta(days=-60)
         if to_entered_datetime is None:
             to_entered_datetime = datetime.datetime.utcnow()
 
         params = {
-            'fromEnteredTime': self._format_datetime(
-                'from_entered_datetime', from_entered_datetime),
-            'toEnteredTime': self._format_datetime(
-                'to_entered_datetime', to_entered_datetime),
+            'fromEnteredTime': self._format_date(
+                'from_entered_datetime', from_entered_datetime.date()),
+            'toEnteredTime': self._format_date(
+                'to_entered_datetime', to_entered_datetime.date()),
         }
 
         if max_results:
