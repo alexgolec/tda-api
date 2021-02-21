@@ -32,7 +32,7 @@ setuptools.setup(
     install_requires=[
         'authlib',
         'httpx',
-        'gnureadline ; platform_system=="Darwin"',
+        'gnureadline ; platform_system=="darwin"',
         'python-dateutil',
         'selenium', 
         'websockets'],
