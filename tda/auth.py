@@ -15,6 +15,9 @@ from tda.client import AsyncClient, Client
 from tda.debug import register_redactions
 
 
+TOKEN_ENDPOINT = 'https://api.tdameritrade.com/v1/oauth2/token'
+
+
 def get_logger():
     return logging.getLogger(__name__)
 
@@ -81,13 +84,11 @@ def client_from_token_file(token_path, api_key, asyncio=False):
 def __fetch_and_register_token_from_redirect(
         oauth, redirected_url, api_key, token_path, token_write_func, asyncio):
     token = oauth.fetch_token(
-        'https://api.tdameritrade.com/v1/oauth2/token',
+        TOKEN_ENDPOINT,
         authorization_response=redirected_url,
         access_type='offline',
         client_id=api_key,
         include_client_id=True)
-
-    metadata_manager = TokenMetadata(int(time.time()))
 
     # Don't emit token details in debug logs
     __register_token_redactions(token)
@@ -96,7 +97,8 @@ def __fetch_and_register_token_from_redirect(
     update_token = (
         __update_token(token_path) if token_write_func is None
         else token_write_func)
-    update_token = metadata_manager.wrap_writer(update_token)
+    metadata_manager = TokenMetadata(int(time.time()), update_token)
+    update_token = metadata_manager.wrapped_token_write_func()
     update_token(token)
 
     if asyncio:
@@ -110,7 +112,7 @@ def __fetch_and_register_token_from_redirect(
     return client_class(
         api_key,
         session_class(api_key, token=token,
-                      auto_refresh_url='https://api.tdameritrade.com/v1/oauth2/token',
+                      auto_refresh_url=TOKEN_ENDPOINT,
                       auto_refresh_kwargs={'client_id': api_key},
                       update_token=update_token))
 
@@ -128,23 +130,25 @@ class TokenMetadata:
     #      register for redactions. If we add anything sensitive to the token
     #      metadata, we'll need to update the redaction registration logic.
 
-    def __init__(self, creation_timestamp):
+    def __init__(self, creation_timestamp, unwrapped_token_write_func=None):
         self.creation_timestamp = creation_timestamp
+        self.unwrapped_token_write_func = unwrapped_token_write_func
 
     @classmethod
-    def from_loaded_token(cls, token):
+    def from_loaded_token(cls, token, unwrapped_token_write_func=None):
         '''
         Returns a new ``TokenMetadata`` object extracted from the metadata of
         the loaded token object. If the token has a legacy format which contains
         no metadata, assign default values.
         '''
         if cls.is_metadata_aware_token(token):
-            return TokenMetadata(token['creation_timestamp'])
+            return TokenMetadata(
+                token['creation_timestamp'], unwrapped_token_write_func)
         elif cls.is_legacy_token(token):
-            return TokenMetadata(None)
+            return TokenMetadata(None, unwrapped_token_write_func)
         else:
             get_logger().warn('Unrecognized token format')
-            return TokenMetadata(None)
+            return TokenMetadata(None, unwrapped_token_write_func)
 
     @classmethod
     def is_legacy_token(cls, token):
@@ -154,13 +158,14 @@ class TokenMetadata:
     def is_metadata_aware_token(cls, token):
         return 'creation_timestamp' in token and 'token' in token
 
-    def wrap_writer(self, token_write_func):
+    def wrapped_token_write_func(self):
         '''
         Hook the call to the token write function so that the write function is
         passed the metadata-aware version of the token.
         '''
         def wrapped_token_write_func(token):
-            return token_write_func(self.wrap_token_in_metadata(token))
+            return self.unwrapped_token_write_func(
+                self.wrap_token_in_metadata(token))
         return wrapped_token_write_func
 
     def wrap_token_in_metadata(self, token):
@@ -169,7 +174,8 @@ class TokenMetadata:
             'token': token,
         }
 
-    def ensure_refresh_token_update(self, token, update_interval_seconds=None):
+    def ensure_refresh_token_update(
+            self, api_key, session, update_interval_seconds=None):
         '''
         If the refresh token is older than update_interval_seconds, update it by
         issuing a call to the token refresh endpoint and return a new session
@@ -177,7 +183,34 @@ class TokenMetadata:
         was not updated.
         '''
         if update_interval_seconds is None:
+            # 85 days is less than the documented 90 day expiration window of
+            # the token, but hopefully long enough to not trigger TDA's
+            # thresholds for excessive refresh token updates.
             update_interval_seconds = 60 * 60 * 24 * 85
+
+        if not (self.creation_timestamp is None
+                or time.time() - self.creation_timestamp >
+                update_interval_seconds):
+            return None
+
+        old_token = session.token
+        oauth = OAuth2Client(api_key)
+
+        new_token = oauth.fetch_token(
+            TOKEN_ENDPOINT,
+            grant_type='refresh_token',
+            refresh_token=old_token['refresh_token'],
+            access_type='offline')
+
+        # Don't emit token details in debug logs
+        __register_token_redactions(token)
+
+        session_class = session.__class__
+        return session_class(
+            api_key,
+            token=new_token,
+            token_endpoint=TOKEN_ENDPOINT,
+            update_token=self.wrapped_token_write_func())
 
 
 # TODO: Raise an exception when passing both token_path and token_write_func
@@ -405,7 +438,7 @@ def client_from_access_functions(api_key, token_read_func,
     token = token_read_func()
 
     # Extract metadata and unpack the token, if necessary
-    metadata = TokenMetadata.from_loaded_token(token)
+    metadata = TokenMetadata.from_loaded_token(token, token_write_func)
     if TokenMetadata.is_metadata_aware_token(token):
         token = token['token']
 
@@ -417,11 +450,11 @@ def client_from_access_functions(api_key, token_read_func,
 
     session_kwargs = {
         'token': token,
-        'token_endpoint': 'https://api.tdameritrade.com/v1/oauth2/token',
+        'token_endpoint': TOKEN_ENDPOINT,
     }
 
     if token_write_func is not None:
-        wrapped_token_write_func = metadata.wrap_writer(token_write_func)
+        wrapped_token_write_func = metadata.wrapped_token_write_func()
         session_kwargs['update_token'] = wrapped_token_write_func
 
     if asyncio:
