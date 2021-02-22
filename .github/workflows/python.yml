@@ -5,7 +5,7 @@ on:
 - pull_request
 
 jobs:
-  testinstallercornercases:
+  test_minimal_ubuntu:
     strategy:
       fail-fast: false
       max-parallel: 3
