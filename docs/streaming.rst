@@ -607,8 +607,27 @@ separate token under each, and pass each one's account ID into its own client.
 ``ConnectionClosedError: code = 1006 (connection closed abnormally [internal])``
 --------------------------------------------------------------------------------
 
-This is an error that is occasionally raised due to internal failures or system 
-maintenance on TDA's side. If you are encountering this error, it is almost 
-certainly not the fault of the ``tda-api`` library, especially if the stream was 
-properly functioning for a time before you saw the error. The solution is often 
-either reconnecting the stream on failure or trying again later.
+TDA has the right to kill the connection at any time for any reason, and this 
+error appears to be a catchall for these sorts of failures. If you are 
+encountering this error, it is almost certainly not the fault of the 
+``tda-api`` library, but rather either an internal failure on TDA's side or a 
+failure in the logic of your own code. 
+
+That being said, there have been a number of situations where this error was 
+encountered, and this section attempts to record the resolution of these 
+failures. 
+
+
+~~~~~~~~~~~~~~~~~~~~~~~~
+Your Handler is Too Slow
+~~~~~~~~~~~~~~~~~~~~~~~~
+
+``tda-api`` cannot perform websocket message acknowledgement when your handler 
+code is running. As a result, if your handler code takes longer than the stream 
+update frequency, a backlog of unacknowledged messages will develop. TDA has 
+been observed to terminate connections when many messages are unacknowledged. 
+
+Fixing this is a task for the application developer: if you are writing to a 
+database or filesystem as part of your handler, consider profiling it to make 
+the write faster. You may also consider deferring your writes so that slow 
+operations don't happen in the hotpath of the message handler. 
