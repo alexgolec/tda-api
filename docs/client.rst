@@ -98,9 +98,9 @@ Return Values
 +++++++++++++
 
 All methods return a response object generated under the hood by the
-`requests <https://requests.readthedocs.io/en/master/>`__ module. For a full 
-listing of what's possible, read that module's documentation. Most if not all 
-users can simply use the following pattern:
+`HTTPX <https://www.python-httpx.org/quickstart/#response-content>`__ module. 
+For a full listing of what's possible, read that module's documentation. Most if
+not all users can simply use the following pattern:
 
 .. code-block:: python
 
