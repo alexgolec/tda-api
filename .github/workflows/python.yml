@@ -30,6 +30,9 @@ jobs:
     - name: install pip
       run: apt install -y python3-pip
 
+    - name: intall requirements.txt
+      run: pip3 install -r requirements.txt
+
     - name: install from setup.py
       run: python3 setup.py install
 
