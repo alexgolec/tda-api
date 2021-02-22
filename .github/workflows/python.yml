@@ -9,17 +9,6 @@ jobs:
     strategy:
       fail-fast: false
       max-parallel: 3
-      matrix:
-        platform: [ubuntu-latest, macos-latest, windows-latest]
-        python:
-        - version: 3.6
-          toxenv: py36
-        - version: 3.7
-          toxenv: py37
-        - version: 3.8
-          toxenv: py38
-        - version: 3.9
-          toxenv: py39
 
     runs-on: ubuntu-latest
     container:
@@ -35,30 +24,9 @@ jobs:
     - name: Install dependencies
       run: |
         apt update
-        python -m pip install
-        pip install tox
-        pip install -r requirements.txt
-
-    - name: Test with tox ${{ matrix.python.toxenv }}
-      env:
-        TOXENV: ${{ matrix.python.toxenv }}
-      run: tox
-
-    - name: Report coverage
-      if: matrix.python.version == '3.8'
-      run: |
-        coverage combine
-        coverage report
-        coverage xml
-
-    - name: Upload coverage to Codecov  
-      if: matrix.python.version == '3.8'
-      uses: codecov/codecov-action@v1.0.5
-      with:
-        token: ${{ secrets.CODECOV_TOKEN }}
-        file: ./coverage.xml
-        flags: unittests
-        name: GitHub
+        apt install python3.8
+        apt install python3-pip
+        python setup.py install
 
   test:
     strategy:
