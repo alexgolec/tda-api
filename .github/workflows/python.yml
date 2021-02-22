@@ -21,12 +21,17 @@ jobs:
       with:
         python-version: ${{ matrix.python.version }}
 
-    - name: Install dependencies
-      run: |
-        apt update
-        apt install -y python3.8
-        apt install -y python3-pip
-        python setup.py install
+    - name: apt update
+      run: apt update
+
+    - name: install python
+      run: apt install -y python3.8
+
+    - name: install pip
+      run: apt install -y python3-pip
+
+    - name: install from setup.py
+      run: python setup.py install
 
   test:
     strategy:
