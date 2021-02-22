@@ -24,8 +24,8 @@ jobs:
     - name: Install dependencies
       run: |
         apt update
-        apt install python3.8
-        apt install python3-pip
+        apt install -y python3.8
+        apt install -y python3-pip
         python setup.py install
 
   test:
