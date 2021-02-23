@@ -147,3 +147,7 @@ tags
 virtualenv
 
 docs-build/
+
+# Common IDE/editor data directories
+.vscode/
+.idea/
