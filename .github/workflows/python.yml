@@ -16,22 +16,20 @@ jobs:
 
     steps:
     - uses: actions/checkout@v2
+
+    - name: apt update
+      run: apt update    
+
     - name: Set up Python 3.8
       uses: actions/setup-python@v2
       with:
         python-version: '3.8'
 
-    #- name: apt update
-    #  run: apt update
-
-    #- name: install python
-    #  run: apt install -y python3.8
-
-    #- name: install pip
-    #  run: apt install -y python3-pip
+    - name: install pip3
+      run: apt install -y python3-pip
 
     - name: intall requirements.txt
-      run: pip install -r requirements.txt
+      run: pip3 install -r requirements.txt
 
     - name: install from setup.py
       run: python3 setup.py install
