@@ -43,7 +43,7 @@ class ClientFromTokenFileTest(unittest.TestCase):
 
         self.assertEqual('returned client',
                          auth.client_from_token_file(self.pickle_path, API_KEY))
-        client.assert_called_once_with(API_KEY, _)
+        client.assert_called_once_with(API_KEY, _, token_metadata=_)
         session.assert_called_once_with(
             API_KEY,
             token=self.token,
@@ -60,7 +60,7 @@ class ClientFromTokenFileTest(unittest.TestCase):
 
         self.assertEqual('returned client',
                          auth.client_from_token_file(self.json_path, API_KEY))
-        client.assert_called_once_with(API_KEY, _)
+        client.assert_called_once_with(API_KEY, _, token_metadata=_)
         session.assert_called_once_with(
             API_KEY,
             token=self.token,
@@ -98,7 +98,8 @@ class ClientFromTokenFileTest(unittest.TestCase):
 
         self.assertEqual('returned client',
                          auth.client_from_token_file(self.json_path, 'API_KEY'))
-        client.assert_called_once_with('API_KEY@AMER.OAUTHAP', _)
+        client.assert_called_once_with(
+                'API_KEY@AMER.OAUTHAP', _, token_metadata=_)
         session.assert_called_once_with(
             'API_KEY@AMER.OAUTHAP',
             token=self.token,

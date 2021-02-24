@@ -7,6 +7,8 @@ import json
 class AsyncClient(BaseClient):
 
     async def _get_request(self, path, params):
+        self.ensure_updated_refresh_token()
+
         dest = 'https://api.tdameritrade.com' + path
 
         req_num = self._req_num()
@@ -19,6 +21,8 @@ class AsyncClient(BaseClient):
         return resp
 
     async def _post_request(self, path, data):
+        self.ensure_updated_refresh_token()
+
         dest = 'https://api.tdameritrade.com' + path
 
         req_num = self._req_num()
@@ -31,6 +35,8 @@ class AsyncClient(BaseClient):
         return resp
 
     async def _put_request(self, path, data):
+        self.ensure_updated_refresh_token()
+
         dest = 'https://api.tdameritrade.com' + path
 
         req_num = self._req_num()
@@ -43,6 +49,8 @@ class AsyncClient(BaseClient):
         return resp
 
     async def _patch_request(self, path, data):
+        self.ensure_updated_refresh_token()
+
         dest = 'https://api.tdameritrade.com' + path
 
         req_num = self._req_num()
@@ -55,6 +63,8 @@ class AsyncClient(BaseClient):
         return resp
 
     async def _delete_request(self, path):
+        self.ensure_updated_refresh_token()
+
         dest = 'https://api.tdameritrade.com' + path
 
         req_num = self._req_num()

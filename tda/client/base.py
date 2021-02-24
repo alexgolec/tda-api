@@ -32,7 +32,8 @@ class BaseClient(EnumEnforcer):
     checking status codes. For methods which support responses, they can be
     found in the response object's ``json()`` method.'''
 
-    def __init__(self, api_key, session, *, enforce_enums=True):
+    def __init__(self, api_key, session, *, enforce_enums=True,
+                 token_metadata=None):
         '''Create a new client with the given API key and session. Set
         `enforce_enums=False` to disable strict input type checking.'''
         super().__init__(enforce_enums)
@@ -45,6 +46,8 @@ class BaseClient(EnumEnforcer):
         self.request_number = 0
 
         tda.LOG_REDACTOR.register(api_key, 'API_KEY')
+
+        self.token_metadata = token_metadata
 
     # XXX: This class's tests perform monkey patching to inject synthetic values
     # of utcnow(). To avoid being confused by this, capture these values here so
@@ -100,9 +103,22 @@ class BaseClient(EnumEnforcer):
 
         return int(dt.timestamp() * 1000)
 
-    @abstractmethod
-    def _get_request(self, *args, **kwargs):
-        return
+    def ensure_updated_refresh_token(self, update_interval_seconds=None):
+        '''
+        The client automatically performs a token refresh
+        '''
+        if not self.token_metadata:
+            print('no token metadata')
+            return None
+
+        new_session = self.token_metadata.ensure_refresh_token_update(
+            self.api_key, self.session, update_interval_seconds)
+        if new_session:
+            self.session = new_session
+
+        print(new_session)
+
+        return new_session is not None
 
     ##########################################################################
     # Orders

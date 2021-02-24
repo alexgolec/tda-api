@@ -57,7 +57,7 @@ def __normalize_api_key(api_key):
     return api_key
 
 
-def __register_token_redactions(token):
+def _register_token_redactions(token):
     register_redactions(token)
 
 
@@ -91,7 +91,7 @@ def __fetch_and_register_token_from_redirect(
         include_client_id=True)
 
     # Don't emit token details in debug logs
-    __register_token_redactions(token)
+    _register_token_redactions(token)
 
     # Set up token writing and perform the initial token write
     update_token = (
@@ -114,7 +114,8 @@ def __fetch_and_register_token_from_redirect(
         session_class(api_key, token=token,
                       auto_refresh_url=TOKEN_ENDPOINT,
                       auto_refresh_kwargs={'client_id': api_key},
-                      update_token=update_token))
+                      update_token=update_token),
+        token_metadata=metadata_manager)
 
 
 class RedirectTimeoutError(Exception):
@@ -202,15 +203,20 @@ class TokenMetadata:
             refresh_token=old_token['refresh_token'],
             access_type='offline')
 
+        self.creation_timestamp = int(time.time())
+
         # Don't emit token details in debug logs
-        __register_token_redactions(token)
+        _register_token_redactions(new_token)
+
+        token_write_func = self.wrapped_token_write_func()
+        token_write_func(new_token)
 
         session_class = session.__class__
         return session_class(
             api_key,
             token=new_token,
             token_endpoint=TOKEN_ENDPOINT,
-            update_token=self.wrapped_token_write_func())
+            update_token=token_write_func)
 
 
 # TODO: Raise an exception when passing both token_path and token_write_func
@@ -346,7 +352,7 @@ def client_from_manual_flow(api_key, redirect_url, token_path,
                'and update your redirect URL to begin with \'https\' ' +
                'to stop seeing this message.').format(redirect_url))
 
-    # Workaround for Mac OS freezing on reading input
+    # Workaround for Mac OS freezing on reading nput
     import platform
     if platform.system() == 'Darwin':  # pragma: no cover
         import readline
@@ -443,7 +449,7 @@ def client_from_access_functions(api_key, token_read_func,
         token = token['token']
 
     # Don't emit token details in debug logs
-    __register_token_redactions(token)
+    _register_token_redactions(token)
 
     # Return a new session configured to refresh credentials
     api_key = __normalize_api_key(api_key)
@@ -466,4 +472,5 @@ def client_from_access_functions(api_key, token_read_func,
 
     return client_class(
         api_key,
-        session_class(api_key, **session_kwargs))
+        session_class(api_key, **session_kwargs),
+        token_metadata=metadata)
