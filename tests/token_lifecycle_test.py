@@ -1,8 +1,7 @@
 '''
 Token management has become a rather complex affair: many ways of creating one, 
-plus legacy vs. new formats, plus refresh token updating, etc.
-
-This test suite exercises the combinatorial explosion of possibilities.
+plus legacy vs. new formats, plus refresh token updating, etc. This test suite
+exercises the combinatorial explosion of possibilities.
 '''
 
 from .utils import no_duplicates
@@ -25,6 +24,9 @@ REDIRECT_URL = 'https://redirect.url.com'
 
 
 class TokenLifecycleTest(unittest.TestCase):
+
+    def asyncio(self):
+        return False
 
     def setUp(self):
         self.maxDiff = None
@@ -107,7 +109,8 @@ class TokenLifecycleTest(unittest.TestCase):
     # calling tests.
 
     def client_from_token_file(self):
-        return tda.auth.client_from_token_file(self.token_path, API_KEY)
+        return tda.auth.client_from_token_file(
+                self.token_path, API_KEY, asyncio=self.asyncio())
 
 
     def client_from_login_flow(self, mock_OAuth2Client):
@@ -121,7 +124,8 @@ class TokenLifecycleTest(unittest.TestCase):
         mock_OAuth2Client.return_value = mock_oauth
 
         return tda.auth.client_from_login_flow(
-                mock_webdriver, API_KEY, REDIRECT_URL, self.token_path)
+                mock_webdriver, API_KEY, REDIRECT_URL, self.token_path,
+                asyncio=self.asyncio())
 
 
     def client_from_manual_flow(self, mock_OAuth2Client):
@@ -135,7 +139,7 @@ class TokenLifecycleTest(unittest.TestCase):
         mock_OAuth2Client.return_value = mock_oauth
 
         return tda.auth.client_from_manual_flow(
-                API_KEY, REDIRECT_URL, self.token_path)
+                API_KEY, REDIRECT_URL, self.token_path, asyncio=self.asyncio())
 
 
     # Creation via client_from_token_file
@@ -288,3 +292,9 @@ class TokenLifecycleTest(unittest.TestCase):
         client.ensure_updated_refresh_token()
 
         self.verify_not_updated_token()
+
+
+# Same as above, except async
+class TokenLifecycleTestAsync(TokenLifecycleTest):
+    def asyncio(self):
+        return True
