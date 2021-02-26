@@ -133,6 +133,11 @@ class TokenMetadata:
 
     def __init__(self, creation_timestamp, unwrapped_token_write_func=None):
         self.creation_timestamp = creation_timestamp
+
+        # The token write function is ultimately stored in the session. When we
+        # get a new token we immediately wrap it in a new sesssion. We hold on
+        # to the unwrapped token writer function to allow us to inject the
+        # appropriate write function.
         self.unwrapped_token_write_func = unwrapped_token_write_func
 
     @classmethod

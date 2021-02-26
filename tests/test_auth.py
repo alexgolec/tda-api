@@ -630,3 +630,39 @@ class EasyClientTest(unittest.TestCase):
 
         webdriver_func.assert_called_once()
         client_from_login_flow.assert_called_once()
+
+
+class TokenMetadataTest(unittest.TestCase):
+
+    @no_duplicates
+    def test_from_loaded_token_metadata_aware(self):
+        token = {
+            'creation_timestamp': MOCK_NOW,
+            'token': {'token': 'yes'}
+        }
+
+        self.assertTrue(auth.TokenMetadata.is_metadata_aware_token(token))
+        self.assertFalse(auth.TokenMetadata.is_legacy_token(token))
+
+        metadata = auth.TokenMetadata.from_loaded_token(token)
+        self.assertEqual(metadata.creation_timestamp, MOCK_NOW)
+
+    @no_duplicates
+    def test_from_loaded_token_legacy(self):
+        token = {'token': 'yes'}
+
+        self.assertFalse(auth.TokenMetadata.is_metadata_aware_token(token))
+        self.assertTrue(auth.TokenMetadata.is_legacy_token(token))
+
+        metadata = auth.TokenMetadata.from_loaded_token(token)
+        self.assertEqual(metadata.creation_timestamp, None)
+
+    @no_duplicates
+    def test_from_loaded_token_unrecognized_format(self):
+        token = {'creation_timestamp': 'yes'}
+
+        self.assertFalse(auth.TokenMetadata.is_metadata_aware_token(token))
+        self.assertFalse(auth.TokenMetadata.is_legacy_token(token))
+
+        metadata = auth.TokenMetadata.from_loaded_token(token)
+        self.assertEqual(metadata.creation_timestamp, None)
