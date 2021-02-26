@@ -108,15 +108,12 @@ class BaseClient(EnumEnforcer):
         The client automatically performs a token refresh
         '''
         if not self.token_metadata:
-            print('no token metadata')
             return None
 
         new_session = self.token_metadata.ensure_refresh_token_update(
             self.api_key, self.session, update_interval_seconds)
         if new_session:
             self.session = new_session
-
-        print(new_session)
 
         return new_session is not None
 
