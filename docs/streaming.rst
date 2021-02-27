@@ -255,8 +255,10 @@ By default, TD Ameritrade delivers delayed quotes. However, as of this writing,
 real time streaming is available for all streams, including quotes and level two 
 depth of book data. It is also available for free, which in the author's opinion
 is an impressive feature for a retail brokerage. For most users it's enough to 
-sign the relevant `exchange agreements <https://invest.ameritrade.com/grid/p/
-site#r=jPage/cgi-bin/apps/u/AccountSettings>`__, although your mileage may vary. 
+`sign the relevant exchange agreements <https://invest.ameritrade.com/grid/p/
+site#r=jPage/cgi-bin/apps/u/AccountSettings>`__ and then `subscribe to the
+relevant streams <https://invest.ameritrade.com/grid/p/
+site#r=jPage/cgi-bin/apps/u/Subscriptions>`__, although your mileage may vary.
 
 Please remember that your use of this API is subject to agreeing to 
 TDAmeritrade's terms of service. Please don't reach out to us asking for help 
@@ -556,3 +558,86 @@ to the user.
 .. autoclass:: tda.streaming::StreamClient.AccountActivityFields
   :members:
   :undoc-members:
+
+
++++++++++++++++
+Troubleshooting
++++++++++++++++
+
+There are a number of issues you might encounter when using the streaming 
+client. This section attempts to provide a non-authoritative listing of the 
+issues you may encounter when using this client. 
+
+Unfortunately, use of the streaming client by non-TDAmeritrade apps is poorly
+documented and apparently completely unsupported. This section attempts
+to provide a non-authoritative listing of the issues you may encounter, but 
+please note that these are best effort explanations resulting from reverse 
+engineering and crowdsourced experience. Take them with a grain of salt. 
+
+If you have specific questions, please join our `Discord server 
+<https://discord.gg/nfrd9gh>`__ to discuss with the community.
+
+
+-------------------------------------------------------------------------------
+``ConnectionClosedOK: code = 1000 (OK), no reason`` Immediately on Stream Start
+-------------------------------------------------------------------------------
+
+There are a few known causes for this issue:
+
+
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+Streaming Account ID Doesn't Match Token Account
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+TDA allows you to link multiple accounts together, so that logging in to one 
+main account allows you to have access to data from all other linked accounts. 
+This is not a problem for the HTTP client, but the streaming client is a little 
+more restrictive. In particular, it appears that opening a ``StreamClient`` with 
+an account ID that is different from the account ID corresponding to the username
+that was used to create the token is disallowed. 
+
+If you're encountering this issue, make sure you are using the account ID of the 
+account which was used during token login. If you're unsure which account was 
+used to create the token, delete your token and create a new one, taking note of 
+the account ID.
+
+
+~~~~~~~~~~~~~~~~~~~~~~~~~~~
+Multiple Concurrent Streams
+~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+TDA allows only one open stream per account ID.  If you open a second one, it 
+will immediately close itself with this error. This is not a limitation of 
+``tda-api``, this is a TDAmeritrade limitation. If you want to use multiple 
+streams, you need to have multiple accounts, create a separate token under each, 
+and pass each one's account ID into its own client. 
+
+
+--------------------------------------------------------------------------------
+``ConnectionClosedError: code = 1006 (connection closed abnormally [internal])``
+--------------------------------------------------------------------------------
+
+TDA has the right to kill the connection at any time for any reason, and this 
+error appears to be a catchall for these sorts of failures. If you are 
+encountering this error, it is almost certainly not the fault of the 
+``tda-api`` library, but rather either an internal failure on TDA's side or a 
+failure in the logic of your own code. 
+
+That being said, there have been a number of situations where this error was 
+encountered, and this section attempts to record the resolution of these 
+failures. 
+
+
+~~~~~~~~~~~~~~~~~~~~~~~~
+Your Handler is Too Slow
+~~~~~~~~~~~~~~~~~~~~~~~~
+
+``tda-api`` cannot perform websocket message acknowledgement when your handler 
+code is running. As a result, if your handler code takes longer than the stream 
+update frequency, a backlog of unacknowledged messages will develop. TDA has 
+been observed to terminate connections when many messages are unacknowledged. 
+
+Fixing this is a task for the application developer: if you are writing to a 
+database or filesystem as part of your handler, consider profiling it to make 
+the write faster. You may also consider deferring your writes so that slow 
+operations don't happen in the hotpath of the message handler. 

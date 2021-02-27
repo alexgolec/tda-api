@@ -9,9 +9,13 @@ import os
 import pickle
 import sys
 import time
+import warnings
 
 from tda.client import AsyncClient, Client
 from tda.debug import register_redactions
+
+
+TOKEN_ENDPOINT = 'https://api.tdameritrade.com/v1/oauth2/token'
 
 
 def get_logger():
@@ -53,7 +57,7 @@ def __normalize_api_key(api_key):
     return api_key
 
 
-def __register_token_redactions(token):
+def _register_token_redactions(token):
     register_redactions(token)
 
 
@@ -77,26 +81,24 @@ def client_from_token_file(token_path, api_key, asyncio=False):
         api_key, load, __update_token(token_path), asyncio=asyncio)
 
 
-class RedirectTimeoutError(Exception):
-    pass
-
-
 def __fetch_and_register_token_from_redirect(
         oauth, redirected_url, api_key, token_path, token_write_func, asyncio):
     token = oauth.fetch_token(
-        'https://api.tdameritrade.com/v1/oauth2/token',
+        TOKEN_ENDPOINT,
         authorization_response=redirected_url,
         access_type='offline',
         client_id=api_key,
         include_client_id=True)
 
     # Don't emit token details in debug logs
-    __register_token_redactions(token)
+    _register_token_redactions(token)
 
-    # Record the token
+    # Set up token writing and perform the initial token write
     update_token = (
         __update_token(token_path) if token_write_func is None
         else token_write_func)
+    metadata_manager = TokenMetadata(int(time.time()), update_token)
+    update_token = metadata_manager.wrapped_token_write_func()
     update_token(token)
 
     if asyncio:
@@ -110,11 +112,119 @@ def __fetch_and_register_token_from_redirect(
     return client_class(
         api_key,
         session_class(api_key, token=token,
-                      auto_refresh_url='https://api.tdameritrade.com/v1/oauth2/token',
+                      auto_refresh_url=TOKEN_ENDPOINT,
                       auto_refresh_kwargs={'client_id': api_key},
-                      update_token=update_token))
+                      update_token=update_token),
+        token_metadata=metadata_manager)
 
 
+class RedirectTimeoutError(Exception):
+    pass
+
+
+class TokenMetadata:
+    '''
+    Provides the functionality required to maintain and update our view of the
+    token's metadata.
+    '''
+    # XXX: Token metadata is currently not considered sensitive enough to wrap
+    #      register for redactions. If we add anything sensitive to the token
+    #      metadata, we'll need to update the redaction registration logic.
+
+    def __init__(self, creation_timestamp, unwrapped_token_write_func=None):
+        self.creation_timestamp = creation_timestamp
+
+        # The token write function is ultimately stored in the session. When we
+        # get a new token we immediately wrap it in a new sesssion. We hold on
+        # to the unwrapped token writer function to allow us to inject the
+        # appropriate write function.
+        self.unwrapped_token_write_func = unwrapped_token_write_func
+
+    @classmethod
+    def from_loaded_token(cls, token, unwrapped_token_write_func=None):
+        '''
+        Returns a new ``TokenMetadata`` object extracted from the metadata of
+        the loaded token object. If the token has a legacy format which contains
+        no metadata, assign default values.
+        '''
+        if cls.is_metadata_aware_token(token):
+            return TokenMetadata(
+                token['creation_timestamp'], unwrapped_token_write_func)
+        elif cls.is_legacy_token(token):
+            return TokenMetadata(None, unwrapped_token_write_func)
+        else:
+            get_logger().warn('Unrecognized token format')
+            return TokenMetadata(None, unwrapped_token_write_func)
+
+    @classmethod
+    def is_legacy_token(cls, token):
+        return 'creation_timestamp' not in token
+
+    @classmethod
+    def is_metadata_aware_token(cls, token):
+        return 'creation_timestamp' in token and 'token' in token
+
+    def wrapped_token_write_func(self):
+        '''
+        Hook the call to the token write function so that the write function is
+        passed the metadata-aware version of the token.
+        '''
+        def wrapped_token_write_func(token):
+            return self.unwrapped_token_write_func(
+                self.wrap_token_in_metadata(token))
+        return wrapped_token_write_func
+
+    def wrap_token_in_metadata(self, token):
+        return {
+            'creation_timestamp': self.creation_timestamp,
+            'token': token,
+        }
+
+    def ensure_refresh_token_update(
+            self, api_key, session, update_interval_seconds=None):
+        '''
+        If the refresh token is older than update_interval_seconds, update it by
+        issuing a call to the token refresh endpoint and return a new session
+        wrapped around the resulting token. Returns None if the refresh token
+        was not updated.
+        '''
+        if update_interval_seconds is None:
+            # 85 days is less than the documented 90 day expiration window of
+            # the token, but hopefully long enough to not trigger TDA's
+            # thresholds for excessive refresh token updates.
+            update_interval_seconds = 60 * 60 * 24 * 85
+
+        if not (self.creation_timestamp is None
+                or time.time() - self.creation_timestamp >
+                update_interval_seconds):
+            return None
+
+        old_token = session.token
+        oauth = OAuth2Client(api_key)
+
+        new_token = oauth.fetch_token(
+            TOKEN_ENDPOINT,
+            grant_type='refresh_token',
+            refresh_token=old_token['refresh_token'],
+            access_type='offline')
+
+        self.creation_timestamp = int(time.time())
+
+        # Don't emit token details in debug logs
+        _register_token_redactions(new_token)
+
+        token_write_func = self.wrapped_token_write_func()
+        token_write_func(new_token)
+
+        session_class = session.__class__
+        return session_class(
+            api_key,
+            token=new_token,
+            token_endpoint=TOKEN_ENDPOINT,
+            update_token=token_write_func)
+
+
+# TODO: Raise an exception when passing both token_path and token_write_func
 def client_from_login_flow(webdriver, api_key, redirect_url, token_path,
                            redirect_wait_time_seconds=0.1, max_waits=3000,
                            asyncio=False, token_write_func=None):
@@ -247,8 +357,10 @@ def client_from_manual_flow(api_key, redirect_url, token_path,
                'and update your redirect URL to begin with \'https\' ' +
                'to stop seeing this message.').format(redirect_url))
 
-    # Workaround for Mac OS freezing on reading input
-    import readline
+    # Workaround for Mac OS freezing on reading nput
+    import platform
+    if platform.system() == 'Darwin':  # pragma: no cover
+        import readline
 
     redirected_url = input('Redirect URL> ').strip()
 
@@ -336,19 +448,25 @@ def client_from_access_functions(api_key, token_read_func,
     '''
     token = token_read_func()
 
+    # Extract metadata and unpack the token, if necessary
+    metadata = TokenMetadata.from_loaded_token(token, token_write_func)
+    if TokenMetadata.is_metadata_aware_token(token):
+        token = token['token']
+
     # Don't emit token details in debug logs
-    __register_token_redactions(token)
+    _register_token_redactions(token)
 
     # Return a new session configured to refresh credentials
     api_key = __normalize_api_key(api_key)
 
     session_kwargs = {
         'token': token,
-        'token_endpoint': 'https://api.tdameritrade.com/v1/oauth2/token',
+        'token_endpoint': TOKEN_ENDPOINT,
     }
 
     if token_write_func is not None:
-        session_kwargs['update_token'] = token_write_func
+        wrapped_token_write_func = metadata.wrapped_token_write_func()
+        session_kwargs['update_token'] = wrapped_token_write_func
 
     if asyncio:
         session_class = AsyncOAuth2Client
@@ -359,4 +477,5 @@ def client_from_access_functions(api_key, token_read_func,
 
     return client_class(
         api_key,
-        session_class(api_key, **session_kwargs))
+        session_class(api_key, **session_kwargs),
+        token_metadata=metadata)

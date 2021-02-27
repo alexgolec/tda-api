@@ -31,7 +31,7 @@ this will likely cause issues with the underlying OAuth2 session management**
           period=Client.PriceHistory.Period.TWENTY_YEARS,
           frequency_type=Client.PriceHistory.FrequencyType.DAILY,
           frequency=Client.PriceHistory.Frequency.DAILY)
-  assert resp.status_code == 200
+  assert resp.status_code == httpx.codes.OK
   history = resp.json()
 
 Note we we create a new client using the ``auth`` package as described in
@@ -62,7 +62,7 @@ of slightly increased application complexity.
               period=Client.PriceHistory.Period.TWENTY_YEARS,
               frequency_type=Client.PriceHistory.FrequencyType.DAILY,
               frequency=Client.PriceHistory.Frequency.DAILY)
-      assert resp.status_code == 200
+      assert resp.status_code == httpx.codes.OK
       history = resp.json()
 
   if __name__ == '__main__':
@@ -98,9 +98,9 @@ Return Values
 +++++++++++++
 
 All methods return a response object generated under the hood by the
-`requests <https://requests.readthedocs.io/en/master/>`__ module. For a full 
-listing of what's possible, read that module's documentation. Most if not all 
-users can simply use the following pattern:
+`HTTPX <https://www.python-httpx.org/quickstart/#response-content>`__ module. 
+For a full listing of what's possible, read that module's documentation. Most if
+not all users can simply use the following pattern:
 
 .. code-block:: python
 

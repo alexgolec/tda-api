@@ -4,6 +4,9 @@
 .. image:: https://img.shields.io/discord/720378361880248621.svg?label=&logo=discord&logoColor=ffffff&color=7389D8&labelColor=6A7EC2
   :target: https://discord.gg/nfrd9gh
 
+.. image:: https://img.shields.io/endpoint.svg?url=https%3A%2F%2Fshieldsio-patreon.vercel.app%2Fapi%3Fusername%3Dalexgolec%26type%3Dpatrons&style=flat
+  :target: https://patreon.com/alexgolec
+
 .. image:: https://readthedocs.org/projects/tda-api/badge/?version=stable
   :target: https://tda-api.readthedocs.io/en/stable/?badge=stable
 

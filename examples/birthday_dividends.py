@@ -42,7 +42,7 @@ birth_month_dividends = []
 for s in (sp500[:250], sp500[250:]):
     r = client.search_instruments(
         s, tda.client.Client.Instrument.Projection.FUNDAMENTAL)
-    assert r.status_code == 200, r.raise_for_status()
+    assert r.status_code == httpx.codes.OK, r.raise_for_status()
 
     for symbol, f in r.json().items():
 
@@ -79,4 +79,4 @@ for symbol in birth_month_dividends:
     order = tda.orders.equities.equity_buy_market(symbol, 1)
 
     r = client.place_order(account_id, order)
-    assert r.ok, r.raise_for_status()
+    assert r.status_code == httpx.codes.OK, r.raise_for_status()
