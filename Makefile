@@ -10,7 +10,7 @@ coverage:
 	python3 -m coverage run --source=tda -m nose
 	python3 -m coverage html
 
-dist:
+dist: clean
 	python3 setup.py sdist bdist_wheel
 
 release:
