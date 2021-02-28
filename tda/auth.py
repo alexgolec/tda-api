@@ -151,7 +151,7 @@ class TokenMetadata:
             return TokenMetadata(
                 token['creation_timestamp'], unwrapped_token_write_func)
         elif cls.is_legacy_token(token):
-            return TokenMetadata(None, unwrapped_token_write_func)
+            return TokenMetadata(int(time.time()), unwrapped_token_write_func)
         else:
             get_logger().warn('Unrecognized token format')
             return TokenMetadata(None, unwrapped_token_write_func)

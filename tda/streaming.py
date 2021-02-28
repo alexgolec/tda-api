@@ -195,7 +195,7 @@ class StreamClient(EnumEnforcer):
             principals['streamerInfo']['streamerSocketUrl'])
         if self._ssl_context:
             self._socket = await websockets.client.connect(
-                wss_url, ssl=self._ssl_context)
+                wss_url, ssl=self._ssl_context, ping_interval=None)
         else:
             self._socket = await websockets.client.connect(wss_url)
 
@@ -323,6 +323,20 @@ class StreamClient(EnumEnforcer):
 
     ##########################################################################
     # LOGIN
+    async def logout(self, close_ws=True):
+        '''
+        `Official Documentation <https://developer.tdameritrade.com/content/streaming-data#_Toc504640576>`__
+
+        Logs out of websocket and close websocket
+        '''
+        request, request_id = self._make_request(
+            service='ADMIN', command='LOGOUT',
+            parameters={}
+        )
+        if self._socket.open:
+            await self._send({'requests': [request]})
+        if close_ws:
+            await self._socket.close()
 
     async def login(self):
         '''
