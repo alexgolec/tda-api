@@ -197,7 +197,7 @@ class StreamClient(EnumEnforcer):
             self._socket = await websockets.client.connect(
                 wss_url, ssl=self._ssl_context, ping_interval=None)
         else:
-            self._socket = await websockets.client.connect(wss_url)
+            self._socket = await websockets.client.connect(wss_url, ping_interval=None)
 
         # Initialize miscellaneous parameters
         self._source = principals['streamerInfo']['appId']
