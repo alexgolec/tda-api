@@ -169,9 +169,9 @@ class TokenMetadata:
         Hook the call to the token write function so that the write function is
         passed the metadata-aware version of the token.
         '''
-        def wrapped_token_write_func(token):
+        def wrapped_token_write_func(token, *args, **kwargs):
             return self.unwrapped_token_write_func(
-                self.wrap_token_in_metadata(token))
+                self.wrap_token_in_metadata(token), *args, **kwargs)
         return wrapped_token_write_func
 
     def wrap_token_in_metadata(self, token):
