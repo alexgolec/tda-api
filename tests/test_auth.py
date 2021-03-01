@@ -458,9 +458,9 @@ class ClientFromManualFlow(unittest.TestCase):
     @no_duplicates
     @patch('tda.auth.Client')
     @patch('tda.auth.OAuth2Client')
-    @patch('tda.auth.input')
+    @patch('tda.auth.prompt')
     @patch('time.time', unittest.mock.MagicMock(return_value=MOCK_NOW))
-    def test_no_token_file(self, input_func, session_constructor, client):
+    def test_no_token_file(self, prompt_func, session_constructor, client):
         AUTH_URL = 'https://auth.url.com'
 
         session = MagicMock()
@@ -511,9 +511,9 @@ class ClientFromManualFlow(unittest.TestCase):
     @no_duplicates
     @patch('tda.auth.Client')
     @patch('tda.auth.OAuth2Client')
-    @patch('tda.auth.input')
+    @patch('tda.auth.prompt')
     @patch('time.time', unittest.mock.MagicMock(return_value=MOCK_NOW))
-    def test_custom_token_write_func(self, input_func, session_constructor, client):
+    def test_custom_token_write_func(self, prompt_func, session_constructor, client):
         AUTH_URL = 'https://auth.url.com'
 
         session = MagicMock()
