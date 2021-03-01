@@ -358,14 +358,6 @@ def client_from_manual_flow(api_key, redirect_url, token_path,
                'and update your redirect URL to begin with \'https\' ' +
                'to stop seeing this message.').format(redirect_url))
 
-<<<<<<< HEAD
-=======
-    # Workaround for Mac OS freezing on reading nput
-    import platform
-    if platform.system() == 'Darwin':  # pragma: no cover
-        import readline
->>>>>>> upstream/master
-
     redirected_url = prompt('Redirect URL> ').strip()
 
     return __fetch_and_register_token_from_redirect(
