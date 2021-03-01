@@ -5,35 +5,6 @@ on:
 - pull_request
 
 jobs:
-  test_minimal_ubuntu:
-    strategy:
-      fail-fast: false
-      max-parallel: 3
-
-    runs-on: ubuntu-latest
-    container:
-      image: ubuntu:18.04
-
-    steps:
-    - uses: actions/checkout@v2
-
-    - name: apt update
-      run: apt update    
-
-    - name: Set up Python 3.8
-      uses: actions/setup-python@v2
-      with:
-        python-version: '3.8'
-
-    - name: install pip3
-      run: apt install -y python3-pip
-
-    - name: intall requirements.txt
-      run: pip3 install -r requirements.txt
-
-    - name: install from setup.py
-      run: python3 setup.py install
-
   test:
     strategy:
       fail-fast: false
