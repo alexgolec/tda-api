@@ -356,7 +356,7 @@ class ClientFromManualFlow(unittest.TestCase):
     @patch('tda.auth.Client')
     @patch('tda.auth.OAuth2Client')
     @patch('tda.auth.prompt')
-    def test_no_token_file(self, input_func, session_constructor, client):
+    def test_no_token_file(self, prompt_func, session_constructor, client):
         AUTH_URL = 'https://auth.url.com'
 
         session = MagicMock()
@@ -365,7 +365,7 @@ class ClientFromManualFlow(unittest.TestCase):
         session.fetch_token.return_value = self.token
 
         client.return_value = 'returned client'
-        input_func.return_value = 'http://redirect.url.com/?data'
+        prompt_func.return_value = 'http://redirect.url.com/?data'
 
         self.assertEqual('returned client',
                          auth.client_from_manual_flow(
@@ -378,7 +378,7 @@ class ClientFromManualFlow(unittest.TestCase):
     @patch('tda.auth.Client')
     @patch('tda.auth.OAuth2Client')
     @patch('tda.auth.prompt')
-    def test_normalize_api_key(self, input_func, session_constructor, client):
+    def test_normalize_api_key(self, prompt_func, session_constructor, client):
         AUTH_URL = 'https://auth.url.com'
 
         session = MagicMock()
@@ -390,7 +390,7 @@ class ClientFromManualFlow(unittest.TestCase):
         webdriver.current_url = REDIRECT_URL + '/token_params'
 
         client.return_value = 'returned client'
-        input_func.return_value = 'http://redirect.url.com/?data'
+        prompt_func.return_value = 'http://redirect.url.com/?data'
 
         self.assertEqual('returned client',
                          auth.client_from_manual_flow(
@@ -405,7 +405,7 @@ class ClientFromManualFlow(unittest.TestCase):
     @patch('tda.auth.Client')
     @patch('tda.auth.OAuth2Client')
     @patch('tda.auth.prompt')
-    def test_custom_token_write_func(self, input_func, session_constructor, client):
+    def test_custom_token_write_func(self, prompt_func, session_constructor, client):
         AUTH_URL = 'https://auth.url.com'
 
         session = MagicMock()
@@ -417,7 +417,7 @@ class ClientFromManualFlow(unittest.TestCase):
         webdriver.current_url = REDIRECT_URL + '/token_params'
 
         client.return_value = 'returned client'
-        input_func.return_value = 'http://redirect.url.com/?data'
+        prompt_func.return_value = 'http://redirect.url.com/?data'
 
         def dummy_token_write_func(*args, **kwargs):
             pass
@@ -439,7 +439,7 @@ class ClientFromManualFlow(unittest.TestCase):
     @patch('tda.auth.prompt')
     @patch('builtins.print')
     def test_print_warning_on_http_redirect_uri(
-            self, print_func, input_func, session_constructor, client):
+            self, print_func, prompt_func, session_constructor, client):
         AUTH_URL = 'https://auth.url.com'
 
         redirect_url = 'http://redirect.url.com'
@@ -450,7 +450,7 @@ class ClientFromManualFlow(unittest.TestCase):
         session.fetch_token.return_value = self.token
 
         client.return_value = 'returned client'
-        input_func.return_value = 'http://redirect.url.com/?data'
+        prompt_func.return_value = 'http://redirect.url.com/?data'
 
         self.assertEqual('returned client',
                          auth.client_from_manual_flow(
