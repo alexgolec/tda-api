@@ -355,7 +355,7 @@ class ClientFromManualFlow(unittest.TestCase):
     @no_duplicates
     @patch('tda.auth.Client')
     @patch('tda.auth.OAuth2Client')
-    @patch('tda.auth.input')
+    @patch('tda.auth.prompt')
     def test_no_token_file(self, input_func, session_constructor, client):
         AUTH_URL = 'https://auth.url.com'
 
@@ -377,7 +377,7 @@ class ClientFromManualFlow(unittest.TestCase):
     @no_duplicates
     @patch('tda.auth.Client')
     @patch('tda.auth.OAuth2Client')
-    @patch('tda.auth.input')
+    @patch('tda.auth.prompt')
     def test_normalize_api_key(self, input_func, session_constructor, client):
         AUTH_URL = 'https://auth.url.com'
 
@@ -404,7 +404,7 @@ class ClientFromManualFlow(unittest.TestCase):
     @no_duplicates
     @patch('tda.auth.Client')
     @patch('tda.auth.OAuth2Client')
-    @patch('tda.auth.input')
+    @patch('tda.auth.prompt')
     def test_custom_token_write_func(self, input_func, session_constructor, client):
         AUTH_URL = 'https://auth.url.com'
 
@@ -436,7 +436,7 @@ class ClientFromManualFlow(unittest.TestCase):
     @no_duplicates
     @patch('tda.auth.Client')
     @patch('tda.auth.OAuth2Client')
-    @patch('tda.auth.input')
+    @patch('tda.auth.prompt')
     @patch('builtins.print')
     def test_print_warning_on_http_redirect_uri(
             self, print_func, input_func, session_constructor, client):
