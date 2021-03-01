@@ -255,7 +255,7 @@ class TokenLifecycleTest(unittest.TestCase):
     @no_duplicates
     @patch('tda.auth.OAuth2Client')
     @patch('time.time')
-    @patch('tda.auth.input', MagicMock())
+    @patch('tda.auth.prompt', MagicMock())
     def test_client_from_manual_flow_old_token(
             self, mock_time, mock_OAuth2Client):
         self.write_legacy_token()
@@ -276,7 +276,7 @@ class TokenLifecycleTest(unittest.TestCase):
     @no_duplicates
     @patch('tda.auth.OAuth2Client')
     @patch('time.time')
-    @patch('tda.auth.input', MagicMock())
+    @patch('tda.auth.prompt', MagicMock())
     def test_client_from_manual_flow_recent_token(
             self, mock_time, mock_OAuth2Client):
         self.write_legacy_token()
