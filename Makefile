@@ -13,7 +13,7 @@ coverage:
 dist: clean
 	python3 setup.py sdist bdist_wheel
 
-release: clean dist
+release: clean test dist
 	python3 -m twine upload dist/*
 
 clean:
