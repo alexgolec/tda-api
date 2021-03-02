@@ -1,7 +1,6 @@
 from unittest.mock import MagicMock
 from tda.utils import AccountIdMismatchException, Utils
 from tda.utils import UnsuccessfulOrderException
-from . import test_utils
 from .utils import no_duplicates, MockResponse
 
 import unittest
