@@ -345,6 +345,11 @@ class StreamClient(EnumEnforcer):
         r = self._client.get_user_principals(fields=[
             self._client.UserPrincipals.Fields.STREAMER_CONNECTION_INFO,
             self._client.UserPrincipals.Fields.STREAMER_SUBSCRIPTION_KEYS])
+
+        # We don't actually know whether the client is synchronous or 
+        # asynchronous, so work around by awaiting the response if necessary
+        if inspect.iscoroutine(r):
+            r = await r
         assert r.status_code == httpx.codes.OK, r.raise_for_status()
         r = r.json()
 
