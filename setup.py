@@ -32,7 +32,7 @@ setuptools.setup(
     install_requires=[
         'authlib',
         'httpx',
-        'pyreadline',
+        'prompt_toolkit',
         'python-dateutil',
         'selenium', 
         'websockets'],

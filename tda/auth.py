@@ -2,6 +2,7 @@
 # Authentication Wrappers
 
 from authlib.integrations.httpx_client import AsyncOAuth2Client, OAuth2Client
+from prompt_toolkit import prompt
 
 import json
 import logging
@@ -357,12 +358,7 @@ def client_from_manual_flow(api_key, redirect_url, token_path,
                'and update your redirect URL to begin with \'https\' ' +
                'to stop seeing this message.').format(redirect_url))
 
-    # Workaround for Mac OS freezing on reading nput
-    import platform
-    if platform.system() == 'Darwin':  # pragma: no cover
-        import readline
-
-    redirected_url = input('Redirect URL> ').strip()
+    redirected_url = prompt('Redirect URL> ').strip()
 
     return __fetch_and_register_token_from_redirect(
         oauth, redirected_url, api_key, token_path, token_write_func,
