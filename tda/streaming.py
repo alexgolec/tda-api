@@ -200,9 +200,9 @@ class StreamClient(EnumEnforcer):
             principals['streamerInfo']['streamerSocketUrl'])
         if self._ssl_context:
             self._socket = await websockets.client.connect(
-                wss_url, ssl=self._ssl_context, ping_interval=None)
+                wss_url, ssl=self._ssl_context)
         else:
-            self._socket = await websockets.client.connect(wss_url, ping_interval=None)
+            self._socket = await websockets.client.connect(wss_url)
 
         # Initialize miscellaneous parameters
         self._source = principals['streamerInfo']['appId']
@@ -297,7 +297,6 @@ class StreamClient(EnumEnforcer):
         msg = await self._receive()
 
         # response
-        # client < Frame(fin=True, opcode=1, data=b'{"response":[{"service":"LEVELONE_FOREX","requestid":"4","command":"VIEW","timestamp":1615149776121,"content":{"code":0,"msg":"VIEW command succeeded"}}]}', rsv1=False, rsv2=False, rsv3=False)
         if 'response' in msg:
             for d in msg['response']:
                 if d['service'] in self._handlers:
@@ -339,20 +338,6 @@ class StreamClient(EnumEnforcer):
 
     ##########################################################################
     # LOGIN
-    async def logout(self, close_ws=True):
-        '''
-        `Official Documentation <https://developer.tdameritrade.com/content/streaming-data#_Toc504640576>`__
-
-        Logs out of websocket and close websocket
-        '''
-        request, request_id = self._make_request(
-            service='ADMIN', command='LOGOUT',
-            parameters={}
-        )
-        if self._socket.open:
-            await self._send({'requests': [request]})
-        if close_ws:
-            await self._socket.close()
 
     async def login(self):
         '''
@@ -1179,9 +1164,9 @@ class StreamClient(EnumEnforcer):
         `Official documentation <https://developer.tdameritrade.com/content/
         streaming-data#_Toc504640604>`__
 
-        Subscribe to level one futures quote data.
+        Un-subscribe to level one futures quote data.
 
-        :param symbols: Futures symbols to receive quotes for
+        :param symbols: Futures symbols to unsubsribe quotes for
         :param fields: Iterable of :class:`LevelOneFuturesFields` representing
                        the fields to return in streaming entries. If unset, all
                        fields will be requested.
@@ -1191,12 +1176,13 @@ class StreamClient(EnumEnforcer):
         await self._service_op(
             symbols, 'LEVELONE_FUTURES', 'UNSUBS', self.LevelOneFuturesFields,
             fields=fields, await_resp=await_resp)
+
     async def level_one_futures_add(self, symbols, *, fields=None, await_resp=True):
         '''
         `Official documentation <https://developer.tdameritrade.com/content/
         streaming-data#_Toc504640604>`__
 
-        Subscribe to level one futures quote data.
+        Add symbols to level one futures quote data.
 
         :param symbols: Futures symbols to receive quotes for
         :param fields: Iterable of :class:`LevelOneFuturesFields` representing
@@ -1346,7 +1332,7 @@ class StreamClient(EnumEnforcer):
         `Official documentation <https://developer.tdameritrade.com/content/
         streaming-data#_Toc504640606>`__
 
-        Subscribe to level one forex quote data.
+        Add symbols to level one forex quote data.
 
         :param symbols: Forex symbols to receive quotes for
         :param fields: Iterable of :class:`LevelOneForexFields` representing
@@ -1364,7 +1350,7 @@ class StreamClient(EnumEnforcer):
         `Official documentation <https://developer.tdameritrade.com/content/
         streaming-data#_Toc504640606>`__
 
-        Subscribe to level one forex quote data.
+        Un-Subscribe symbols to level one forex quote data.
 
         :param symbols: Forex symbols to receive quotes for
         :param fields: Iterable of :class:`LevelOneForexFields` representing
@@ -1382,7 +1368,7 @@ class StreamClient(EnumEnforcer):
         `Official documentation <https://developer.tdameritrade.com/content/
         streaming-data#_Toc504640606>`__
 
-        Subscribe to level one forex quote data.
+        TODO NOT SURE What VIEW does
 
         :param symbols: Forex symbols to receive quotes for
         :param fields: Iterable of :class:`LevelOneForexFields` representing
@@ -1810,16 +1796,6 @@ class StreamClient(EnumEnforcer):
         Subscribe to news headlines related to the given symbols.
         '''
         await self._service_op(symbols, 'NEWS_HEADLINE', 'SUBS',
-                               self.NewsHeadlineFields,
-                               fields=self.NewsHeadlineFields.all_fields(), await_resp=await_resp)
-
-    async def news_headline_unsubs(self, symbols, await_resp=True):
-        '''
-        `Official documentation <https://developer.tdameritrade.com/content/streaming-data#_Toc504640621>`__
-
-        Unsubscribe to news headlines related to given symbols
-        '''
-        await self._service_op(symbols, 'NEWS_HEADLINE', 'UNSUBS',
                                self.NewsHeadlineFields,
                                fields=self.NewsHeadlineFields.all_fields(), await_resp=await_resp)
 

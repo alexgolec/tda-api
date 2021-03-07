@@ -121,14 +121,6 @@ class MyStreamConsumer:
             msg = await self.queue.get()
             pprint.pprint(msg)
 
-    #TODO not tested
-    async def logout(self, close_ws=True):
-        try:
-            await self.stream_client.logout(close_ws=close_ws)
-        except ConnectionClosedError as e:
-            logger.error("except in logout, connection closed")
-            logger.error(e)
-
 app = Flask(__name__)
 loop = asyncio.get_event_loop()
 @app.route('/forex', methods=['DELETE'])
