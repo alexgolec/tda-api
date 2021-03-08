@@ -253,16 +253,19 @@ file is as dangerous as sharing your TD Ameritrade username and password.
 What If I Can't Use a Browser?
 ++++++++++++++++++++++++++++++
 
-Unfortunately, there is no way to create a token without a browser: one way or 
-another, you have to open up the login URL to enter your username and password 
-on TDAmeritrade's website. (Some OAuth APIs support `alternate login flows
-<https://auth0.com/docs/flows>`__, but TDAmeritrade does not.) Still, there are
-many situations in which the machine on which you're running cannot perform this 
-login flow, such as in a cloud or headless server setting, or when your browser
-is somehow misconfigured. 
+Launching a browser can be inconvenient in some situations, most notably in 
+containerized applications running on a cloud provider. ``tda-api`` supports two 
+alternatives to creating tokens by opening a web browser. 
 
-Fortunately, you don't have to run the login flow on the same machine as 
-``tda-api``. The library provides a helpful :ref:`manual login flow<manual_login>` which will guide 
-you through the process of performing the login. It requires a little more care 
-than the easy selenium-based flow, but it should help you log in if you're 
-stuck otherwise. 
+Firstly, the :ref:`manual login flow<manual_login>` flow allows you to go 
+through the login flow on a different machine than the one on which ``tda-api`` 
+is running. Instead of starting the web browser and automatically opening the 
+relevant URLs, this flow allows you to manually copy-paste around the URLs. It's 
+a little more cumbersome, but it has no dependency on selenium.
+
+Alterately, you can take advantage of the fact that token files are portable. 
+Once you create a token on one machine, such as one where you can open a web 
+browser, you can easily copy that token file to another machine, such as your 
+application in the cloud. However, make sure you don't use the same token on 
+two machines. It is recommended to delete the token created on the 
+browser-capable machine as soon as it is copied to its destination. 
