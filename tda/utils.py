@@ -3,20 +3,68 @@ module.'''
 
 import datetime
 import dateutil.parser
+import enum
 import httpx
+import inspect
 import re
+
+
+def class_fullname(o):
+    # Adapted from: https://stackoverflow.com/a/2020083/265629
+    module = o.__module__
+    if module is None or module == str.__class__.__module__:
+        return o.__name__  # Avoid reporting __builtin__
+    else:
+        return module + '.' + o.__name__
 
 
 class EnumEnforcer:
     def __init__(self, enforce_enums):
         self.enforce_enums = enforce_enums
 
+    def _enum_fullnames_in_class(self, cls, value):
+        if cls is type:
+            return
+        for name in dir(cls):
+            if name == '__abstractmethods__':
+                continue
+
+            obj = getattr(cls, name)
+            if inspect.isclass(obj):
+                if issubclass(obj, enum.Enum):
+                    for member in obj.__members__:
+                        yield class_fullname(obj) + '.' + member
+
+                yield from self._enum_fullnames_in_class(obj, value)
+
+    def _possible_classes_for_input(self, cls, value):
+        for fullname in self._enum_fullnames_in_class(cls, value):
+            if value in fullname:
+                print(fullname)
+                yield(fullname)
+
     def type_error(self, value, required_enum_type):
+        possible_members_message = ''
+
+        if isinstance(value, str):
+            possible_members = []
+            for member in required_enum_type.__members__:
+                fullname = class_fullname(required_enum_type) + '.' + member
+                if value in fullname:
+                    possible_members.append(fullname)
+
+            # Oxford comma insertion
+            if possible_members:
+                possible_members_message = 'Did you mean ' + ', '.join(
+                    possible_members[:-2] + [' or '.join(
+                        possible_members[-2:])]) + '? '
+
         raise ValueError(
-            ('expected type "{}", got type "{}" (initialize with ' +
-             'enforce_enums=True to disable this checking)').format(
+            ('expected type "{}", got type "{}". {}(initialize with ' +
+             'enforce_enums=False to disable this checking)').format(
                 required_enum_type.__name__,
-                type(value).__name__))
+                type(value).__name__,
+                possible_members_message))
 
     def convert_enum(self, value, required_enum_type):
         if value is None:
