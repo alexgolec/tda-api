@@ -10,12 +10,7 @@ import re
 
 
 def class_fullname(o):
-    # Adapted from: https://stackoverflow.com/a/2020083/265629
-    module = o.__module__
-    if module is None or module == str.__class__.__module__:
-        return o.__name__  # Avoid reporting __builtin__
-    else:
-        return module + '.' + o.__name__
+    return o.__module__ + '.' + o.__name__
 
 
 class EnumEnforcer:
