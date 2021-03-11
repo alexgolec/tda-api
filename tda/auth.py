@@ -148,13 +148,18 @@ class TokenMetadata:
         the loaded token object. If the token has a legacy format which contains
         no metadata, assign default values.
         '''
+        logger = get_logger()
         if cls.is_metadata_aware_token(token):
+            logger.info(
+                    'Loaded metadata aware token with creation timestamp {}'
+                    .format(token['creation_timestamp']))
             return TokenMetadata(
                 token['creation_timestamp'], unwrapped_token_write_func)
         elif cls.is_legacy_token(token):
+            logger.info('Loaded legacy token')
             return TokenMetadata(None, unwrapped_token_write_func)
         else:
-            get_logger().warn('Unrecognized token format')
+            logger.warn('Unrecognized token format')
             return TokenMetadata(None, unwrapped_token_write_func)
 
     @classmethod
@@ -189,15 +194,27 @@ class TokenMetadata:
         wrapped around the resulting token. Returns None if the refresh token
         was not updated.
         '''
+        logger = get_logger()
+
         if update_interval_seconds is None:
             # 85 days is less than the documented 90 day expiration window of
             # the token, but hopefully long enough to not trigger TDA's
             # thresholds for excessive refresh token updates.
             update_interval_seconds = 60 * 60 * 24 * 85
 
+        now = int(time.time())
+
+        logger.info((
+            'Updating refresh token:\n'+
+            ' - Current timestamp is {}\n'+
+            ' - Token creation timestamp is {}\n'+
+            ' - Update interval is {} seconds').format(
+                now, self.creation_timestamp, update_interval_seconds))
+
         if not (self.creation_timestamp is None
-                or time.time() - self.creation_timestamp >
+                or now - self.creation_timestamp >
                 update_interval_seconds):
+            logger.info('Skipping refresh token update')
             return None
 
         old_token = session.token
@@ -209,7 +226,9 @@ class TokenMetadata:
             refresh_token=old_token['refresh_token'],
             access_type='offline')
 
-        self.creation_timestamp = int(time.time())
+        logger.info('Updated refresh token')
+
+        self.creation_timestamp = now
 
         # Don't emit token details in debug logs
         _register_token_redactions(new_token)
@@ -442,6 +461,8 @@ def client_from_access_functions(api_key, token_read_func,
                              refresh, so not setting this parameter risks
                              permanently losing refreshed tokens.
     '''
+    logger = get_logger()
+
     token = token_read_func()
 
     # Extract metadata and unpack the token, if necessary
