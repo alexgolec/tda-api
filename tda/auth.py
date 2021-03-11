@@ -1,8 +1,7 @@
 ##########################################################################
 # Authentication Wrappers
 
-from authlib.integrations.httpx_client import AsyncOAuth2Client, OAuth2Client
-from prompt_toolkit import prompt
+from __future__ import annotations
 
 import json
 import logging
@@ -11,6 +10,10 @@ import pickle
 import sys
 import time
 import warnings
+from typing import Any, Callable, Dict, Optional, Union
+
+from authlib.integrations.httpx_client import AsyncOAuth2Client, OAuth2Client
+from prompt_toolkit import prompt
 
 from tda.client import AsyncClient, Client
 from tda.debug import register_redactions
@@ -19,7 +22,7 @@ from tda.debug import register_redactions
 TOKEN_ENDPOINT = 'https://api.tdameritrade.com/v1/oauth2/token'
 
 
-def get_logger():
+def get_logger() -> logging.Logger:
     return logging.getLogger(__name__)
 
 
@@ -62,7 +65,11 @@ def _register_token_redactions(token):
     register_redactions(token)
 
 
-def client_from_token_file(token_path, api_key, asyncio=False):
+def client_from_token_file(
+    token_path: Union[bytes, str, os.PathLike],
+    api_key: str,
+    asyncio: bool = False
+) -> Union[Client, AsyncClient]:
     '''
     Returns a session from an existing token file. The session will perform
     an auth refresh as needed. It will also update the token on disk whenever
@@ -132,7 +139,11 @@ class TokenMetadata:
     #      register for redactions. If we add anything sensitive to the token
     #      metadata, we'll need to update the redaction registration logic.
 
-    def __init__(self, creation_timestamp, unwrapped_token_write_func=None):
+    def __init__(
+        self,
+        creation_timestamp: int,
+        unwrapped_token_write_func: Optional[Callable[..., None]] = None  # TODO: Replace '...'
+    ) -> None:
         self.creation_timestamp = creation_timestamp
 
         # The token write function is ultimately stored in the session. When we
@@ -142,7 +153,11 @@ class TokenMetadata:
         self.unwrapped_token_write_func = unwrapped_token_write_func
 
     @classmethod
-    def from_loaded_token(cls, token, unwrapped_token_write_func=None):
+    def from_loaded_token(
+        cls,
+        token: Dict[str, Any],
+        unwrapped_token_write_func: Optional[Callable[..., None]] = None  # TODO: Replace '...'
+    ) -> TokenMetadata:
         '''
         Returns a new ``TokenMetadata`` object extracted from the metadata of
         the loaded token object. If the token has a legacy format which contains
@@ -158,14 +173,14 @@ class TokenMetadata:
             return TokenMetadata(None, unwrapped_token_write_func)
 
     @classmethod
-    def is_legacy_token(cls, token):
+    def is_legacy_token(cls, token: Dict[str, Any]) -> bool:
         return 'creation_timestamp' not in token
 
     @classmethod
-    def is_metadata_aware_token(cls, token):
+    def is_metadata_aware_token(cls, token: Dict[str, Any]) -> bool:
         return 'creation_timestamp' in token and 'token' in token
 
-    def wrapped_token_write_func(self):
+    def wrapped_token_write_func(self) -> Callable[..., None]:  # TODO: Replace '...'
         '''
         Hook the call to the token write function so that the write function is
         passed the metadata-aware version of the token.
@@ -175,14 +190,18 @@ class TokenMetadata:
                 self.wrap_token_in_metadata(token), *args, **kwargs)
         return wrapped_token_write_func
 
-    def wrap_token_in_metadata(self, token):
+    def wrap_token_in_metadata(self, token: Dict[str, Any]) -> Dict[str, Any]:
         return {
             'creation_timestamp': self.creation_timestamp,
             'token': token,
         }
 
     def ensure_refresh_token_update(
-            self, api_key, session, update_interval_seconds=None):
+        self,
+        api_key: str,
+        session: Any,  # TODO: Replace 'Any'
+        update_interval_seconds: Optional[int] = None
+    ) -> Any:  # TODO: Replace 'Any'
         '''
         If the refresh token is older than update_interval_seconds, update it by
         issuing a call to the token refresh endpoint and return a new session
@@ -226,9 +245,16 @@ class TokenMetadata:
 
 
 # TODO: Raise an exception when passing both token_path and token_write_func
-def client_from_login_flow(webdriver, api_key, redirect_url, token_path,
-                           redirect_wait_time_seconds=0.1, max_waits=3000,
-                           asyncio=False, token_write_func=None):
+def client_from_login_flow(
+    webdriver: Any,
+    api_key: str,
+    redirect_url: str,
+    token_path: Union[bytes, str, os.PathLike],
+    redirect_wait_time_seconds: float =0.1,
+    max_waits: int = 3000,
+    asyncio: bool = False,
+    token_write_func: Optional[Callable[[Dict[str, Any]], None]] = None
+) -> Union[Client, AsyncClient]:  # For the TODO above, also Union a NoReturn
     '''
     Uses the webdriver to perform an OAuth webapp login flow and creates a
     client wrapped around the resulting token. The client will be configured to
@@ -296,8 +322,13 @@ def client_from_login_flow(webdriver, api_key, redirect_url, token_path,
         asyncio)
 
 
-def client_from_manual_flow(api_key, redirect_url, token_path,
-                            asyncio=False, token_write_func=None):
+def client_from_manual_flow(
+    api_key: str,
+    redirect_url: str,
+    token_path: Union[bytes, str, os.PathLike],
+    asyncio: bool = False,
+    token_write_func: Optional[Callable[[Dict[str, Any]], None]] = None
+) -> Union[Client, AsyncClient]:
     '''
     Walks the user through performing an OAuth login flow by manually
     copy-pasting URLs, and returns a client wrapped around the resulting token.
@@ -365,8 +396,13 @@ def client_from_manual_flow(api_key, redirect_url, token_path,
         asyncio)
 
 
-def easy_client(api_key, redirect_uri, token_path, webdriver_func=None,
-                asyncio=False):
+def easy_client(
+    api_key: str,
+    redirect_uri: str,
+    token_path: Union[bytes, str, os.PathLike],
+    webdriver_func: Optional[Callable[..., Any]] = None,
+    asyncio: bool = False
+) -> Union[Client, AsyncClient]:
     '''Convenient wrapper around :func:`client_from_login_flow` and
     :func:`client_from_token_file`. If ``token_path`` exists, loads the token
     from it. Otherwise open a login flow to fetch a new token. Returns a client
@@ -415,8 +451,12 @@ def easy_client(api_key, redirect_uri, token_path, webdriver_func=None,
             sys.exit(1)
 
 
-def client_from_access_functions(api_key, token_read_func,
-                                 token_write_func=None, asyncio=False):
+def client_from_access_functions(
+    api_key: str,
+    token_read_func: Optional[Callable[..., Dict[str, Any]]] = None,
+    token_write_func: Optional[Callable[[Dict[str, Any]], None]] = None,
+    asyncio: bool = False
+) -> Union[Client, AsyncClient]:
     '''
     Returns a session from an existing token file, using the accessor methods to
     read and write the token. This is an advanced method for users who do not
