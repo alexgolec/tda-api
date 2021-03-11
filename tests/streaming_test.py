@@ -145,6 +145,57 @@ class StreamClientTest(asynctest.TestCase):
         self.assertEqual(request['service'], 'ADMIN')
         self.assertEqual(request['command'], 'LOGIN')
 
+
+    @no_duplicates
+    @asynctest.patch('tda.streaming.websockets.client.connect', new_callable=asynctest.CoroutineMock)
+    async def test_login_single_account_success_async(self, ws_connect):
+        '''
+        Same as test_login_single_account_success except the underlying client 
+        is asynchronous and returns a coroutine for get_user_principals.
+        '''
+        principals = account_principals()
+        principals['accounts'].clear()
+        principals['accounts'].append(self.account(1))
+        principals['streamerSubscriptionKeys']['keys'].clear()
+        principals['streamerSubscriptionKeys']['keys'].append(
+            self.stream_key(1))
+
+        async def get_user_principals(*args, **kwargs):
+            return MockResponse(principals, 200)
+
+        self.http_client.get_user_principals = get_user_principals
+        socket = AsyncMagicMock()
+        ws_connect.return_value = socket
+
+        socket.recv.side_effect = [json.dumps(self.success_response(
+            0, 'ADMIN', 'LOGIN'))]
+
+        await self.client.login()
+
+        socket.send.assert_awaited_once()
+        request = self.request_from_socket_mock(socket)
+        creds = urllib.parse.parse_qs(request['parameters']['credential'])
+
+        self.assertEqual(creds['userid'], ['1001'])
+        self.assertEqual(creds['token'], ['streamerInfo-token'])
+        self.assertEqual(creds['company'], ['accounts-company-1001'])
+        self.assertEqual(
+            creds['cddomain'],
+            ['accounts-accountCdDomainId-1001'])
+        self.assertEqual(creds['usergroup'], ['streamerInfo-userGroup'])
+        self.assertEqual(creds['accesslevel'], ['streamerInfo-accessLevel'])
+        self.assertEqual(creds['authorized'], ['Y'])
+        self.assertEqual(creds['timestamp'], ['1590113568000'])
+        self.assertEqual(creds['appid'], ['streamerInfo-appId'])
+        self.assertEqual(creds['acl'], ['streamerInfo-acl'])
+
+        self.assertEqual(request['parameters']['token'], 'streamerInfo-token')
+        self.assertEqual(request['parameters']['version'], '1.0')
+
+        self.assertEqual(request['requestid'], '0')
+        self.assertEqual(request['service'], 'ADMIN')
+        self.assertEqual(request['command'], 'LOGIN')
+
     @no_duplicates
     @asynctest.patch('tda.streaming.websockets.client.connect', new_callable=asynctest.CoroutineMock)
     async def test_login_multiple_accounts_require_account_id(self, ws_connect):

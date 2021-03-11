@@ -582,33 +582,62 @@ If you have specific questions, please join our `Discord server
 ``ConnectionClosedOK: code = 1000 (OK), no reason`` Immediately on Stream Start
 -------------------------------------------------------------------------------
 
-There are two known causes for this issue:
+There are a few known causes for this issue:
 
-*Use of Linked Account ID*. TDA allows you to link multiple accounts together, 
-so that logging in to one main account allows you to have access to data from 
-all other linked accounts. This is not a problem for the HTTP client, but the 
-streaming client is a little more restrictive. In particular, it appears that 
-opening a ``StreamClient`` with an account ID that is different from the account
-ID corresponding to the username that was used to create the token is disallowed. 
+
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+Streaming Account ID Doesn't Match Token Account
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+TDA allows you to link multiple accounts together, so that logging in to one 
+main account allows you to have access to data from all other linked accounts. 
+This is not a problem for the HTTP client, but the streaming client is a little 
+more restrictive. In particular, it appears that opening a ``StreamClient`` with 
+an account ID that is different from the account ID corresponding to the username
+that was used to create the token is disallowed. 
 
 If you're encountering this issue, make sure you are using the account ID of the 
 account which was used during token login. If you're unsure which account was 
 used to create the token, delete your token and create a new one, taking note of 
 the account ID.
 
-*Multiple Concurrent Streams*. TDA allows only one open stream per account ID. 
-If you open a second one, it will immediately close itself with this error. This 
-is not a limitation of ``tda-api``, this is a TDAmeritrade limitation. If you 
-want to use multiple streams, you need to have multiple accounts, create a 
-separate token under each, and pass each one's account ID into its own client. 
+
+~~~~~~~~~~~~~~~~~~~~~~~~~~~
+Multiple Concurrent Streams
+~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+TDA allows only one open stream per account ID.  If you open a second one, it 
+will immediately close itself with this error. This is not a limitation of 
+``tda-api``, this is a TDAmeritrade limitation. If you want to use multiple 
+streams, you need to have multiple accounts, create a separate token under each, 
+and pass each one's account ID into its own client. 
 
 
 --------------------------------------------------------------------------------
 ``ConnectionClosedError: code = 1006 (connection closed abnormally [internal])``
 --------------------------------------------------------------------------------
 
-This is an error that is occasionally raised due to internal failures or system 
-maintenance on TDA's side. If you are encountering this error, it is almost 
-certainly not the fault of the ``tda-api`` library, especially if the stream was 
-properly functioning for a time before you saw the error. The solution is often 
-either reconnecting the stream on failure or trying again later.
+TDA has the right to kill the connection at any time for any reason, and this 
+error appears to be a catchall for these sorts of failures. If you are 
+encountering this error, it is almost certainly not the fault of the 
+``tda-api`` library, but rather either an internal failure on TDA's side or a 
+failure in the logic of your own code. 
+
+That being said, there have been a number of situations where this error was 
+encountered, and this section attempts to record the resolution of these 
+failures. 
+
+
+~~~~~~~~~~~~~~~~~~~~~~~~
+Your Handler is Too Slow
+~~~~~~~~~~~~~~~~~~~~~~~~
+
+``tda-api`` cannot perform websocket message acknowledgement when your handler 
+code is running. As a result, if your handler code takes longer than the stream 
+update frequency, a backlog of unacknowledged messages will develop. TDA has 
+been observed to terminate connections when many messages are unacknowledged. 
+
+Fixing this is a task for the application developer: if you are writing to a 
+database or filesystem as part of your handler, consider profiling it to make 
+the write faster. You may also consider deferring your writes so that slow 
+operations don't happen in the hotpath of the message handler. 

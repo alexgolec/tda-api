@@ -11,6 +11,7 @@ import unittest
 
 
 API_KEY = 'APIKEY@AMER.OAUTHAP'
+MOCK_NOW = 1613745082
 
 
 class ClientFromTokenFileTest(unittest.TestCase):
@@ -42,7 +43,7 @@ class ClientFromTokenFileTest(unittest.TestCase):
 
         self.assertEqual('returned client',
                          auth.client_from_token_file(self.pickle_path, API_KEY))
-        client.assert_called_once_with(API_KEY, _)
+        client.assert_called_once_with(API_KEY, _, token_metadata=_)
         session.assert_called_once_with(
             API_KEY,
             token=self.token,
@@ -59,7 +60,7 @@ class ClientFromTokenFileTest(unittest.TestCase):
 
         self.assertEqual('returned client',
                          auth.client_from_token_file(self.json_path, API_KEY))
-        client.assert_called_once_with(API_KEY, _)
+        client.assert_called_once_with(API_KEY, _, token_metadata=_)
         session.assert_called_once_with(
             API_KEY,
             token=self.token,
@@ -81,7 +82,10 @@ class ClientFromTokenFileTest(unittest.TestCase):
         updated_token = {'updated': 'token'}
         update_token(updated_token)
         with open(self.json_path, 'r') as f:
-            self.assertEqual(json.load(f), updated_token)
+            self.assertEqual(json.load(f), {
+                'creation_timestamp': None,
+                'token': updated_token,
+            })
 
 
     @no_duplicates
@@ -94,7 +98,8 @@ class ClientFromTokenFileTest(unittest.TestCase):
 
         self.assertEqual('returned client',
                          auth.client_from_token_file(self.json_path, 'API_KEY'))
-        client.assert_called_once_with('API_KEY@AMER.OAUTHAP', _)
+        client.assert_called_once_with(
+                'API_KEY@AMER.OAUTHAP', _, token_metadata=_)
         session.assert_called_once_with(
             'API_KEY@AMER.OAUTHAP',
             token=self.token,
@@ -104,16 +109,19 @@ class ClientFromTokenFileTest(unittest.TestCase):
 
 class ClientFromAccessFunctionsTest(unittest.TestCase):
 
+
     @no_duplicates
     @patch('tda.auth.Client')
     @patch('tda.auth.OAuth2Client')
-    def test_success_with_write_func(self, session, client):
+    def test_success_with_write_func_legacy_token(self, session, client):
         token = {'token': 'yes'}
 
         token_read_func = MagicMock()
         token_read_func.return_value = token
 
-        token_write_func = MagicMock()
+        token_writes = []
+        def token_write_func(token):
+            token_writes.append(token)
 
         client.return_value = 'returned client'
         self.assertEqual('returned client',
@@ -132,9 +140,51 @@ class ClientFromAccessFunctionsTest(unittest.TestCase):
         # Verify that the write function is called when the updater is called
         session_call = session.mock_calls[0]
         update_token = session_call[2]['update_token']
-        token_write_func.assert_not_called()
-        update_token()
-        token_write_func.assert_called_once()
+
+        update_token(token)
+        self.assertEqual([{
+            'creation_timestamp': None,
+            'token': token,
+        }], token_writes)
+
+
+    @no_duplicates
+    @patch('tda.auth.Client')
+    @patch('tda.auth.OAuth2Client')
+    def test_success_with_write_func_metadata_aware_token(self, session, client):
+        token = {
+                'creation_timestamp': MOCK_NOW,
+                'token': {'token': 'yes'}
+        }
+
+        token_read_func = MagicMock()
+        token_read_func.return_value = token
+
+        token_writes = []
+        def token_write_func(token):
+            token_writes.append(token)
+
+        client.return_value = 'returned client'
+        self.assertEqual('returned client',
+                         auth.client_from_access_functions(
+                             'API_KEY@AMER.OAUTHAP',
+                             token_read_func,
+                             token_write_func))
+
+        session.assert_called_once_with(
+            'API_KEY@AMER.OAUTHAP',
+            token=token['token'],
+            token_endpoint=_,
+            update_token=_)
+        token_read_func.assert_called_once()
+
+        # Verify that the write function is called when the updater is called
+        session_call = session.mock_calls[0]
+        update_token = session_call[2]['update_token']
+
+        update_token(token['token'])
+        self.assertEqual([token], token_writes)
+
 
 
     @no_duplicates
@@ -181,6 +231,7 @@ class ClientFromLoginFlow(unittest.TestCase):
     @no_duplicates
     @patch('tda.auth.Client')
     @patch('tda.auth.OAuth2Client')
+    @patch('time.time', unittest.mock.MagicMock(return_value=MOCK_NOW))
     def test_no_token_file_https(self, session_constructor, client):
         AUTH_URL = 'https://auth.url.com'
 
@@ -201,12 +252,16 @@ class ClientFromLoginFlow(unittest.TestCase):
                              redirect_wait_time_seconds=0.0))
 
         with open(self.json_path, 'r') as f:
-            self.assertEqual(self.token, json.load(f))
+            self.assertEqual({
+                'creation_timestamp': MOCK_NOW,
+                'token': self.token,
+            }, json.load(f))
 
     @no_duplicates
     @patch('tda.auth.Client')
     @patch('tda.auth.OAuth2Client')
     @patch('builtins.print')
+    @patch('time.time', unittest.mock.MagicMock(return_value=MOCK_NOW))
     def test_no_token_file_http(self, print_func, session_constructor, client):
         AUTH_URL = 'https://auth.url.com'
 
@@ -229,13 +284,17 @@ class ClientFromLoginFlow(unittest.TestCase):
                              redirect_wait_time_seconds=0.0))
 
         with open(self.json_path, 'r') as f:
-            self.assertEqual(self.token, json.load(f))
+            self.assertEqual({
+                'creation_timestamp': MOCK_NOW,
+                'token': self.token,
+            }, json.load(f))
 
         print_func.assert_any_call(AnyStringWith('will transmit data over HTTP'))
 
     @no_duplicates
     @patch('tda.auth.Client')
     @patch('tda.auth.OAuth2Client')
+    @patch('time.time', unittest.mock.MagicMock(return_value=MOCK_NOW))
     def test_no_token_file_http_redirected_to_https(
             self, session_constructor, client):
         AUTH_URL = 'https://auth.url.com'
@@ -260,7 +319,10 @@ class ClientFromLoginFlow(unittest.TestCase):
                              redirect_wait_time_seconds=0.0))
 
         with open(self.json_path, 'r') as f:
-            self.assertEqual(self.token, json.load(f))
+            self.assertEqual({
+                'creation_timestamp': MOCK_NOW,
+                'token': self.token,
+            }, json.load(f))
 
     @no_duplicates
     @patch('tda.auth.Client')
@@ -316,6 +378,41 @@ class ClientFromLoginFlow(unittest.TestCase):
     @no_duplicates
     @patch('tda.auth.Client')
     @patch('tda.auth.OAuth2Client')
+    @patch('time.time', unittest.mock.MagicMock(return_value=MOCK_NOW))
+    def test_default_token_write_func(self, session_constructor, client):
+        AUTH_URL = 'https://auth.url.com'
+
+        session = MagicMock()
+        session_constructor.return_value = session
+        session.create_authorization_url.return_value = AUTH_URL, None
+        session.fetch_token.return_value = self.token
+
+        webdriver = MagicMock()
+        webdriver.current_url = REDIRECT_URL + '/token_params'
+
+        client.return_value = 'returned client'
+
+        self.assertEqual('returned client',
+                         auth.client_from_login_flow(
+                             webdriver, API_KEY, REDIRECT_URL,
+                             self.json_path,
+                             redirect_wait_time_seconds=0.0))
+
+        session_constructor.assert_called_with(
+                _, token=_, auto_refresh_url=_, auto_refresh_kwargs=_,
+                update_token=_)
+
+        with open(self.json_path, 'r') as f:
+            self.assertEqual({
+                'creation_timestamp': MOCK_NOW,
+                'token': self.token
+            }, json.load(f))
+
+
+    @no_duplicates
+    @patch('tda.auth.Client')
+    @patch('tda.auth.OAuth2Client')
+    @patch('time.time', unittest.mock.MagicMock(return_value=MOCK_NOW))
     def test_custom_token_write_func(self, session_constructor, client):
         AUTH_URL = 'https://auth.url.com'
 
@@ -329,8 +426,9 @@ class ClientFromLoginFlow(unittest.TestCase):
 
         client.return_value = 'returned client'
 
-        def dummy_token_write_func(*args, **kwargs):
-            pass
+        token_writes = []
+        def dummy_token_write_func(token):
+            token_writes.append(token)
 
         self.assertEqual('returned client',
                          auth.client_from_login_flow(
@@ -341,7 +439,12 @@ class ClientFromLoginFlow(unittest.TestCase):
 
         session_constructor.assert_called_with(
                 _, token=_, auto_refresh_url=_, auto_refresh_kwargs=_,
-                update_token=dummy_token_write_func)
+                update_token=_)
+
+        self.assertEqual([{
+            'creation_timestamp': MOCK_NOW,
+            'token': self.token
+        }], token_writes)
 
 
 class ClientFromManualFlow(unittest.TestCase):
@@ -355,8 +458,9 @@ class ClientFromManualFlow(unittest.TestCase):
     @no_duplicates
     @patch('tda.auth.Client')
     @patch('tda.auth.OAuth2Client')
-    @patch('tda.auth.input')
-    def test_no_token_file(self, input_func, session_constructor, client):
+    @patch('tda.auth.prompt')
+    @patch('time.time', unittest.mock.MagicMock(return_value=MOCK_NOW))
+    def test_no_token_file(self, prompt_func, session_constructor, client):
         AUTH_URL = 'https://auth.url.com'
 
         session = MagicMock()
@@ -365,20 +469,23 @@ class ClientFromManualFlow(unittest.TestCase):
         session.fetch_token.return_value = self.token
 
         client.return_value = 'returned client'
-        input_func.return_value = 'http://redirect.url.com/?data'
+        prompt_func.return_value = 'http://redirect.url.com/?data'
 
         self.assertEqual('returned client',
                          auth.client_from_manual_flow(
                              API_KEY, REDIRECT_URL, self.json_path))
 
         with open(self.json_path, 'r') as f:
-            self.assertEqual(self.token, json.load(f))
+            self.assertEqual({
+                'creation_timestamp': MOCK_NOW,
+                'token': self.token,
+            }, json.load(f))
 
     @no_duplicates
     @patch('tda.auth.Client')
     @patch('tda.auth.OAuth2Client')
-    @patch('tda.auth.input')
-    def test_normalize_api_key(self, input_func, session_constructor, client):
+    @patch('tda.auth.prompt')
+    def test_normalize_api_key(self, prompt_func, session_constructor, client):
         AUTH_URL = 'https://auth.url.com'
 
         session = MagicMock()
@@ -390,7 +497,7 @@ class ClientFromManualFlow(unittest.TestCase):
         webdriver.current_url = REDIRECT_URL + '/token_params'
 
         client.return_value = 'returned client'
-        input_func.return_value = 'http://redirect.url.com/?data'
+        prompt_func.return_value = 'http://redirect.url.com/?data'
 
         self.assertEqual('returned client',
                          auth.client_from_manual_flow(
@@ -404,8 +511,9 @@ class ClientFromManualFlow(unittest.TestCase):
     @no_duplicates
     @patch('tda.auth.Client')
     @patch('tda.auth.OAuth2Client')
-    @patch('tda.auth.input')
-    def test_custom_token_write_func(self, input_func, session_constructor, client):
+    @patch('tda.auth.prompt')
+    @patch('time.time', unittest.mock.MagicMock(return_value=MOCK_NOW))
+    def test_custom_token_write_func(self, prompt_func, session_constructor, client):
         AUTH_URL = 'https://auth.url.com'
 
         session = MagicMock()
@@ -417,10 +525,11 @@ class ClientFromManualFlow(unittest.TestCase):
         webdriver.current_url = REDIRECT_URL + '/token_params'
 
         client.return_value = 'returned client'
-        input_func.return_value = 'http://redirect.url.com/?data'
+        prompt_func.return_value = 'http://redirect.url.com/?data'
 
-        def dummy_token_write_func(*args, **kwargs):
-            pass
+        token_writes = []
+        def dummy_token_write_func(token):
+            token_writes.append(token)
 
         self.assertEqual('returned client',
                          auth.client_from_manual_flow(
@@ -430,16 +539,22 @@ class ClientFromManualFlow(unittest.TestCase):
 
         session_constructor.assert_called_with(
                 _, token=_, auto_refresh_url=_, auto_refresh_kwargs=_,
-                update_token=dummy_token_write_func)
+                update_token=_)
+
+        self.assertEqual([{
+            'creation_timestamp': MOCK_NOW,
+            'token': self.token
+        }], token_writes)
 
 
     @no_duplicates
     @patch('tda.auth.Client')
     @patch('tda.auth.OAuth2Client')
-    @patch('tda.auth.input')
+    @patch('tda.auth.prompt')
     @patch('builtins.print')
+    @patch('time.time', unittest.mock.MagicMock(return_value=MOCK_NOW))
     def test_print_warning_on_http_redirect_uri(
-            self, print_func, input_func, session_constructor, client):
+            self, print_func, prompt_func, session_constructor, client):
         AUTH_URL = 'https://auth.url.com'
 
         redirect_url = 'http://redirect.url.com'
@@ -450,14 +565,17 @@ class ClientFromManualFlow(unittest.TestCase):
         session.fetch_token.return_value = self.token
 
         client.return_value = 'returned client'
-        input_func.return_value = 'http://redirect.url.com/?data'
+        prompt_func.return_value = 'http://redirect.url.com/?data'
 
         self.assertEqual('returned client',
                          auth.client_from_manual_flow(
                              API_KEY, redirect_url, self.json_path))
 
         with open(self.json_path, 'r') as f:
-            self.assertEqual(self.token, json.load(f))
+            self.assertEqual({
+                'creation_timestamp': MOCK_NOW,
+                'token': self.token,
+            }, json.load(f))
 
         print_func.assert_any_call(AnyStringWith('will transmit data over HTTP'))
 
@@ -512,3 +630,39 @@ class EasyClientTest(unittest.TestCase):
 
         webdriver_func.assert_called_once()
         client_from_login_flow.assert_called_once()
+
+
+class TokenMetadataTest(unittest.TestCase):
+
+    @no_duplicates
+    def test_from_loaded_token_metadata_aware(self):
+        token = {
+            'creation_timestamp': MOCK_NOW,
+            'token': {'token': 'yes'}
+        }
+
+        self.assertTrue(auth.TokenMetadata.is_metadata_aware_token(token))
+        self.assertFalse(auth.TokenMetadata.is_legacy_token(token))
+
+        metadata = auth.TokenMetadata.from_loaded_token(token)
+        self.assertEqual(metadata.creation_timestamp, MOCK_NOW)
+
+    @no_duplicates
+    def test_from_loaded_token_legacy(self):
+        token = {'token': 'yes'}
+
+        self.assertFalse(auth.TokenMetadata.is_metadata_aware_token(token))
+        self.assertTrue(auth.TokenMetadata.is_legacy_token(token))
+
+        metadata = auth.TokenMetadata.from_loaded_token(token)
+        self.assertEqual(metadata.creation_timestamp, None)
+
+    @no_duplicates
+    def test_from_loaded_token_unrecognized_format(self):
+        token = {'creation_timestamp': 'yes'}
+
+        self.assertFalse(auth.TokenMetadata.is_metadata_aware_token(token))
+        self.assertFalse(auth.TokenMetadata.is_legacy_token(token))
+
+        metadata = auth.TokenMetadata.from_loaded_token(token)
+        self.assertEqual(metadata.creation_timestamp, None)

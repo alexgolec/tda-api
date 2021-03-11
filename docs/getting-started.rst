@@ -54,7 +54,7 @@ check out :ref:`contributing`.
 The recommended method of installing ``tda-api`` is using ``pip`` from
 `PyPi <https://pypi.org/project/tda-api/>`__ in a `virtualenv <https://
 virtualenv.pypa.io/en/latest/>`__. First create a virtualenv in your project 
-diretory. Here we assume your virtualenv is called ``my-venv``:
+directory. Here we assume your virtualenv is called ``my-venv``:
 
 .. code-block:: shell
 
