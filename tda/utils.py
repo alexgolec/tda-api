@@ -3,8 +3,14 @@ module.'''
 
 import datetime
 import dateutil.parser
+import enum
 import httpx
+import inspect
 import re
+
+
+def class_fullname(o):
+    return o.__module__ + '.' + o.__name__
 
 
 class EnumEnforcer:
@@ -12,11 +18,27 @@ class EnumEnforcer:
         self.enforce_enums = enforce_enums
 
     def type_error(self, value, required_enum_type):
+        possible_members_message = ''
+
+        if isinstance(value, str):
+            possible_members = []
+            for member in required_enum_type.__members__:
+                fullname = class_fullname(required_enum_type) + '.' + member
+                if value in fullname:
+                    possible_members.append(fullname)
+
+            # Oxford comma insertion
+            if possible_members:
+                possible_members_message = 'Did you mean ' + ', '.join(
+                    possible_members[:-2] + [' or '.join(
+                        possible_members[-2:])]) + '? '
+
         raise ValueError(
-            ('expected type "{}", got type "{}" (initialize with ' +
-             'enforce_enums=True to disable this checking)').format(
+            ('expected type "{}", got type "{}". {}(initialize with ' +
+             'enforce_enums=False to disable this checking)').format(
                 required_enum_type.__name__,
-                type(value).__name__))
+                type(value).__name__,
+                possible_members_message))
 
     def convert_enum(self, value, required_enum_type):
         if value is None:

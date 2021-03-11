@@ -1,9 +1,40 @@
 from unittest.mock import MagicMock
 from tda.utils import AccountIdMismatchException, Utils
 from tda.utils import UnsuccessfulOrderException
+from tda.utils import EnumEnforcer
 from .utils import no_duplicates, MockResponse
 
+import enum
 import unittest
+
+
+class EnumEnforcerTest(unittest.TestCase):
+
+    class TestClass(EnumEnforcer):
+        def test_enforcement(self, value):
+            self.convert_enum(value, EnumEnforcerTest.TestEnum)
+
+
+    class TestEnum(enum.Enum):
+        VALUE_1 = 1
+        VALUE_2 = 2
+
+
+    def test_valid_enum(self):
+        t = self.TestClass(enforce_enums=True)
+        t.test_enforcement(self.TestEnum.VALUE_1)
+
+    def test_invalid_enum_passed_as_string(self):
+        t = self.TestClass(enforce_enums=True)
+        with self.assertRaisesRegex(
+                ValueError, 'tests.utils_test.TestEnum.VALUE_1'):
+            t.test_enforcement('VALUE_1')
+
+    def test_invalid_enum_passed_as_not_string(self):
+        t = self.TestClass(enforce_enums=True)
+        with self.assertRaises(ValueError):
+            t.test_enforcement(123)
+
 
 class UtilsTest(unittest.TestCase):
 
