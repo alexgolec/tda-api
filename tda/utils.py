@@ -22,27 +22,6 @@ class EnumEnforcer:
     def __init__(self, enforce_enums):
         self.enforce_enums = enforce_enums
 
-    def _enum_fullnames_in_class(self, cls, value):
-        if cls is type:
-            return
-        for name in dir(cls):
-            if name == '__abstractmethods__':
-                continue
-
-            obj = getattr(cls, name)
-            if inspect.isclass(obj):
-                if issubclass(obj, enum.Enum):
-                    for member in obj.__members__:
-                        yield class_fullname(obj) + '.' + member
-
-                yield from self._enum_fullnames_in_class(obj, value)
-
-    def _possible_classes_for_input(self, cls, value):
-        for fullname in self._enum_fullnames_in_class(cls, value):
-            if value in fullname:
-                print(fullname)
-                yield(fullname)
-
     def type_error(self, value, required_enum_type):
         possible_members_message = ''
 
