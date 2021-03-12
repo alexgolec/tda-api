@@ -203,6 +203,30 @@ expect all their parameters to be of type ``OrderBuilder``. You can construct
 these orders using the templates above or by 
 :ref:`creating them from scratch <order_builder>`.
 
+Note that you do **not** construct composite orders by placing the constituent 
+orders and then passing the results to the utility methods: 
+
+.. code-block:: python
+
+  order_one = c.place_order(config.account_id, 
+                    option_buy_to_open_limit(trade_symbol, contracts, safety_ask)
+                    .set_duration(Duration.GOOD_TILL_CANCEL)
+                    .set_session(Session.NORMAL)
+                    .build())
+
+  order_two = c.place_order(config.account_id, 
+                    option_sell_to_close_limit(trade_symbol, half, double)
+                    .set_duration(Duration.GOOD_TILL_CANCEL)
+                    .set_session(Session.NORMAL)
+                    .build())
+
+  # THIS IS BAD, DO NOT DO THIS
+  exec_trade =  c.place_order(config.account_id, first_triggers_second(order_one, order_two))
+
+What's happening here is both constituent orders are being executed, and then 
+``place_order`` will fail. Creating an ``OrderBuilder`` defers their execution, 
+subject to your composite order rules. 
+
 **Note:** It appears that using these methods requires disabling Advanced 
 Features on your account. It is not entirely clear why this is the case, but 
 we've seen numerous reports of issues with OCO and trigger orders being resolved 
