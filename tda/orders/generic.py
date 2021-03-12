@@ -3,6 +3,8 @@ from enum import Enum
 from tda.orders import common
 from tda.utils import EnumEnforcer
 
+import httpx
+
 
 def _build_object(obj):
     # Literals are passed straight through
@@ -372,6 +374,12 @@ class OrderBuilder(EnumEnforcer):
 
     # ChildOrderStrategies
     def add_child_order_strategy(self, child_order_strategy):
+        if isinstance(child_order_strategy, httpx.Response):
+            raise ValueError(
+                    'Child order cannot be a response. See here for ' +
+                    'details: https://tda-api.readthedocs.io/en/latest/' +
+                    'order-templates.html#utility-methods')
+
         if (not isinstance(child_order_strategy, OrderBuilder)
                 and not isinstance(child_order_strategy, dict)):
             raise ValueError('child order must be OrderBuilder or dict')

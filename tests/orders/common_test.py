@@ -6,6 +6,7 @@ import unittest
 
 class MultiOrderTest(unittest.TestCase):
 
+    @no_duplicates
     def test_oco(self):
         self.assertFalse(has_diff({
             'orderStrategyType': 'OCO',
@@ -17,6 +18,7 @@ class MultiOrderTest(unittest.TestCase):
             OrderBuilder().set_session(Session.NORMAL),
             OrderBuilder().set_duration(Duration.DAY)).build()))
 
+    @no_duplicates
     def test_trigger(self):
         self.assertFalse(has_diff({
             'orderStrategyType': 'TRIGGER',
@@ -27,5 +29,3 @@ class MultiOrderTest(unittest.TestCase):
         }, first_triggers_second(
             OrderBuilder().set_session(Session.NORMAL),
             OrderBuilder().set_duration(Duration.DAY)).build()))
-
-
