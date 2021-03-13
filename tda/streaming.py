@@ -483,6 +483,35 @@ class StreamClient(EnumEnforcer):
                                                         self.AccountActivityFields))
 
     ##########################################################################
+    # ACTIVES_OTCBB
+
+    class ActivesFields(_BaseFieldEnum):
+        '''
+        `Official documentation <https://developer.tdameritrade.com/content/
+        streaming-data#_Toc504640583>`__
+        '''
+
+        #: Subscription key. Represented in the stream as the
+        #: ``key`` field.
+        SUBSCRIPTION_KEY = 0
+
+        #: Actives data
+        DATA = 1
+
+    async def actives_otcbb_subs(self, duration=60):
+        '''
+        Subscribe to the ACTIVES_OTCBB stream.
+        '''
+        await self._service_op(['OTCBB-'+str(duration)], 'ACTIVES_OTCBB', 'SUBS', self.ActivesFields, fields=self.ActivesFields.all_fields())
+
+    def add_actives_otcbb_handler(self, handler):
+        '''
+        Register a function to handle ACTIVES_OTCBB data as it is
+        updated See :ref:`registering_handlers` for details.
+        '''
+        self._handlers['ACTIVES_OTCBB'].append(_Handler(handler, self.ActivesFields))
+
+    ##########################################################################
     # CHART_EQUITY
 
     class ChartEquityFields(_BaseFieldEnum):
