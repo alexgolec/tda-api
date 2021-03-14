@@ -12,6 +12,15 @@ class EquityOrderBuilderLegacy(unittest.TestCase):
                 ImportError, 'EquityOrderBuilder has been deleted'):
             from tda.orders import EquityOrderBuilder
 
+    def test_other_import(self):
+        with self.assertRaisesRegex(ImportError, 'bogus'):
+            from tda.orders import bogus
+
+    def test_attribute_access(self):
+        with self.assertRaisesRegex(AttributeError, 'bogus'):
+            import tda
+            print(tda.orders.bogus)
+
 
 class BuilderTemplates(unittest.TestCase):
 

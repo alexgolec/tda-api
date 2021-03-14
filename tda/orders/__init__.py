@@ -13,3 +13,4 @@ def __getattr__(name):
                 'instead. See here for details: ' +
                 'https://tda-api.readthedocs.io/en/latest/' +
                 'order-templates.html#what-happened-to-equityorderbuilder')
+    raise AttributeError(name)
