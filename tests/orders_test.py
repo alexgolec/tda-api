@@ -5,6 +5,14 @@ from tda.orders.equities import *
 from .utils import has_diff, no_duplicates
 
 
+class EquityOrderBuilderLegacy(unittest.TestCase):
+
+    def test_import_EquityOrderBuilder(self):
+        with self.assertRaisesRegex(
+                ImportError, 'EquityOrderBuilder has been deleted'):
+            from tda.orders import EquityOrderBuilder
+
+
 class BuilderTemplates(unittest.TestCase):
 
     def test_equity_buy_market(self):
