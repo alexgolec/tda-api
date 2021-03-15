@@ -103,13 +103,8 @@ class StreamClient(EnumEnforcer):
         self._request_id = 0
         self._handlers = defaultdict(list)
 
-        # When listening for responses, we sometimes encounter non-response
-        # messages. Since this happens outside the context of the handler
-        # dispatcher, we cannot handle these messages. However, we still need to
-        # deliver these messages. This list records the messages that were read
-        # from the stream but not handled yet. Messages should be read from this
-        # list before they are read from the stream.
-        self._overflow_items = deque()
+        # List with requests waiting confirmation
+        self._pending_requests = {}
 
         # Logging-related fields
         self.logger = get_logger()
@@ -134,25 +129,18 @@ class StreamClient(EnumEnforcer):
             raise ValueError(
                 'Socket not open. Did you forget to call login()?')
 
-        if len(self._overflow_items) > 0:
-            ret = self._overflow_items.pop()
+        raw = await self._socket.recv()
+        try:
+            ret = json.loads(raw)
+        except json.decoder.JSONDecodeError as e:
+            msg = ('Failed to parse message. This often happens with ' +
+                    'unknown symbols or other error conditions. Full ' +
+                    'message text: ' + raw)
+            raise UnparsableMessage(raw, e, msg)
 
-            self.logger.debug(
-                'Receive {}: Returning message from overflow: {}'.format(
-                    self.req_num(), json.dumps(ret, indent=4)))
-        else:
-            raw = await self._socket.recv()
-            try:
-                ret = json.loads(raw)
-            except json.decoder.JSONDecodeError as e:
-                msg = ('Failed to parse message. This often happens with ' +
-                       'unknown symbols or other error conditions. Full ' +
-                       'message text: ' + raw)
-                raise UnparsableMessage(raw, e, msg)
-
-            self.logger.debug(
-                'Receive {}: Returning message from stream: {}'.format(
-                    self.req_num(), json.dumps(ret, indent=4)))
+        self.logger.debug(
+            'Receive {}: Returning message from stream: {}'.format(
+                self.req_num(), json.dumps(ret, indent=4)))
 
         return ret
 
@@ -217,60 +205,12 @@ class StreamClient(EnumEnforcer):
 
         return request, request_id
 
-    async def _await_response(self, request_id, service, command):
-        deferred_messages = []
-
-        # Context handler to ensure we always append the deferred messages,
-        # regardless of how we exit the await loop below
-        class WriteDeferredMessages:
-            def __init__(self, this_client):
-                self.this_client = this_client
-
-            def __enter__(self):
-                return self
-
-            def __exit__(self, exc_type, exc_val, exc_tb):
-                self.this_client._overflow_items.extendleft(deferred_messages)
-
-        with WriteDeferredMessages(self):
-            while True:
-                resp = await self._receive()
-
-                if 'response' not in resp:
-                    deferred_messages.append(resp)
-                    continue
-
-                # Validate request ID
-                resp_request_id = int(resp['response'][0]['requestid'])
-                if resp_request_id != request_id:
-                    raise UnexpectedResponse(
-                        resp, 'unexpected requestid: {}'.format(
-                            resp_request_id))
-
-                # Validate service
-                resp_service = resp['response'][0]['service']
-                if resp_service != service:
-                    raise UnexpectedResponse(
-                        resp, 'unexpected service: {}'.format(
-                            resp_service))
-
-                # Validate command
-                resp_command = resp['response'][0]['command']
-                if resp_command != command:
-                    raise UnexpectedResponse(
-                        resp, 'unexpected command: {}'.format(
-                            resp_command))
-
-                # Validate response code
-                resp_code = resp['response'][0]['content']['code']
-                if resp_code != 0:
-                    raise UnexpectedResponseCode(
-                        resp,
-                        'unexpected response code: {}, msg is \'{}\''.format(
-                            resp_code,
-                            resp['response'][0]['content']['msg']))
-
+    async def _await_response(self, request):
+        self._pending_requests[request['requestid']] = request
+        while True:
+            if not request['requestid'] in self._pending_requests:
                 break
+            await asyncio.sleep(0.1)
 
     async def _service_op(self, symbols, service, command, field_type,
                           *, fields=None):
@@ -285,14 +225,46 @@ class StreamClient(EnumEnforcer):
                 'fields': ','.join(str(f) for f in fields)})
 
         await self._send({'requests': [request]})
-        await self._await_response(request_id, service, command)
+        await self._await_response(request)
 
     async def handle_message(self):
         msg = await self._receive()
 
         # response
         if 'response' in msg:
-            raise UnexpectedResponse(msg)
+            # Validate request ID
+            resp_request_id = msg['response'][0]['requestid']
+            if not resp_request_id in self._pending_requests:
+                raise UnexpectedResponse(
+                    msg, 'unexpected requestid: {}'.format(
+                        resp_request_id))
+            
+            request = self._pending_requests[resp_request_id]
+
+            # Validate service
+            resp_service = msg['response'][0]['service']
+            if resp_service != request['service']:
+                raise UnexpectedResponse(
+                    msg, 'unexpected service: {}'.format(
+                        resp_service))
+
+            # Validate command
+            resp_command = msg['response'][0]['command']
+            if resp_command != request['command']:
+                raise UnexpectedResponse(
+                    msg, 'unexpected command: {}'.format(
+                        resp_command))
+
+            # Validate response code
+            resp_code = msg['response'][0]['content']['code']
+            if resp_code != 0:
+                raise UnexpectedResponseCode(
+                    msg,
+                    'unexpected response code: {}, msg is \'{}\''.format(
+                        resp_code,
+                        msg['response'][0]['content']['msg']))
+
+            del self._pending_requests[resp_request_id]
 
         # data
         if 'data' in msg:
@@ -385,7 +357,7 @@ class StreamClient(EnumEnforcer):
             parameters=request_parameters)
 
         await self._send({'requests': [request]})
-        await self._await_response(request_id, 'ADMIN', 'LOGIN')
+        await self._await_response(request)
 
     ##########################################################################
     # QOS
@@ -430,7 +402,7 @@ class StreamClient(EnumEnforcer):
             parameters={'qoslevel': qos_level})
 
         await self._send({'requests': [request]})
-        await self._await_response(request_id, 'ADMIN', 'QOS')
+        await self._await_response(request)
 
     ##########################################################################
     # ACCT_ACTIVITY
