@@ -14,12 +14,12 @@ __error_message = (
         'details: https://tda-api.readthedocs.io/en/latest/' +
         'order-templates.html#what-happened-to-equityorderbuilder')
 
-if sys.version_info[1] >= 7:  # pragma: no cover
+if sys.version_info[1] >= 7:
     def __getattr__(name):
         if name == 'EquityOrderBuilder':
             raise ImportError(__error_message)
         raise AttributeError(name)
-else:
+else:  # pragma: no cover
     class EquityOrderBuilder:
         def __init__(self, *args, **kwargs):
             raise NotImplementedError(globals()['__error_message'])
