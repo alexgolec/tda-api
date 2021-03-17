@@ -210,7 +210,7 @@ class StreamClient(EnumEnforcer):
         while True:
             if not request['requestid'] in self._pending_requests:
                 break
-            await asyncio.sleep(0.1)
+            await self.handle_message()
 
     async def _service_op(self, symbols, service, command, field_type,
                           *, fields=None):
@@ -355,6 +355,24 @@ class StreamClient(EnumEnforcer):
         request, request_id = self._make_request(
             service='ADMIN', command='LOGIN',
             parameters=request_parameters)
+
+        await self._send({'requests': [request]})
+        await self._await_response(request)
+
+    ##########################################################################
+    # LOGOUT
+
+    async def logout(self):
+        '''
+        `Official Documentation <https://developer.tdameritrade.com/content/
+        streaming-data#_Toc504640576>`__
+
+        Sends logout request, which gracefully closes the connection.
+        '''
+
+        request, request_id = self._make_request(
+            service='ADMIN', command='LOGOUT',
+            parameters={})
 
         await self._send({'requests': [request]})
         await self._await_response(request)
