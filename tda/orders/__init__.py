@@ -14,7 +14,7 @@ __error_message = (
         'details: https://tda-api.readthedocs.io/en/latest/' +
         'order-templates.html#what-happened-to-equityorderbuilder')
 
-if sys.version_info[1] >= 7:
+if sys.version_info[1] >= 7:  # pragma: no cover
     def __getattr__(name):
         if name == 'EquityOrderBuilder':
             raise ImportError(__error_message)
