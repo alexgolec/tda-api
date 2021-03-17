@@ -11,20 +11,27 @@ from unittest.mock import patch
 class EquityOrderBuilderLegacy(unittest.TestCase):
 
     def test_import_EquityOrderBuilder(self):
-        with self.assertRaisesRegex(
-                ImportError, 'EquityOrderBuilder has been deleted'):
+        import sys
+        assert sys.version_info[0] == 3
+
+        if sys.version_info[1] >= 7:
+            with self.assertRaisesRegex(
+                    ImportError, 'EquityOrderBuilder has been deleted'):
+                from tda.orders import EquityOrderBuilder
+
+    def test_import_EquityOrderBuilder_pre_3_7(self):
+        import sys
+        assert sys.version_info[0] == 3
+
+        if sys.version_info[1] < 7:
+            from tda import orders
+            imp.reload(orders)
+
             from tda.orders import EquityOrderBuilder
 
-    @patch('tda.orders.sys.version_info', (3, 6, 5))
-    def test_import_EquityOrderBuilder_pre_3_7(self):
-        from tda import orders
-        imp.reload(orders)
-
-        from tda.orders import EquityOrderBuilder
-
-        with self.assertRaisesRegex(NotImplementedError,
-                'EquityOrderBuilder has been deleted'):
-            EquityOrderBuilder('args')
+            with self.assertRaisesRegex(NotImplementedError,
+                    'EquityOrderBuilder has been deleted'):
+                EquityOrderBuilder('args')
 
     def test_other_import(self):
         with self.assertRaisesRegex(ImportError, 'bogus'):
