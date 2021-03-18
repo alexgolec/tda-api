@@ -99,10 +99,18 @@ Why should I use ``tda-api``?
 Why should I *not* use ``tda-api``?
 -----------------------------------
 
-Unfortunately, the TD Ameritrade API does not seem to expose any endpoints 
-around the `papermoney <https://tickertape.tdameritrade.com/tools/papermoney
--stock-market-simulator-16834>`__ simulated trading product. ``tda-api`` can 
-only be used to perform real trades using a TD Ameritrade account.
+As excellent as TD Ameritrade's API is, there are a few popular features it does 
+not offer: 
+
+ * Unfortunately, the TD Ameritrade API does not seem to expose any endpoints 
+   around the `papermoney <https://tickertape.tdameritrade.com/tools/papermoney
+   -stock-market-simulator-16834>`__ simulated trading product. ``tda-api`` can 
+   only be used to perform real trades using a TD Ameritrade account. Note: 
+   trades made through the API appear in thinkorswim and vice versa. 
+ * The API only supports trading in equities, mutual funds, ETFs, and options 
+   (both simple contracts and complex composite positions). Futures and futures 
+   options trading is not supported, although data is provided. 
+ * Historical options pricing data is not available. 
 
 What else?
 ----------
