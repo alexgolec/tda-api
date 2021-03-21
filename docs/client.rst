@@ -328,10 +328,8 @@ User Info and Preferences
 Watchlists
 ----------
 
-**Note**: Watchlists created using thinkorswim are separate from those created 
-using the TDAmeritrade mobile and web interfaces. ``tda-api``'s endpoints only 
-support watchlists created using TDAmeritrade, and cannot access those created 
-in thinkorswim.
+**Note**: These methods only support static watchlists, i.e. they cannot access 
+dynamic watchlists.
 
 .. automethod:: tda.client.Client.create_watchlist
 .. automethod:: tda.client.Client.delete_watchlist
