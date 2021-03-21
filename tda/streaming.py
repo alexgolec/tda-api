@@ -131,7 +131,7 @@ class StreamClient(EnumEnforcer):
 
         raw = await self._socket.recv()
         try:
-            ret = json.loads(raw)
+            ret = json.loads(raw.replace('\\\\', '\\'))
         except json.decoder.JSONDecodeError as e:
             msg = ('Failed to parse message. This often happens with ' +
                     'unknown symbols or other error conditions. Full ' +
