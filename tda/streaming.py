@@ -205,8 +205,9 @@ class StreamClient(EnumEnforcer):
 
         return request, request_id
 
-    async def _await_response(self, request):
+    async def _send_and_await_response(self, request):
         self._pending_requests[request['requestid']] = request
+        await self._send({'requests': [request]})
         while True:
             if not request['requestid'] in self._pending_requests:
                 break
@@ -224,8 +225,7 @@ class StreamClient(EnumEnforcer):
                 'keys': ','.join(symbols),
                 'fields': ','.join(str(f) for f in fields)})
 
-        await self._send({'requests': [request]})
-        await self._await_response(request)
+        await self._send_and_await_response(request)
 
     async def handle_message(self):
         msg = await self._receive()
@@ -356,8 +356,7 @@ class StreamClient(EnumEnforcer):
             service='ADMIN', command='LOGIN',
             parameters=request_parameters)
 
-        await self._send({'requests': [request]})
-        await self._await_response(request)
+        await self._send_and_await_response(request)
 
     ##########################################################################
     # LOGOUT
@@ -374,8 +373,7 @@ class StreamClient(EnumEnforcer):
             service='ADMIN', command='LOGOUT',
             parameters={})
 
-        await self._send({'requests': [request]})
-        await self._await_response(request)
+        await self._send_and_await_response(request)
 
     ##########################################################################
     # QOS
@@ -419,8 +417,7 @@ class StreamClient(EnumEnforcer):
             service='ADMIN', command='QOS',
             parameters={'qoslevel': qos_level})
 
-        await self._send({'requests': [request]})
-        await self._await_response(request)
+        await self._send_and_await_response(request)
 
     ##########################################################################
     # ACCT_ACTIVITY
