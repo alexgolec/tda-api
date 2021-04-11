@@ -99,6 +99,49 @@ class StreamClientTest(asynctest.TestCase):
         return socket
 
     ##########################################################################
+    # Custom JSON Parser
+
+
+    @asynctest.patch('tda.streaming.websockets.client.connect', new_callable=asynctest.CoroutineMock)
+    async def test_default_parser_invalid_message(self, ws_connect):
+        socket = await self.login_and_get_socket(ws_connect)
+
+        socket.recv.side_effect = ['invalid json']
+
+        # No custom parser
+        msg = ('Failed to parse message. This often happens with ' +
+               'unknown symbols or other error conditions. Full ' +
+               'message text:')
+        with self.assertRaisesRegex(tda.streaming.UnparsableMessage, msg):
+            await self.client.level_one_equity_subs(['GOOG', 'MSFT'])
+
+
+    @asynctest.patch('tda.streaming.websockets.client.connect', new_callable=asynctest.CoroutineMock)
+    async def test_custom_parser_invalid_message(self, ws_connect):
+        socket = await self.login_and_get_socket(ws_connect)
+
+        socket.recv.side_effect = ['invalid json']
+
+        class CustomJsonParser(tda.contrib.util.StreamJsonParser):
+            def parse_json_string(_, raw):
+                self.assertEqual(raw, 'invalid json')
+                return self.success_response(1, 'QUOTE', 'SUBS')
+
+        self.client.set_json_parser(CustomJsonParser())
+        await self.client.level_one_equity_subs(['GOOG', 'MSFT'])
+
+
+    @asynctest.patch('tda.streaming.websockets.client.connect', new_callable=asynctest.CoroutineMock)
+    async def test_custom_parser_wrong_type(self, ws_connect):
+        socket = await self.login_and_get_socket(ws_connect)
+
+        socket.recv.side_effect = ['invalid json']
+
+        with self.assertRaises(ValueError):
+            self.client.set_json_parser('')
+
+
+    ##########################################################################
     # Login
 
     @no_duplicates

@@ -115,6 +115,18 @@ class StreamClient(EnumEnforcer):
         self.logger = get_logger()
         self.request_number = 0
 
+        # Initialize the JSON parser to be the naive parser which directly calls 
+        # ``json.loads``
+        self.json_parser = tda.contrib.util.NaiveJsonStreamParser()
+
+
+    def set_json_parser(self, json_parser):
+        if not isinstance(json_parser, tda.contrib.util.StreamJsonParser):
+            raise ValueError('Custom JSON parser must be a subclass of ' +
+                    'tda.contrib.util.StreamJsonParser')
+        self.json_parser = json_parser
+
+
     def req_num(self):
         self.request_number += 1
         return self.request_number
@@ -143,7 +155,7 @@ class StreamClient(EnumEnforcer):
         else:
             raw = await self._socket.recv()
             try:
-                ret = json.loads(raw)
+                ret = self.json_parser.parse_json_string(raw)
             except json.decoder.JSONDecodeError as e:
                 msg = ('Failed to parse message. This often happens with ' +
                        'unknown symbols or other error conditions. Full ' +
