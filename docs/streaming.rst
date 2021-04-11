@@ -641,3 +641,11 @@ Fixing this is a task for the application developer: if you are writing to a
 database or filesystem as part of your handler, consider profiling it to make 
 the write faster. You may also consider deferring your writes so that slow 
 operations don't happen in the hotpath of the message handler. 
+
+
+---------------
+JSONDecodeError
+---------------
+
+This is an error that is most often raised when TDA sends an invalid JSON 
+string. See :ref:`custom_json_decoding` for details.

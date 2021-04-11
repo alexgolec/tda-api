@@ -99,7 +99,7 @@ class StreamClientTest(asynctest.TestCase):
         return socket
 
     ##########################################################################
-    # Custom JSON Parser
+    # Custom JSON Decoder
 
 
     @asynctest.patch('tda.streaming.websockets.client.connect', new_callable=asynctest.CoroutineMock)
@@ -122,12 +122,12 @@ class StreamClientTest(asynctest.TestCase):
 
         socket.recv.side_effect = ['invalid json']
 
-        class CustomJsonParser(tda.contrib.util.StreamJsonParser):
+        class CustomJsonDecoder(tda.contrib.util.StreamJsonDecoder):
             def parse_json_string(_, raw):
                 self.assertEqual(raw, 'invalid json')
                 return self.success_response(1, 'QUOTE', 'SUBS')
 
-        self.client.set_json_parser(CustomJsonParser())
+        self.client.set_json_decoder(CustomJsonDecoder())
         await self.client.level_one_equity_subs(['GOOG', 'MSFT'])
 
 
@@ -138,7 +138,7 @@ class StreamClientTest(asynctest.TestCase):
         socket.recv.side_effect = ['invalid json']
 
         with self.assertRaises(ValueError):
-            self.client.set_json_parser('')
+            self.client.set_json_decoder('')
 
 
     ##########################################################################

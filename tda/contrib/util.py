@@ -2,7 +2,7 @@ from abc import ABC, abstractmethod
 import json
 
 
-class StreamJsonParser(ABC):
+class StreamJsonDecoder(ABC):
     @abstractmethod
     def parse_json_string(self, raw):
         '''
@@ -12,6 +12,6 @@ class StreamJsonParser(ABC):
         raise NotImplementedError()
 
 
-class NaiveJsonStreamParser(StreamJsonParser):
+class NaiveJsonStreamDecoder(StreamJsonDecoder):
     def parse_json_string(self, raw):
         return json.loads(raw)
