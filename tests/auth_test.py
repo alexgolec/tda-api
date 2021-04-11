@@ -187,28 +187,6 @@ class ClientFromAccessFunctionsTest(unittest.TestCase):
 
 
 
-    @no_duplicates
-    @patch('tda.auth.Client')
-    @patch('tda.auth.OAuth2Client')
-    def test_success_no_write_func(self, session, client):
-        token = {'token': 'yes'}
-
-        token_read_func = MagicMock()
-        token_read_func.return_value = token
-
-        client.return_value = 'returned client'
-        self.assertEqual('returned client',
-                         auth.client_from_access_functions(
-                             'API_KEY@AMER.OAUTHAP',
-                             token_read_func))
-
-        session.assert_called_once_with(
-            'API_KEY@AMER.OAUTHAP',
-            token=token,
-            token_endpoint=_)
-        token_read_func.assert_called_once()
-
-
 REDIRECT_URL = 'https://redirect.url.com'
 
 

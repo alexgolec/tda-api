@@ -435,7 +435,7 @@ def easy_client(api_key, redirect_uri, token_path, webdriver_func=None,
 
 
 def client_from_access_functions(api_key, token_read_func,
-                                 token_write_func=None, asyncio=False):
+                                 token_write_func, asyncio=False):
     '''
     Returns a session from an existing token file, using the accessor methods to
     read and write the token. This is an advanced method for users who do not
@@ -456,10 +456,7 @@ def client_from_access_functions(api_key, token_read_func,
                             object.
     :param token_write_func: Function that a token object and writes it. Will be
                              called whenever the token is updated, such as when
-                             it is refreshed. Optional, but *highly*
-                             recommended. Note old tokens become unusable on
-                             refresh, so not setting this parameter risks
-                             permanently losing refreshed tokens.
+                             it is refreshed.
     '''
     logger = get_logger()
 
@@ -476,14 +473,12 @@ def client_from_access_functions(api_key, token_read_func,
     # Return a new session configured to refresh credentials
     api_key = __normalize_api_key(api_key)
 
+    wrapped_token_write_func = metadata.wrapped_token_write_func()
     session_kwargs = {
         'token': token,
         'token_endpoint': TOKEN_ENDPOINT,
+        'update_token': wrapped_token_write_func,
     }
-
-    if token_write_func is not None:
-        wrapped_token_write_func = metadata.wrapped_token_write_func()
-        session_kwargs['update_token'] = wrapped_token_write_func
 
     if asyncio:
         session_class = AsyncOAuth2Client
