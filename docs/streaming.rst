@@ -649,3 +649,27 @@ JSONDecodeError
 
 This is an error that is most often raised when TDA sends an invalid JSON 
 string. See :ref:`custom_json_decoding` for details.
+
+For reasons known only to TDAmeritrade's development team, the API occasionally 
+emits invalid stream messages for some endpoints. Because this issue does not 
+affect all endpoints, and because ``tda-api``'s authors are not in the business 
+of handling quirks of an API they don't control, the library simply passes these
+errors up to the user. 
+
+However, some applications cannot handle complete failure. What's more, some 
+users have insight into how to work around these decoder errors. The streaming 
+client supports setting a custom JSON decoder to help with this: 
+
+.. automethod:: tda.streaming.StreamClient.set_json_decoder
+
+Users are free to implement their own JSON decoders by subclassing the following 
+abstract base class: 
+
+.. autoclass:: tda.streaming::StreamJsonDecoder
+  :members:
+  :undoc-members:
+
+Users looking for an out-of-the-box solution can consider using the 
+community-maintained decoder described in :ref:`custom_json_decoding`. Note that 
+while this decoder is constantly improving, it is not guaranteed to solve 
+whatever JSON decoding errors your may be encountering. 

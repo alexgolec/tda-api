@@ -123,7 +123,7 @@ class StreamClientTest(asynctest.TestCase):
         socket.recv.side_effect = ['invalid json']
 
         class CustomJsonDecoder(tda.contrib.util.StreamJsonDecoder):
-            def parse_json_string(_, raw):
+            def decode_json_string(_, raw):
                 self.assertEqual(raw, 'invalid json')
                 return self.success_response(1, 'QUOTE', 'SUBS')
 

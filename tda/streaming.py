@@ -1,3 +1,4 @@
+from abc import ABC, abstractmethod
 from collections import defaultdict, deque
 from enum import Enum
 
@@ -13,6 +14,21 @@ import urllib.parse
 import websockets
 
 from .utils import EnumEnforcer
+
+
+class StreamJsonDecoder(ABC):
+    @abstractmethod
+    def decode_json_string(self, raw):
+        '''
+        Parse a JSON-formatted string into a proper object. Raises 
+        ``JSONDecodeError`` on parse failure.
+        '''
+        raise NotImplementedError()
+
+
+class NaiveJsonStreamDecoder(StreamJsonDecoder):
+    def decode_json_string(self, raw):
+        return json.loads(raw)
 
 
 def get_logger():
@@ -117,7 +133,7 @@ class StreamClient(EnumEnforcer):
 
         # Initialize the JSON parser to be the naive parser which directly calls 
         # ``json.loads``
-        self.json_decoder = tda.contrib.util.NaiveJsonStreamDecoder()
+        self.json_decoder = NaiveJsonStreamDecoder()
 
 
     def set_json_decoder(self, json_decoder):
@@ -162,7 +178,7 @@ class StreamClient(EnumEnforcer):
         else:
             raw = await self._socket.recv()
             try:
-                ret = self.json_decoder.parse_json_string(raw)
+                ret = self.json_decoder.decode_json_string(raw)
             except json.decoder.JSONDecodeError as e:
                 msg = ('Failed to parse message. This often happens with ' +
                        'unknown symbols or other error conditions. Full ' +

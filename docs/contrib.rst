@@ -25,30 +25,28 @@ discuss this or propose/request new additions, please join our `Discord server
 
 .. _custom_json_decoding:
 
+
 --------------------
 Custom JSON Decoding
 --------------------
 
-For reasons known only to TDAmeritrade's development team, the API occasionally 
-emits invalid stream responses for some endpoints. Because this issue does not 
-affect all endpoints, and because ``tda-api``'s authors are not in the business 
-of handling quirks of an API they don't control, the library simply passes these
-errors up to the user. 
+TDA's API occasionally emits invalid JSON in the stream. This class implements 
+all known workarounds and hacks to get around these quirks:
 
-However, some applications cannot handle complete failure. What's more, some 
-users have insight into how to work around these decoder errors. The streaming 
-client supports setting a custom JSON decoder to help with this: 
-
-.. automethod:: tda.streaming.StreamClient.set_json_decoder
-
-Although the ``contrib`` module currently only defines an abstract base class for
-these decoders, some users have expressed an interest in sharing their own 
-implementations. When this happens, we will update this module with those 
-implementations. Until then, the reader must implement their own decoder as a 
-subclass of the following abstract base class. If you have such a decoder and 
-would like to contribute it, please join our `Discord server
-<https://discord.gg/Ddha8cm6dx>`__:
-
-.. autoclass:: tda.contrib.util::StreamJsonDecoder
+.. autoclass:: tda.contrib.util::HeuristicJsonDecoder
   :members:
   :undoc-members:
+
+You can use it as follows: 
+
+.. code-block:: python
+
+  from tda.contrib.util import HeuristicJsonDecoder
+
+  stream_client = # ... create your stream
+  stream_client.set_json_decoder(HeuristicJsonDecoder())
+  # ... continue as normal
+
+If you encounter invalid stream items that are not fixed by using this decoder, 
+please let us know in our `Discord server <https://discord.gg/Ddha8cm6dx>`__ or 
+follow the guide in :ref:`contributing` to add new functionality.
