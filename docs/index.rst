@@ -26,6 +26,7 @@
   util
   example
   help
+  contrib
   contributing
 
 Indices and tables
