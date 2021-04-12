@@ -16,9 +16,12 @@ class HeuristicJsonDecoder(StreamJsonDecoder):
         stages.
         '''
 
+        # Note "no cover" pragmas are added pending addition of real-world test 
+        # cases which trigger this issue.
+
         try:
             return json.loads(raw)
         except json.decoder.JSONDecodeError:  # pragma: no cover
             raw = raw.replace('\\\\', '\\')
 
-        return json.loads(raw)
+        return json.loads(raw)  # pragma: no cover
