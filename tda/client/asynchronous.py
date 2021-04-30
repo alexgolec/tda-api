@@ -6,6 +6,9 @@ import json
 
 class AsyncClient(BaseClient):
 
+    async def close_async_session(self):
+        await self.session.aclose()
+
     async def _get_request(self, path, params):
         self.ensure_updated_refresh_token()
 
