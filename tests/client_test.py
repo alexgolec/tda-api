@@ -876,22 +876,6 @@ class _TestClient:
                          "from_date, got 'builtins.str'")
 
     
-    def test_get_option_chain_strike_from_date_date(self):
-        self.client.get_option_chain('AAPL', strike_from_date=NOW_DATE)
-        self.mock_session.get.assert_called_once_with(
-            self.make_url('/v1/marketdata/chains'), params={
-                'apikey': API_KEY,
-                'symbol': 'AAPL',
-                'fromDate': NOW_DATE_ISO})
-
-    def test_get_option_chain_strike_from_date_and_from_date(self):
-        with self.assertRaises(AssertionError) as err:
-            self.client.get_option_chain(
-                    'AAPL', strike_from_date=NOW_DATE, from_date=NOW_DATE)
-            self.assertEqual(str(err.exception),
-                    'strike_from_date and from_date cannot be set simultaneously')
-
-
     def test_get_option_chain_to_date_datetime(self):
         self.client.get_option_chain('AAPL', to_date=NOW_DATETIME)
         self.mock_session.get.assert_called_once_with(
@@ -918,23 +902,6 @@ class _TestClient:
                          "to_date, got 'builtins.str'")
 
     
-    def test_get_option_chain_strike_to_date_date(self):
-        self.client.get_option_chain('AAPL', strike_to_date=NOW_DATE)
-        self.mock_session.get.assert_called_once_with(
-            self.make_url('/v1/marketdata/chains'), params={
-                'apikey': API_KEY,
-                'symbol': 'AAPL',
-                'toDate': NOW_DATE_ISO})
-
-
-    def test_get_option_chain_strike_to_date_and_to_date(self):
-        with self.assertRaises(AssertionError) as err:
-            self.client.get_option_chain(
-                    'AAPL', strike_to_date=NOW_DATE, to_date=NOW_DATE)
-            self.assertEqual(str(err.exception),
-                    'strike_to_date and to_date cannot be set simultaneously')
-
-
     def test_get_option_chain_volatility(self):
         self.client.get_option_chain('AAPL', volatility=40.0)
         self.mock_session.get.assert_called_once_with(
