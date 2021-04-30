@@ -593,8 +593,6 @@ class BaseClient(EnumEnforcer):
             interval=None,
             strike=None,
             strike_range=None,
-            strike_from_date=None,
-            strike_to_date=None,
             from_date=None,
             to_date=None,
             volatility=None,
@@ -642,24 +640,6 @@ class BaseClient(EnumEnforcer):
         :param option_type: Types of options to return. See
                             :class:`Options.Type` for choices.
         '''
-        if strike_from_date:
-            warnings.warn(
-                'The strike_from_date argument is deprecated and will be ' +
-                'removed in a future version of tda-api. Please use ' +
-                'from_date instead.', Warning)
-            assert from_date is None, \
-                'strike_from_date and from_date cannot be set simultaneously'
-            from_date = strike_from_date
-
-        if strike_to_date:
-            warnings.warn(
-                'The strike_to_date argument is deprecated and will be ' +
-                'removed in a future version of tda-api. Please use ' +
-                'to_date instead.', Warning)
-            assert to_date is None, \
-                'strike_to_date and to_date cannot be set simultaneously'
-            to_date = strike_to_date
-
         contract_type = self.convert_enum(
             contract_type, self.Options.ContractType)
         strategy = self.convert_enum(strategy, self.Options.Strategy)
