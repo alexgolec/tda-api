@@ -1495,3 +1495,6 @@ class AsyncClientTest(_TestClient, unittest.TestCase):
     """
     client_class    = ResyncProxy(AsyncClient)
     magicmock_class = AsyncMagicMock
+
+    def test_async_close(self):
+        self.client.close_async_session()
