@@ -147,3 +147,4 @@ tags
 virtualenv
 
 docs-build/
+.idea/
