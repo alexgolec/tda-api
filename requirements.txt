@@ -13,4 +13,4 @@ pytz
 selenium
 sphinx_rtd_theme
 twine
-websockets
+websockets>=9.0.0
