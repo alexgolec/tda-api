@@ -35,7 +35,7 @@ setuptools.setup(
         'prompt_toolkit',
         'python-dateutil',
         'selenium', 
-        'websockets'],
+        'websockets>=9.0.0'],
     keywords='finance trading equities bonds options research',
     project_urls={
         'Documentation': 'https://tda-api.readthedocs.io/en/latest/',

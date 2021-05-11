@@ -11,7 +11,8 @@ import json
 import logging
 import tda
 import urllib.parse
-import websockets
+
+import websockets.legacy.client as ws_client
 
 from .utils import EnumEnforcer
 
@@ -229,10 +230,10 @@ class StreamClient(EnumEnforcer):
         wss_url = 'wss://{}/ws'.format(
             principals['streamerInfo']['streamerSocketUrl'])
         if self._ssl_context:
-            self._socket = await websockets.client.connect(
+            self._socket = await ws_client.connect(
                 wss_url, ssl=self._ssl_context)
         else:
-            self._socket = await websockets.client.connect(wss_url)
+            self._socket = await ws_client.connect(wss_url)
 
         # Initialize miscellaneous parameters
         self._source = principals['streamerInfo']['appId']
