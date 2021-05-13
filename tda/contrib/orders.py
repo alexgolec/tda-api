@@ -14,7 +14,7 @@ def _call_setters_with_values(order, builder, fields_and_setters):
         if enum_class:
             value = enum_class[value]
 
-        setter = getattr(builder, 'set_'+setter_name)
+        setter = getattr(builder, setter_name)
         setter(value)
 
 
@@ -23,30 +23,30 @@ def construct_repeat_order(historical_order):
 
     # Top-level fields
     _call_setters_with_values(historical_order, builder, (
-        ('session', 'session', tda.orders.common.Session),
-        ('duration', 'duration', tda.orders.common.Duration),
-        ('orderType', 'order_type', tda.orders.common.OrderType),
-        ('complexOrderStrategyType', 'complex_order_strategy_type',
+        ('session', 'set_session', tda.orders.common.Session),
+        ('duration', 'set_duration', tda.orders.common.Duration),
+        ('orderType', 'set_order_type', tda.orders.common.OrderType),
+        ('complexOrderStrategyType', 'set_complex_order_strategy_type',
             tda.orders.common.ComplexOrderStrategyType),
-        ('quantity', 'quantity', None),
-        ('requestedDestination', 'requested_destination',
+        ('quantity', 'set_quantity', None),
+        ('requestedDestination', 'set_requested_destination',
             tda.orders.common.Destination),
-        ('stopPrice', 'stop_price', None),
-        ('stopPriceLinkBasis', 'stop_price_link_basis',
+        ('stopPrice', 'copy_stop_price', None),
+        ('stopPriceLinkBasis', 'set_stop_price_link_basis',
             tda.orders.common.StopPriceLinkBasis),
-        ('stopPriceLinkType', 'stop_price_link_type',
+        ('stopPriceLinkType', 'set_stop_price_link_type',
             tda.orders.common.StopPriceLinkType),
-        ('stopPriceOffset', 'stop_price_offset', None),
-        ('stopType', 'stop_type', tda.orders.common.StopType),
-        ('priceLinkBasis', 'price_link_basis',
+        ('stopPriceOffset', 'set_stop_price_offset', None),
+        ('stopType', 'set_stop_type', tda.orders.common.StopType),
+        ('priceLinkBasis', 'set_price_link_basis',
             tda.orders.common.PriceLinkBasis),
-        ('priceLinkType', 'price_link_type',
+        ('priceLinkType', 'set_price_link_type',
             tda.orders.common.PriceLinkType),
-        ('price', 'price', None),
-        ('activationPrice', 'activation_price', None),
-        ('specialInstruction', 'special_instruction',
+        ('price', 'copy_price', None),
+        ('activationPrice', 'set_activation_price', None),
+        ('specialInstruction', 'set_special_instruction',
             tda.orders.common.SpecialInstruction),
-        ('orderStrategyType', 'order_strategy_type',
+        ('orderStrategyType', 'set_order_strategy_type',
             tda.orders.common.OrderStrategyType),
     ))
 

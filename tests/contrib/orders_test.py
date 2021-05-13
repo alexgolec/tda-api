@@ -82,6 +82,7 @@ class ConstructRepeatOrderTest(unittest.TestCase):
         }, indent=4, sort_keys=True),
         json.dumps(repeat_order.build(), indent=4, sort_keys=True))
 
+
     def test_limit_options_order(self):
         historical_order = json.loads('''{
             "session": "NORMAL",

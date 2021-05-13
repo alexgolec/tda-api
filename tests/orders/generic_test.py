@@ -220,6 +220,20 @@ class OrderBuilderTest(unittest.TestCase):
             'stopPrice': '2.00'
         }, self.order_builder.build()))
 
+    @no_duplicates
+    def test_copy_stop_price(self):
+        self.order_builder.copy_stop_price(2.00001)
+        self.assertFalse(has_diff({
+            'stopPrice': 2.00001
+        }, self.order_builder.build()))
+
+    @no_duplicates
+    def test_copy_stop_price_hopelessly_invalid(self):
+        self.order_builder.copy_stop_price(['hopelessly invalid'])
+        self.assertFalse(has_diff({
+            'stopPrice': ['hopelessly invalid']
+        }, self.order_builder.build()))
+
     ##########################################################################
     # StopPriceLinkBasis
 
@@ -414,6 +428,20 @@ class OrderBuilderTest(unittest.TestCase):
         self.order_builder.set_price(20.00000001)
         self.assertFalse(has_diff({
             'price': '20.00'
+        }, self.order_builder.build()))
+
+    @no_duplicates
+    def test_copy_price(self):
+        self.order_builder.copy_price(19.9999999)
+        self.assertFalse(has_diff({
+            'price': 19.9999999
+        }, self.order_builder.build()))
+
+    @no_duplicates
+    def test_copy_price_hopelessly_invalid(self):
+        self.order_builder.copy_price(['hopelessly invalid'])
+        self.assertFalse(has_diff({
+            'price': ['hopelessly invalid']
         }, self.order_builder.build()))
 
     ##########################################################################
