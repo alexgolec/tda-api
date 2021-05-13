@@ -63,4 +63,12 @@ def construct_repeat_order(historical_order):
                     leg['instrument']['symbol'],
                     leg['quantity'])
 
+    # First triggers second
+    if ('orderStrategyType' in historical_order
+            and historical_order['orderStrategyType'] == 'TRIGGER'):
+        builder = tda.orders.common.first_triggers_second(
+                builder, construct_repeat_order(
+                    historical_order['childOrderStrategies'][0]))
+
+
     return builder

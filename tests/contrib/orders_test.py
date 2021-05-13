@@ -210,7 +210,7 @@ class ConstructRepeatOrderTest(unittest.TestCase):
                 }
             ],
             "orderStrategyType": "SINGLE",
-            "orderId": 4399993298,
+            "orderId": 1919191919,
             "cancelable": false,
             "editable": false,
             "status": "FILLED",
@@ -283,6 +283,155 @@ class ConstructRepeatOrderTest(unittest.TestCase):
                     'symbol': 'SPY_060121C411'
                 },
                 'quantity': 1.0
+            }]
+        }, indent=4, sort_keys=True),
+        json.dumps(repeat_order.build(), indent=4, sort_keys=True))
+
+
+    def test_one_triggers_other(self):
+        historical_order = json.loads('''{
+            "session": "NORMAL",
+            "duration": "GOOD_TILL_CANCEL",
+            "orderType": "LIMIT",
+            "complexOrderStrategyType": "NONE",
+            "quantity": 2.0,
+            "filledQuantity": 2.0,
+            "remainingQuantity": 0.0,
+            "requestedDestination": "AUTO",
+            "destinationLinkName": "AutoRoute",
+            "price": 3.6,
+            "orderLegCollection": [
+                {
+                    "orderLegType": "OPTION",
+                    "legId": 1,
+                    "instrument": {
+                        "assetType": "OPTION",
+                        "cusip": "0AEO..HK10035000",
+                        "symbol": "AEO_082021C35",
+                        "description": "AEO AUG 20 2021 35.0 Call"
+                    },
+                    "instruction": "BUY_TO_OPEN",
+                    "positionEffect": "OPENING",
+                    "quantity": 2.0
+                }
+            ],
+            "orderStrategyType": "TRIGGER",
+            "orderId": 29292929,
+            "cancelable": false,
+            "editable": false,
+            "status": "FILLED",
+            "enteredTime": "2021-04-20T02:40:28+0000",
+            "closeTime": "2021-04-20T13:31:53+0000",
+            "accountId": 19191919,
+            "orderActivityCollection": [
+                {
+                    "activityType": "EXECUTION",
+                    "executionType": "FILL",
+                    "quantity": 2.0,
+                    "orderRemainingQuantity": 0.0,
+                    "executionLegs": [
+                        {
+                            "legId": 1,
+                            "quantity": 2.0,
+                            "mismarkedQuantity": 0.0,
+                            "price": 3.6,
+                            "time": "2021-04-20T13:31:53+0000"
+                        }
+                    ]
+                }
+            ],
+            "childOrderStrategies": [
+                {
+                    "session": "NORMAL",
+                    "duration": "GOOD_TILL_CANCEL",
+                    "orderType": "LIMIT",
+                    "complexOrderStrategyType": "NONE",
+                    "quantity": 2.0,
+                    "filledQuantity": 2.0,
+                    "remainingQuantity": 0.0,
+                    "requestedDestination": "NYSE",
+                    "destinationLinkName": "AutoRoute",
+                    "price": 3.7,
+                    "orderLegCollection": [
+                        {
+                            "orderLegType": "OPTION",
+                            "legId": 1,
+                            "instrument": {
+                                "assetType": "OPTION",
+                                "cusip": "0AEO..HK10035000",
+                                "symbol": "AEO_082021C35",
+                                "description": "AEO AUG 20 2021 35.0 Call"
+                            },
+                            "instruction": "SELL_TO_CLOSE",
+                            "positionEffect": "CLOSING",
+                            "quantity": 2.0
+                        }
+                    ],
+                    "orderStrategyType": "SINGLE",
+                    "orderId": 22992992,
+                    "cancelable": false,
+                    "editable": false,
+                    "status": "FILLED",
+                    "enteredTime": "2021-04-20T02:40:28+0000",
+                    "closeTime": "2021-04-29T15:02:53+0000",
+                    "accountId": 19191919,
+                    "orderActivityCollection": [
+                        {
+                            "activityType": "EXECUTION",
+                            "executionType": "FILL",
+                            "quantity": 2.0,
+                            "orderRemainingQuantity": 0.0,
+                            "executionLegs": [
+                                {
+                                    "legId": 1,
+                                    "quantity": 2.0,
+                                    "mismarkedQuantity": 0.0,
+                                    "price": 3.7,
+                                    "time": "2021-04-29T15:02:53+0000"
+                                }
+                            ]
+                        }
+                    ]
+                }
+            ]
+        }''')
+
+        repeat_order = construct_repeat_order(historical_order)
+
+        self.assertEquals(json.dumps({
+            'session': 'NORMAL',
+            'duration': 'GOOD_TILL_CANCEL',
+            'orderType': 'LIMIT',
+            'complexOrderStrategyType': 'NONE',
+            'quantity': 2.0,
+            'requestedDestination': 'AUTO',
+            'orderStrategyType': 'TRIGGER',
+            'price': 3.6,
+            'orderLegCollection': [{
+                'instruction': 'BUY_TO_OPEN',
+                'instrument': {
+                    'assetType': 'OPTION',
+                    'symbol': 'AEO_082021C35'
+                },
+                'quantity': 2.0,
+            }],
+            'childOrderStrategies': [{
+                'session': 'NORMAL',
+                'duration': 'GOOD_TILL_CANCEL',
+                'orderType': 'LIMIT',
+                'complexOrderStrategyType': 'NONE',
+                'quantity': 2.0,
+                'price': 3.7,
+                'requestedDestination': 'NYSE',
+                'orderStrategyType': 'SINGLE',
+                'orderLegCollection': [{
+                    'instruction': 'SELL_TO_CLOSE',
+                    'instrument': {
+                        'assetType': 'OPTION',
+                        'symbol': 'AEO_082021C35'
+                    },
+                    'quantity': 2.0,
+                }]
             }]
         }, indent=4, sort_keys=True),
         json.dumps(repeat_order.build(), indent=4, sort_keys=True))
