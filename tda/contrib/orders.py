@@ -50,25 +50,31 @@ def construct_repeat_order(historical_order):
             tda.orders.common.OrderStrategyType),
     ))
 
+    # Composite orders
+    if 'orderStrategyType' in historical_order:
+        if historical_order['orderStrategyType'] == 'TRIGGER':
+            builder = tda.orders.common.first_triggers_second(
+                    builder, construct_repeat_order(
+                        historical_order['childOrderStrategies'][0]))
+        elif historical_order['orderStrategyType'] == 'OCO':
+            builder = tda.orders.common.one_cancels_other(
+                    construct_repeat_order(
+                        historical_order['childOrderStrategies'][0]),
+                    construct_repeat_order(
+                        historical_order['childOrderStrategies'][1]))
+
     # Order legs
-    for leg in historical_order['orderLegCollection']:
-        if leg['orderLegType'] == 'EQUITY':
-            builder.add_equity_leg(
-                    tda.orders.common.EquityInstruction[leg['instruction']],
-                    leg['instrument']['symbol'],
-                    leg['quantity'])
-        elif leg['orderLegType'] == 'OPTION':
-            builder.add_option_leg(
-                    tda.orders.common.OptionInstruction[leg['instruction']],
-                    leg['instrument']['symbol'],
-                    leg['quantity'])
-
-    # First triggers second
-    if ('orderStrategyType' in historical_order
-            and historical_order['orderStrategyType'] == 'TRIGGER'):
-        builder = tda.orders.common.first_triggers_second(
-                builder, construct_repeat_order(
-                    historical_order['childOrderStrategies'][0]))
-
+    if 'orderLegCollection' in historical_order:
+        for leg in historical_order['orderLegCollection']:
+            if leg['orderLegType'] == 'EQUITY':
+                builder.add_equity_leg(
+                        tda.orders.common.EquityInstruction[leg['instruction']],
+                        leg['instrument']['symbol'],
+                        leg['quantity'])
+            elif leg['orderLegType'] == 'OPTION':
+                builder.add_option_leg(
+                        tda.orders.common.OptionInstruction[leg['instruction']],
+                        leg['instrument']['symbol'],
+                        leg['quantity'])
 
     return builder

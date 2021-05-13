@@ -435,3 +435,174 @@ class ConstructRepeatOrderTest(unittest.TestCase):
             }]
         }, indent=4, sort_keys=True),
         json.dumps(repeat_order.build(), indent=4, sort_keys=True))
+
+    def test_oco_inside_oto(self):
+        historical_order = json.loads('''{
+            "session": "NORMAL",
+            "duration": "DAY",
+            "orderType": "LIMIT",
+            "complexOrderStrategyType": "NONE",
+            "quantity": 1.0,
+            "filledQuantity": 0.0,
+            "remainingQuantity": 1.0,
+            "requestedDestination": "AUTO",
+            "destinationLinkName": "AutoRoute",
+            "price": 2.71,
+            "orderLegCollection": [
+                {
+                    "orderLegType": "OPTION",
+                    "legId": 1,
+                    "instrument": {
+                        "assetType": "OPTION",
+                        "cusip": "0BIGC.JF10060000",
+                        "symbol": "BIGC_101521C60",
+                        "description": "BIGC OCT 15 2021 60.0 Call"
+                    },
+                    "instruction": "BUY_TO_OPEN",
+                    "positionEffect": "OPENING",
+                    "quantity": 1.0
+                }
+            ],
+            "orderStrategyType": "TRIGGER",
+            "orderId": 4403477551,
+            "cancelable": true,
+            "editable": false,
+            "status": "QUEUED",
+            "enteredTime": "2021-05-13T03:12:54+0000",
+            "accountId": 123123123,
+            "childOrderStrategies": [
+                {
+                    "orderStrategyType": "OCO",
+                    "orderId": 4403477554,
+                    "cancelable": true,
+                    "editable": false,
+                    "accountId": 123123123,
+                    "childOrderStrategies": [
+                        {
+                            "session": "NORMAL",
+                            "duration": "DAY",
+                            "orderType": "LIMIT",
+                            "complexOrderStrategyType": "NONE",
+                            "quantity": 1.0,
+                            "filledQuantity": 0.0,
+                            "remainingQuantity": 1.0,
+                            "requestedDestination": "AUTO",
+                            "destinationLinkName": "AutoRoute",
+                            "orderLegCollection": [
+                                {
+                                    "orderLegType": "OPTION",
+                                    "legId": 1,
+                                    "instrument": {
+                                        "assetType": "OPTION",
+                                        "cusip": "0BIGC.JF10060000",
+                                        "symbol": "BIGC_101521C60",
+                                        "description": "BIGC OCT 15 2021 60.0 Call"
+                                    },
+                                    "instruction": "SELL_TO_CLOSE",
+                                    "positionEffect": "CLOSING",
+                                    "quantity": 1.0
+                                }
+                            ],
+                            "orderStrategyType": "SINGLE",
+                            "orderId": 4403477553,
+                            "cancelable": true,
+                            "editable": false,
+                            "status": "ACCEPTED",
+                            "enteredTime": "2021-05-13T03:12:54+0000",
+                            "accountId": 12312312
+                        },
+                        {
+                            "session": "NORMAL",
+                            "duration": "DAY",
+                            "orderType": "STOP",
+                            "complexOrderStrategyType": "NONE",
+                            "quantity": 1.0,
+                            "filledQuantity": 0.0,
+                            "remainingQuantity": 1.0,
+                            "requestedDestination": "AUTO",
+                            "destinationLinkName": "AutoRoute",
+                            "orderLegCollection": [
+                                {
+                                    "orderLegType": "OPTION",
+                                    "legId": 1,
+                                    "instrument": {
+                                        "assetType": "OPTION",
+                                        "cusip": "0BIGC.JF10060000",
+                                        "symbol": "BIGC_101521C60",
+                                        "description": "BIGC OCT 15 2021 60.0 Call"
+                                    },
+                                    "instruction": "SELL_TO_CLOSE",
+                                    "positionEffect": "CLOSING",
+                                    "quantity": 1.0
+                                }
+                            ],
+                            "orderStrategyType": "SINGLE",
+                            "orderId": 4403477554,
+                            "cancelable": true,
+                            "editable": false,
+                            "status": "ACCEPTED",
+                            "enteredTime": "2021-05-13T03:12:54+0000",
+                            "accountId": 488435533
+                        }
+                    ]
+                }
+            ]
+        }''')
+
+        repeat_order = construct_repeat_order(historical_order)
+
+        self.assertEquals(json.dumps({
+            'session': 'NORMAL',
+            'duration': 'DAY',
+            'orderType': 'LIMIT',
+            'complexOrderStrategyType': 'NONE',
+            'quantity': 1.0,
+            'requestedDestination': 'AUTO',
+            'orderStrategyType': 'TRIGGER',
+            'price': 2.71,
+            'orderLegCollection': [{
+                'instruction': 'BUY_TO_OPEN',
+                'instrument': {
+                    'assetType': 'OPTION',
+                    'symbol': 'BIGC_101521C60'
+                },
+                'quantity': 1.0,
+            }],
+            'childOrderStrategies': [{
+                'orderStrategyType': 'OCO',
+                'childOrderStrategies': [{
+                    'session': 'NORMAL',
+                    'duration': 'DAY',
+                    'orderType': 'LIMIT',
+                    'complexOrderStrategyType': 'NONE',
+                    'quantity': 1.0,
+                    'requestedDestination': 'AUTO',
+                    'orderStrategyType': 'SINGLE',
+                    'orderLegCollection': [{
+                        'instruction': 'SELL_TO_CLOSE',
+                        'instrument': {
+                            'assetType': 'OPTION',
+                            'symbol': 'BIGC_101521C60',
+                        },
+                        'quantity': 1.0,
+                    }]
+                }, {
+                    'session': 'NORMAL',
+                    'duration': 'DAY',
+                    'orderType': 'STOP',
+                    'complexOrderStrategyType': 'NONE',
+                    'quantity': 1.0,
+                    'requestedDestination': 'AUTO',
+                    'orderStrategyType': 'SINGLE',
+                    'orderLegCollection': [{
+                        'instruction': 'SELL_TO_CLOSE',
+                        'instrument': {
+                            'assetType': 'OPTION',
+                            'symbol': 'BIGC_101521C60',
+                        },
+                        'quantity': 1.0,
+                    }]
+                }]
+            }]
+        }, indent=4, sort_keys=True),
+        json.dumps(repeat_order.build(), indent=4, sort_keys=True))
