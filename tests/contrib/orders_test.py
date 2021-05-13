@@ -83,6 +83,121 @@ class ConstructRepeatOrderTest(unittest.TestCase):
         json.dumps(repeat_order.build(), indent=4, sort_keys=True))
 
 
+    def test_missing_orderStrategyType(self):
+        historical_order = json.loads('''{
+            "session": "NORMAL",
+            "duration": "DAY",
+            "orderType": "MARKET",
+            "complexOrderStrategyType": "NONE",
+            "quantity": 1.0,
+            "filledQuantity": 1.0,
+            "remainingQuantity": 0.0,
+            "requestedDestination": "AUTO",
+            "destinationLinkName": "NITE",
+            "orderLegCollection": [
+                {
+                    "orderLegType": "EQUITY",
+                    "legId": 1,
+                    "instrument": {
+                        "assetType": "EQUITY",
+                        "cusip": "1234567890",
+                        "symbol": "FAKE"
+                    },
+                    "instruction": "BUY",
+                    "positionEffect": "OPENING",
+                    "quantity": 1.0
+                }
+            ],
+            "orderId": 987654321,
+            "cancelable": false,
+            "editable": false,
+            "status": "FILLED",
+            "enteredTime": "2021-01-01T12:01:00+0000",
+            "closeTime": "2021-01-01T12:01:01+0000",
+            "tag": "tag",
+            "accountId": 19191919,
+            "orderActivityCollection": [
+                {
+                    "activityType": "EXECUTION",
+                    "executionType": "FILL",
+                    "quantity": 1.0,
+                    "orderRemainingQuantity": 0.0,
+                    "executionLegs": [
+                        {
+                            "legId": 1,
+                            "quantity": 1.0,
+                            "mismarkedQuantity": 0.0,
+                            "price": 999.99,
+                            "time": "2021-01-01T12:01:01+0000"
+                        }
+                    ]
+                }
+            ]
+        }''')
+
+        with self.assertRaises(ValueError,
+                msg='historical order is missing orderStrategyType'):
+            construct_repeat_order(historical_order)
+
+
+    def test_unknown_orderLegType(self):
+        historical_order = json.loads('''{
+            "session": "NORMAL",
+            "duration": "DAY",
+            "orderType": "MARKET",
+            "complexOrderStrategyType": "NONE",
+            "quantity": 1.0,
+            "filledQuantity": 1.0,
+            "remainingQuantity": 0.0,
+            "requestedDestination": "AUTO",
+            "destinationLinkName": "NITE",
+            "orderLegCollection": [
+                {
+                    "orderLegType": "BOGUS",
+                    "legId": 1,
+                    "instrument": {
+                        "assetType": "EQUITY",
+                        "cusip": "1234567890",
+                        "symbol": "FAKE"
+                    },
+                    "instruction": "BUY",
+                    "positionEffect": "OPENING",
+                    "quantity": 1.0
+                }
+            ],
+            "orderStrategyType": "SINGLE",
+            "orderId": 987654321,
+            "cancelable": false,
+            "editable": false,
+            "status": "FILLED",
+            "enteredTime": "2021-01-01T12:01:00+0000",
+            "closeTime": "2021-01-01T12:01:01+0000",
+            "tag": "tag",
+            "accountId": 19191919,
+            "orderActivityCollection": [
+                {
+                    "activityType": "EXECUTION",
+                    "executionType": "FILL",
+                    "quantity": 1.0,
+                    "orderRemainingQuantity": 0.0,
+                    "executionLegs": [
+                        {
+                            "legId": 1,
+                            "quantity": 1.0,
+                            "mismarkedQuantity": 0.0,
+                            "price": 999.99,
+                            "time": "2021-01-01T12:01:01+0000"
+                        }
+                    ]
+                }
+            ]
+        }''')
+
+        with self.assertRaises(ValueError,
+                msg='unknown orderLegType'):
+            construct_repeat_order(historical_order)
+
+
     def test_limit_options_order(self):
         historical_order = json.loads('''{
             "session": "NORMAL",

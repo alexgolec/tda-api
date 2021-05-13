@@ -62,6 +62,8 @@ def construct_repeat_order(historical_order):
                         historical_order['childOrderStrategies'][0]),
                     construct_repeat_order(
                         historical_order['childOrderStrategies'][1]))
+    else:
+        raise ValueError('historical order is missing orderStrategyType')
 
     # Order legs
     if 'orderLegCollection' in historical_order:
@@ -76,5 +78,8 @@ def construct_repeat_order(historical_order):
                         tda.orders.common.OptionInstruction[leg['instruction']],
                         leg['instrument']['symbol'],
                         leg['quantity'])
+            else:
+                raise ValueError(
+                        'unknown orderLegType {}'.format(leg['orderLegType']))
 
     return builder
