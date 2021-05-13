@@ -189,6 +189,14 @@ class OrderBuilder(EnumEnforcer):
             self._stopPrice = truncate_float(stop_price)
         return self
 
+    def copy_stop_price(self, stop_price):
+        '''
+        Directly set the stop price, avoiding all the validation and truncation
+        logic from :func:`set_stop_price`.
+        '''
+        self._stopPrice = stop_price
+        return self
+
     def clear_stop_price(self):
         '''
         Clear the stop price.
@@ -310,6 +318,14 @@ class OrderBuilder(EnumEnforcer):
             self._price = price
         else:
             self._price = truncate_float(price)
+        return self
+
+    def copy_price(self, price):
+        '''
+        Directly set the stop price, avoiding all the validation and truncation
+        logic from :func:`set_price`.
+        '''
+        self._price = price
         return self
 
     def clear_price(self):

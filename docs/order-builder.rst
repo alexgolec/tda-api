@@ -289,6 +289,7 @@ process by passing your price as a string, although be forewarned that
 TDAmeritrade may reject your order or even interpret it in unexpected ways. 
 
 .. automethod:: tda.orders.generic.OrderBuilder.set_price
+.. automethod:: tda.orders.generic.OrderBuilder.copy_price
 .. automethod:: tda.orders.generic.OrderBuilder.clear_price
 
 
@@ -457,6 +458,7 @@ these fields at their own risk.
 
 
 .. automethod:: tda.orders.generic.OrderBuilder.set_stop_price
+.. automethod:: tda.orders.generic.OrderBuilder.copy_stop_price
 .. automethod:: tda.orders.generic.OrderBuilder.clear_stop_price
 
 .. autoclass:: tda.orders.common::StopPriceLinkBasis
