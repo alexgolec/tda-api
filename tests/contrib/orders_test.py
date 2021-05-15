@@ -1,12 +1,28 @@
 import json
 import unittest
 
-from tda.contrib.orders import construct_repeat_order
+from tda.contrib.orders import construct_repeat_order, GenericBuilderAST
 
 class ConstructRepeatOrderTest(unittest.TestCase):
 
     def setUp(self):
         self.maxDiff = None
+
+    def assertBuilder(self, expected_json, builder):
+        self.assertEquals(
+                json.dumps(expected_json, indent=4, sort_keys=True),
+                json.dumps(builder.build(), indent=4, sort_keys=True))
+
+        code = GenericBuilderAST(builder).render('test_builder')
+        globalz = {}
+        print(code)
+        exec(code, globalz)
+
+        self.assertEquals(
+                json.dumps(expected_json, indent=4, sort_keys=True),
+                json.dumps(
+                    globalz['test_builder'].build(), indent=4, sort_keys=True))
+
 
     def test_market_equity_order(self):
         historical_order = json.loads('''{
@@ -63,7 +79,7 @@ class ConstructRepeatOrderTest(unittest.TestCase):
 
         repeat_order = construct_repeat_order(historical_order)
 
-        self.assertEquals(json.dumps({
+        self.assertBuilder({
             'session': 'NORMAL',
             'duration': 'DAY',
             'orderType': 'MARKET',
@@ -79,8 +95,7 @@ class ConstructRepeatOrderTest(unittest.TestCase):
                 },
                 'quantity': 1.0
             }]
-        }, indent=4, sort_keys=True),
-        json.dumps(repeat_order.build(), indent=4, sort_keys=True))
+        }, repeat_order)
 
 
     def test_missing_orderStrategyType(self):
@@ -250,7 +265,7 @@ class ConstructRepeatOrderTest(unittest.TestCase):
 
         repeat_order = construct_repeat_order(historical_order)
 
-        self.assertEquals(json.dumps({
+        self.assertBuilder({
             'session': 'NORMAL',
             'duration': 'DAY',
             'orderType': 'LIMIT',
@@ -267,8 +282,7 @@ class ConstructRepeatOrderTest(unittest.TestCase):
                 },
                 'quantity': 1.0
             }]
-        }, indent=4, sort_keys=True),
-        json.dumps(repeat_order.build(), indent=4, sort_keys=True))
+        }, repeat_order)
 
 
     def test_complex_options_order(self):
@@ -368,7 +382,7 @@ class ConstructRepeatOrderTest(unittest.TestCase):
 
         repeat_order = construct_repeat_order(historical_order)
 
-        self.assertEquals(json.dumps({
+        self.assertBuilder({
             'session': 'NORMAL',
             'duration': 'DAY',
             'orderType': 'NET_DEBIT',
@@ -399,8 +413,7 @@ class ConstructRepeatOrderTest(unittest.TestCase):
                 },
                 'quantity': 1.0
             }]
-        }, indent=4, sort_keys=True),
-        json.dumps(repeat_order.build(), indent=4, sort_keys=True))
+        }, repeat_order)
 
 
     def test_one_triggers_other(self):
@@ -513,7 +526,7 @@ class ConstructRepeatOrderTest(unittest.TestCase):
 
         repeat_order = construct_repeat_order(historical_order)
 
-        self.assertEquals(json.dumps({
+        self.assertBuilder({
             'session': 'NORMAL',
             'duration': 'GOOD_TILL_CANCEL',
             'orderType': 'LIMIT',
@@ -548,8 +561,7 @@ class ConstructRepeatOrderTest(unittest.TestCase):
                     'quantity': 2.0,
                 }]
             }]
-        }, indent=4, sort_keys=True),
-        json.dumps(repeat_order.build(), indent=4, sort_keys=True))
+        }, repeat_order)
 
     def test_oco_inside_oto(self):
         historical_order = json.loads('''{
@@ -666,7 +678,7 @@ class ConstructRepeatOrderTest(unittest.TestCase):
 
         repeat_order = construct_repeat_order(historical_order)
 
-        self.assertEquals(json.dumps({
+        self.assertBuilder({
             'session': 'NORMAL',
             'duration': 'DAY',
             'orderType': 'LIMIT',
@@ -719,5 +731,6 @@ class ConstructRepeatOrderTest(unittest.TestCase):
                     }]
                 }]
             }]
-        }, indent=4, sort_keys=True),
-        json.dumps(repeat_order.build(), indent=4, sort_keys=True))
+        }, repeat_order)
+
+        assert False
