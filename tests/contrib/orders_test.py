@@ -1,7 +1,8 @@
 import json
 import unittest
+import sys
 
-from tda.contrib.orders import construct_repeat_order, GenericBuilderAST
+from tda.contrib.orders import construct_repeat_order, code_for_builder
 
 class ConstructRepeatOrderTest(unittest.TestCase):
 
@@ -13,10 +14,21 @@ class ConstructRepeatOrderTest(unittest.TestCase):
                 json.dumps(expected_json, indent=4, sort_keys=True),
                 json.dumps(builder.build(), indent=4, sort_keys=True))
 
-        code = GenericBuilderAST(builder).render('test_builder')
+        code = code_for_builder(builder, 'test_builder')
         globalz = {}
-        print(code)
-        exec(code, globalz)
+        split_code = code.split('\n')
+        line_format = (
+                ' {' + ':{}d'.format(len(str(len(split_code)))) + '}   {}')
+        print('Generated code:')
+        print()
+        print('\n'.join(line_format.format(line_num + 1, line)
+            for line_num, line in enumerate(split_code)))
+        try:
+            exec(code, globalz)
+        except SyntaxError as e:
+            print()
+            print(e)
+            assert False, 'Syntax error from generated code'
 
         self.assertEquals(
                 json.dumps(expected_json, indent=4, sort_keys=True),
@@ -732,5 +744,3 @@ class ConstructRepeatOrderTest(unittest.TestCase):
                 }]
             }]
         }, repeat_order)
-
-        assert False
