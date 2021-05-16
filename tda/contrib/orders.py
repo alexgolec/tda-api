@@ -103,6 +103,42 @@ def construct_repeat_order(historical_order):
 # AST generation
 
 
+def code_for_builder(builder, var_name=None):
+    '''
+    Returns code that can be executed to construct the given builder, including
+    import statements.
+
+    :param builder: :class:`~tda.orders.generic.OrderBuilder` to generate.
+    :param var_name: If set, emit code that assigns the builder to a variable
+                     with this name.
+    '''
+    ast = construct_order_ast(builder)
+
+    imports = defaultdict(set)
+    lines = []
+    ast.render(imports, lines)
+
+    import_lines = []
+    for module, names in imports.items():
+        line = 'from {} import {}'.format(
+                module, ', '.join(names))
+        if len(line) > 80:
+            line = 'from {} import (\n{}\n)'.format(
+                    module, ',\n'.join(names))
+        import_lines.append(line)
+
+    if var_name:
+        var_prefix = f'{var_name} = '
+    else:
+        var_prefix = ''
+
+    return autopep8.fix_code(
+            '\n'.join(import_lines) + 
+            '\n\n' +
+            var_prefix +
+            '\n'.join(lines))
+
+
 class FirstTriggersSecondAST:
     def __init__(self, first, second):
         self.first = first
@@ -215,39 +251,3 @@ def construct_order_ast(builder):
                 construct_order_ast(builder._childOrderStrategies[0]))
     else:
         return GenericBuilderAST(builder)
-
-
-def code_for_builder(builder, var_name=None):
-    '''
-    Returns code that can be executed to construct the given builder, including
-    import statements.
-
-    :param builder: :class:`~tda.orders.generic.OrderBuilder` to generate.
-    :param var_name: If set, emit code that assigns the builder to a variable
-                     with this name.
-    '''
-    ast = construct_order_ast(builder)
-
-    imports = defaultdict(set)
-    lines = []
-    ast.render(imports, lines)
-
-    import_lines = []
-    for module, names in imports.items():
-        line = 'from {} import {}'.format(
-                module, ', '.join(names))
-        if len(line) > 80:
-            line = 'from {} import (\n{}\n)'.format(
-                    module, ',\n'.join(names))
-        import_lines.append(line)
-
-    if var_name:
-        var_prefix = f'{var_name} = '
-    else:
-        var_prefix = ''
-
-    return autopep8.fix_code(
-            '\n'.join(import_lines) + 
-            '\n\n' +
-            var_prefix +
-            '\n'.join(lines))
