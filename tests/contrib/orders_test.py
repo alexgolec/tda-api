@@ -14,26 +14,33 @@ class ConstructRepeatOrderTest(unittest.TestCase):
                 json.dumps(expected_json, indent=4, sort_keys=True),
                 json.dumps(builder.build(), indent=4, sort_keys=True))
 
+        def validate_syntax(code, globalz):
+            split_code = code.split('\n')
+            line_format = (
+                    ' {' + ':{}d'.format(len(str(len(split_code)))) + '}   {}')
+            print('Generated code:')
+            print()
+            print('\n'.join(line_format.format(line_num + 1, line)
+                for line_num, line in enumerate(split_code)))
+            try:
+                exec(code, globalz)
+            except SyntaxError as e:
+                print()
+                print(e)
+                assert False, 'Syntax error from generated code'
+
+        # With a variable name, validate the syntax and expect the output
         code = code_for_builder(builder, 'test_builder')
         globalz = {}
-        split_code = code.split('\n')
-        line_format = (
-                ' {' + ':{}d'.format(len(str(len(split_code)))) + '}   {}')
-        print('Generated code:')
-        print()
-        print('\n'.join(line_format.format(line_num + 1, line)
-            for line_num, line in enumerate(split_code)))
-        try:
-            exec(code, globalz)
-        except SyntaxError as e:
-            print()
-            print(e)
-            assert False, 'Syntax error from generated code'
-
+        validate_syntax(code, globalz)
         self.assertEquals(
                 json.dumps(expected_json, indent=4, sort_keys=True),
                 json.dumps(
                     globalz['test_builder'].build(), indent=4, sort_keys=True))
+
+        # With no variable name, just validate the syntax
+        code = code_for_builder(builder)
+        validate_syntax(code, {})
 
 
     def test_market_equity_order(self):
@@ -223,6 +230,65 @@ class ConstructRepeatOrderTest(unittest.TestCase):
         with self.assertRaises(ValueError,
                 msg='unknown orderLegType'):
             construct_repeat_order(historical_order)
+
+    def test_unknown_orderLegType_codegen(self):
+        historical_order = json.loads('''{
+            "session": "NORMAL",
+            "duration": "DAY",
+            "orderType": "MARKET",
+            "complexOrderStrategyType": "NONE",
+            "quantity": 1.0,
+            "filledQuantity": 1.0,
+            "remainingQuantity": 0.0,
+            "requestedDestination": "AUTO",
+            "destinationLinkName": "NITE",
+            "orderLegCollection": [
+                {
+                    "orderLegType": "EQUITY",
+                    "legId": 1,
+                    "instrument": {
+                        "assetType": "EQUITY",
+                        "cusip": "1234567890",
+                        "symbol": "FAKE"
+                    },
+                    "instruction": "BUY",
+                    "positionEffect": "OPENING",
+                    "quantity": 1.0
+                }
+            ],
+            "orderStrategyType": "SINGLE",
+            "orderId": 987654321,
+            "cancelable": false,
+            "editable": false,
+            "status": "FILLED",
+            "enteredTime": "2021-01-01T12:01:00+0000",
+            "closeTime": "2021-01-01T12:01:01+0000",
+            "tag": "tag",
+            "accountId": 19191919,
+            "orderActivityCollection": [
+                {
+                    "activityType": "EXECUTION",
+                    "executionType": "FILL",
+                    "quantity": 1.0,
+                    "orderRemainingQuantity": 0.0,
+                    "executionLegs": [
+                        {
+                            "legId": 1,
+                            "quantity": 1.0,
+                            "mismarkedQuantity": 0.0,
+                            "price": 999.99,
+                            "time": "2021-01-01T12:01:01+0000"
+                        }
+                    ]
+                }
+            ]
+        }''')
+
+        repeat_order = construct_repeat_order(historical_order)
+        repeat_order._orderLegCollection[0]['instrument']._assetType = 'BOGUS'
+
+        with self.assertRaises(ValueError, msg='unknown leg asset type'):
+            code_for_builder(repeat_order)
 
 
     def test_limit_options_order(self):
