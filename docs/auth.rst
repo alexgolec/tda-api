@@ -102,7 +102,7 @@ to send API calls. It also handles token refreshing, and writes updated tokens
 to the token file.
 
 These functions are webdriver-agnostic, meaning you can use whatever 
-webdriver-supported browser you can available on your system. You can find 
+webdriver-supported browser you have available on your system. You can find 
 information about available webdriver on the `Selenium documentation
 <https://www.selenium.dev/documentation/en/getting_started_with_webdriver/
 browsers/>`__.
