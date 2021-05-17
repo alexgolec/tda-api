@@ -24,7 +24,7 @@ OAuth Refresher
 *This section is purely for the curious. If you already understand OAuth (wow,
 congrats) or if you don't care and just want to use this package as fast as
 possible, feel free to skip this section. If you encounter any weird behavior, 
-this section may help you understand that's going on.*
+this section may help you understand what's going on.*
 
 Webapp authentication is a complex beast. The OAuth protocol was created to 
 allow applications to access one anothers' APIs securely and with the minimum 
