@@ -1,5 +1,5 @@
 from tda import auth
-from .utils import no_duplicates
+from .utils import AnyStringWith, no_duplicates
 from unittest.mock import patch, ANY, MagicMock
 from unittest.mock import ANY as _
 
@@ -189,14 +189,6 @@ class ClientFromAccessFunctionsTest(unittest.TestCase):
 
 REDIRECT_URL = 'https://redirect.url.com'
 
-
-class AnyStringWith(str):
-    '''
-    Utility for checking whether a function was called with the given string as 
-    a substring.
-    '''
-    def __eq__(self, other):
-        return self in other
 
 class ClientFromLoginFlow(unittest.TestCase):
 

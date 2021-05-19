@@ -43,5 +43,9 @@ setuptools.setup(
         'Tracker': 'https://github.com/alexgolec/tda-api/issues',
     },
     license='MIT',
+    scripts=[
+        'bin/tda-generate-token.py',
+        'bin/tda-orders-codegen.py',
+    ],
 )
 

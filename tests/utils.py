@@ -7,6 +7,14 @@ import inspect
 import httpx
 import json
 
+class AnyStringWith(str):
+    '''
+    Utility for checking whether a function was called with the given string as 
+    a substring.
+    '''
+    def __eq__(self, other):
+        return self in other
+
 def account_principals():
     with open('tests/testdata/principals.json', 'r') as f:
         return json.load(f)
