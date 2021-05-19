@@ -50,7 +50,8 @@ def main(sys_args):
         else:
             orders = client.get_orders_by_query().json()
 
-    for order in orders:
+    for order in sorted(orders, key=lambda order: order['orderId']):
+        print('# Order ID', order['orderId'])
         print(code_for_builder(construct_repeat_order(order)))
 
     return 0
