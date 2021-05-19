@@ -3,11 +3,6 @@ import argparse
 from tda.auth import client_from_token_file
 from tda.contrib.orders import construct_repeat_order, code_for_builder
 
-def pprint(s):
-    import sys
-    sys.stdout.write(s + '\n')
-
-
 def main(sys_args):
     parser = argparse.ArgumentParser(
             description='Utilities for generating code from historical orders')
