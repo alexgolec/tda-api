@@ -2,7 +2,7 @@ import unittest
 from unittest.mock import call, MagicMock, patch
 
 from ..utils import AnyStringWith, no_duplicates
-from tda.scripts.orders_codegen import main, pprint
+from tda.scripts.orders_codegen import main
 
 class OrdersCodeGenTest(unittest.TestCase):
 
