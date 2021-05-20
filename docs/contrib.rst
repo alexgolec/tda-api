@@ -25,7 +25,6 @@ discuss this or propose/request new additions, please join our `Discord server
 
 .. _custom_json_decoding:
 
-
 --------------------
 Custom JSON Decoding
 --------------------
