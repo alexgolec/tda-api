@@ -185,7 +185,7 @@ Constructing ``OrderBuilder`` Objects from Historical Orders
 
 TDAmeritrade supports a huge array of order specifications, including both 
 equity and option orders, stop, conditionals, etc. However, the exact format of 
-these orders is tricky: if you don't specify the order _exactly_ how TDA expects 
+these orders is tricky: if you don't specify the order *exactly* how TDA expects 
 it, you'll either have your order rejected for no reason, or you'll end up 
 placing a different order than you intended. 
 
@@ -196,7 +196,8 @@ producing code that would have generated this order using ``tda-api``. This
 process looks like this: 
 
 1. Place an order using your favorite UI.
-2. Call the following script: 
+2. Call the following script to generate code for the most recently-placed 
+   order:
 
 .. code-block:: shell
 
