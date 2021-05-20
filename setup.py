@@ -45,7 +45,7 @@ setuptools.setup(
     license='MIT',
     scripts=[
         'bin/tda-generate-token.py',
-        'bin/tda-orders-codegen.py',
+        'bin/tda-order-codegen.py',
     ],
 )
 
