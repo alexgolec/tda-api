@@ -179,6 +179,38 @@ Now that you have some background on how orders are structured, let's dive into
 the order builder itself. 
 
 
+------------------------------------------------------------
+Constructing ``OrderBuilder`` Objects from Historical Orders
+------------------------------------------------------------
+
+TDAmeritrade supports a huge array of order specifications, including both 
+equity and option orders, stop, conditionals, etc. However, the exact format of 
+these orders is tricky: if you don't specify the order *exactly* how TDA expects 
+it, you'll either have your order rejected for no reason, or you'll end up 
+placing a different order than you intended. 
+
+Meanwhile, thinkorswim and the TDAmeritrade web and app UIs let you easily place 
+these orders, just not in a programmatic way. ``tda-api`` helps bridge this gap 
+by allowing you to place a complex order through your preferred UI and then 
+producing code that would have generated this order using ``tda-api``. This 
+process looks like this: 
+
+1. Place an order using your favorite UI.
+2. Call the following script to generate code for the most recently-placed 
+   order:
+
+.. code-block:: shell
+
+  tda-orders-codegen.py --token_file <your token file path> --api_key <your API key>
+
+3. Copy-paste the resulting code and adapt it to your needs.
+
+Note this script is installed by ``pip``, and will only be accessible if you've 
+added pip's executable locations to your ``$PATH``. If you're having a hard time,
+feel free to ask for help on our `Discord server 
+<https://discord.gg/nfrd9gh>`__.
+
+
 --------------------------
 ``OrderBuilder`` Reference
 --------------------------
