@@ -201,13 +201,15 @@ process looks like this:
 
 .. code-block:: shell
 
+  # Notice we don't prefix this with "python" because this is a script that was 
+  # installed by pip when you installed tda-api
   tda-orders-codegen.py --token_file <your token file path> --api_key <your API key>
 
 3. Copy-paste the resulting code and adapt it to your needs.
 
-Note this script is installed by ``pip``, and will only be accessible if you've 
-added pip's executable locations to your ``$PATH``. If you're having a hard time,
-feel free to ask for help on our `Discord server 
+This script is installed by ``pip``, and will only be accessible if you've added
+pip's executable locations to your ``$PATH``. If you're having a hard time, feel
+free to ask for help on our `Discord server 
 <https://discord.gg/nfrd9gh>`__.
 
 
