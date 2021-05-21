@@ -31,7 +31,7 @@ setuptools.setup(
     python_requires='>=3.6',
     install_requires=[
         'authlib',
-        'autpep8',
+        'autopep8',
         'httpx',
         'prompt_toolkit',
         'python-dateutil',
