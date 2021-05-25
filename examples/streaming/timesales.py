@@ -13,7 +13,7 @@ class MyStreamConsumer:
     We use a class to enforce good code organization practices
     """
 
-    def __init__(self, api_key, account_id, queue_size=1,
+    def __init__(self, api_key, account_id, queue_size=0,
                  credentials_path='./ameritrade-credentials.pickle'):
         """
         We're storing the configuration variables within the class for easy
@@ -68,7 +68,8 @@ class MyStreamConsumer:
         resources processing old data, and falling behind.
         """
         # if the queue is full, make room
-        if self.queue.full():
+        if self.queue.full():  # This won't happen if the queue doesn't have a max size
+            print('Handler queue is full. Awaiting to make room... Some messages might be dropped')
             await self.queue.get()
         await self.queue.put(msg)
 
