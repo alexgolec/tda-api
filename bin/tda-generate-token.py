@@ -9,17 +9,6 @@ from selenium import webdriver
 from selenium.common.exceptions import WebDriverException
 
 def main(api_key, redirect_uri, token_path):
-    '''
-    for driver in (
-            webdriver.Chrome,
-            webdriver.Firefox,
-            webdriver.Safari,
-            webdriver.Ie):
-        driver = driver()
-        client = tda.auth.client_from_login_flow(
-                driver, api_key, redirect_uri, token_path)
-    '''
-
     driver = None
 
     # Chrome
@@ -69,12 +58,14 @@ def main(api_key, redirect_uri, token_path):
         with driver:
             client = tda.auth.client_from_login_flow(
                     driver, api_key, redirect_uri, token_path)
-            return
+            return 0
     except:
         print('Failed to fetch a token using a web browser, falling back to '
                 'the manual flow')
 
     tda.auth.client_from_manual_flow(api_key, redirect_uri, token_path)
+
+    return 0
 
 
 if __name__ == '__main__':

@@ -127,6 +127,36 @@ when appropriate:
 
 .. autofunction:: tda.auth.easy_client
 
+If you don't want to create a client and just want to fetch a token, you can use
+the ``tda-generate-token.py`` script that's installed with the library. This 
+method is particularly useful if you want to create your token on one machine 
+and use it on another. The script will attempt to open a web browser and perform 
+the login flow. If it fails, it will fall back to the manual login flow: 
+
+.. code-block:: bash
+
+  # Notice we don't prefix this with "python" because this is a script that was 
+  # installed by pip when you installed tda-api
+  > tda-generate-token.py --help
+  usage: tda-generate-token.py [-h] --token_file TOKEN_FILE --api_key API_KEY --redirect_uri REDIRECT_URI
+
+  Fetch a new token and write it to a file
+
+  optional arguments:
+    -h, --help            show this help message and exit
+
+  required arguments:
+    --token_file TOKEN_FILE
+                        Path to token file. Any existing file will be overwritten
+    --api_key API_KEY
+    --redirect_uri REDIRECT_URI
+
+
+This script is installed by ``pip``, and will only be accessible if you've added
+pip's executable locations to your ``$PATH``. If you're having a hard time, feel
+free to ask for help on our `Discord server 
+<https://discord.gg/nfrd9gh>`__.
+
 
 ----------------------
 Advanced Functionality
