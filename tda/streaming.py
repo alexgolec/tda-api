@@ -1517,6 +1517,19 @@ class StreamClient(EnumEnforcer):
             symbols, 'TIMESALE_EQUITY', 'SUBS',
             self.TimesaleFields, fields=fields)
 
+    async def timesale_equity_add(self, symbols):
+        '''
+        Add a symbol to the existing timesale equity subscription. Behavior is 
+        undefined if called before :meth:`timesale_equity_subs`.
+
+        Note this method has no official documentation.
+
+        :param symbols: Equity symbols to add to the subscription.
+        '''
+        await self._service_op(
+            symbols, 'TIMESALE_EQUITY', 'ADD',
+            self.TimesaleFields, fields=self.TimesaleFields.all_fields())
+
     def add_timesale_equity_handler(self, handler):
         '''
         Register a function to handle equity trade notifications as they happen

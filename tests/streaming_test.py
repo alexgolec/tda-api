@@ -2435,7 +2435,7 @@ class StreamClientTest(asynctest.TestCase):
 
     @no_duplicates
     @asynctest.patch('tda.streaming.ws_client.connect', new_callable=asynctest.CoroutineMock)
-    async def test_timesale_equity_subs_success_all_fields(self, ws_connect):
+    async def test_timesale_equity_subs_and_add_success_all_fields(self, ws_connect):
         socket = await self.login_and_get_socket(ws_connect)
 
         socket.recv.side_effect = [json.dumps(self.success_response(
@@ -2456,6 +2456,28 @@ class StreamClientTest(asynctest.TestCase):
                 'fields': ('0,1,2,3,4')
             }
         })
+
+        socket.reset_mock()
+
+        socket.recv.side_effect = [json.dumps(self.success_response(
+            2, 'TIMESALE_EQUITY', 'ADD'))]
+
+        await self.client.timesale_equity_add(['INTC'])
+        socket.recv.assert_awaited_once()
+        request = self.request_from_socket_mock(socket)
+
+        self.assertEqual(request, {
+            'account': '1001',
+            'service': 'TIMESALE_EQUITY',
+            'command': 'ADD',
+            'requestid': '2',
+            'source': 'streamerInfo-appId',
+            'parameters': {
+                'keys': 'INTC',
+                'fields': '0,1,2,3,4'
+            }
+        })
+
 
     @no_duplicates
     @asynctest.patch('tda.streaming.ws_client.connect', new_callable=asynctest.CoroutineMock)
@@ -2524,6 +2546,26 @@ class StreamClientTest(asynctest.TestCase):
 
         with self.assertRaises(tda.streaming.UnexpectedResponseCode):
             await self.client.timesale_equity_subs(['GOOG', 'MSFT'])
+
+
+    @no_duplicates
+    @asynctest.patch('tda.streaming.ws_client.connect', new_callable=asynctest.CoroutineMock)
+    async def test_timesale_equity_add_failure(self, ws_connect):
+        socket = await self.login_and_get_socket(ws_connect)
+
+        response_subs = self.success_response(1, 'TIMESALE_EQUITY', 'SUBS')
+
+        response_add = self.success_response(2, 'TIMESALE_EQUITY', 'ADD')
+        response_add['response'][0]['content']['code'] = 21
+        socket.recv.side_effect = [
+            json.dumps(response_subs),
+            json.dumps(response_add)]
+
+        await self.client.timesale_equity_subs(['GOOG', 'MSFT'])
+
+        with self.assertRaises(tda.streaming.UnexpectedResponseCode):
+            await self.client.timesale_equity_add(['INTC'])
+
 
     @no_duplicates
     @asynctest.patch('tda.streaming.ws_client.connect', new_callable=asynctest.CoroutineMock)
