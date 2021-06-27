@@ -28,7 +28,8 @@ Next, install project requirements:
 
 .. code-block:: shell
 
-  pip install -r requirements.txt
+  python setup.py egg_info
+  grep -v "\[dev\]" tda_api.egg-info/requires.txt | xargs pip install
 
 Finally, verify everything works by running tests:
 
