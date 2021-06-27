@@ -28,7 +28,7 @@ Next, install project requirements:
 
 .. code-block:: shell
 
-  pip install -r requirements.txt
+  pip install ".[dev]"
 
 Finally, verify everything works by running tests:
 
