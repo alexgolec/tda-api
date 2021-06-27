@@ -37,6 +37,19 @@ setuptools.setup(
         'python-dateutil',
         'selenium', 
         'websockets>=9.0.0'],
+    extras_require={
+        'dev': [
+            'asynctest',
+            'colorama',
+            'coverage',
+            'tox',
+            'nose',
+            'pytest',
+            'pytz',
+            'sphinx_rtd_theme',
+            'twine',
+        ]
+    },
     keywords='finance trading equities bonds options research',
     project_urls={
         'Documentation': 'https://tda-api.readthedocs.io/en/latest/',
