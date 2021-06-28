@@ -33,7 +33,9 @@ least** the following information:
  1. Your OS (Windows? Mac OS? Linux?) and execution environment (VSCode? A raw 
     terminal? A docker container in the cloud?) 
  2. Your ``tda-api`` version. You can see this by executing
-    ``print(tda.__version__)`` in a python shell.
+    ``print(tda.__version__)`` in a python shell. Make sure you're using the
+    most recent version *before* asking for help. You can ensure this using 
+    ``pip install --upgrade tda-api``. 
  3. The full stack trace and error message. Descriptions of errors will be met 
     with requests to provide more information. 
  4. Code that reproduces the error. If you're shy about your code, write a small 
