@@ -467,3 +467,12 @@ class OrderBuilder(EnumEnforcer):
 
     def build(self):
         return _build_object(self)
+    
+    # allow printing the order spec without calling build(). earlier used to print `tda.orders.generic.OrderBuilder object at 0x<memLoc>
+    
+    def __repr__(self):
+        return _build_object(self)
+    
+    def __str__(self):
+        return _build_object(self)
+ 
