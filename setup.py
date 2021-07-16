@@ -42,6 +42,7 @@ setuptools.setup(
             'asynctest',
             'colorama',
             'coverage',
+            'django',
             'tox',
             'nose',
             'pytest',
