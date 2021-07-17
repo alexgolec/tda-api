@@ -38,6 +38,7 @@ INSTALLED_APPS = [
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
+    'tda_example',
 ]
 
 MIDDLEWARE = [
@@ -52,13 +53,16 @@ MIDDLEWARE = [
 
 ROOT_URLCONF = 'webapp.urls'
 
-PROJECT_PATH = os.path.realpath(os.path.dirname(__file__))
+PROJECT_PATH = os.path.realpath(
+        os.path.join(
+            os.path.dirname(__file__), '..'))
 
 TEMPLATES = [
     {
         'BACKEND': 'django.template.backends.django.DjangoTemplates',
         'DIRS': [
-            os.path.join(PROJECT_PATH, 'templates'),
+            os.path.join(PROJECT_PATH, 'tda_example', 'templates'),
+            os.path.join(PROJECT_PATH, 'webapp', 'templates'),
         ],
         'APP_DIRS': True,
         'OPTIONS': {

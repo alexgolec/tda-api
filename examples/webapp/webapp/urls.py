@@ -20,6 +20,6 @@ import tda_example.views
 
 urlpatterns = [
     path('admin/', admin.site.urls),
-    path('tda/', include('tda_example.urls')),
+    path('td-example/', include('tda_example.urls')),
     path('', tda_example.views.index, name='index'),
 ]
