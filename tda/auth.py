@@ -19,6 +19,10 @@ from tda.debug import register_redactions
 TOKEN_ENDPOINT = 'https://api.tdameritrade.com/v1/oauth2/token'
 
 
+################################################################################
+# General helper methods
+
+
 def get_logger():
     return logging.getLogger(__name__)
 
@@ -49,7 +53,32 @@ def __token_loader(token_path):
     return load_token
 
 
-def __normalize_api_key(api_key):
+################################################################################
+# Helper methods made public for the benefit of webapp-based login flows
+
+
+def get_auth_url_and_state(oauth):
+    '''
+    Returns an authorization URL and OAuth authorization state for the given 
+    client. This information allows us to perform the first stage of the OAuth 
+    process in which the user is sent to TDA's site to log in.
+
+    :param oauth: ``OAuth2Client`` object with the appropriate API key and 
+                  redirect URI.
+    :return: An authorization URL, which the user may follow to perform the 
+             OAuth authorization flow with TDAmeritrade, and state string which
+             encodes the OAuth state with which the authorization URL was
+             created.
+    '''
+    return oauth.create_authorization_url(
+        'https://auth.tdameritrade.com/auth')
+
+
+def normalize_api_key(api_key):
+    '''
+    Ensures that the ``@AMER.OAUTHAP`` suffix is present on the API key. Returns 
+    an updated key, if necessary.
+    '''
     api_key_suffix = '@AMER.OAUTHAP'
 
     if not api_key.endswith(api_key_suffix):
@@ -58,32 +87,31 @@ def __normalize_api_key(api_key):
     return api_key
 
 
-def _register_token_redactions(token):
-    register_redactions(token)
-
-
-def client_from_token_file(token_path, api_key, asyncio=False):
+def fetch_token_from_redirect(
+        oauth, redirected_url, api_key, state, token_path=None,
+        token_write_func=None, asyncio=False):
     '''
-    Returns a session from an existing token file. The session will perform
-    an auth refresh as needed. It will also update the token on disk whenever
-    appropriate.
+    Perform the final stage of OAuth token generation:
+     * Parse the post-OAuth login redirection URL.
+     * Request the full token from TDA.
+     * Establish metadata and persistence management.
 
-    :param token_path: Path to an existing token. Updated tokens will be written
-                       to this path. If you do not yet have a token, use
-                       :func:`~tda.auth.client_from_login_flow` or
-                       :func:`~tda.auth.easy_client` to create one.
-    :param api_key: Your TD Ameritrade application's API key, also known as the
-                    client ID.
+    :param oauth: ``OAuth2Client`` pointed at TDA.
+    :param redirected_url: URL of the account login ``GET`` request sent by TDA 
+                           at the end of the OAuth login flow.
+    :param api_key: The application's API key.
+    :param token_path: Path to which the newly created token will be written. 
+                       cannot be set at the same time as ``token_write_func``.
+    :param token_write_func: Function to persist the token. Called after the 
+                             token is fetched. Cannot be set at the same time as 
+                             ``token_path``.
+    :param asyncio: If true, return an asynchronous version of the client. 
+                    Otherwise return the synchronous version.
     '''
+    if token_path is None == token_write_func is None:
+        return ValueError(
+                'Exactly one of token_path or token_write_func must be set')
 
-    load = __token_loader(token_path)
-
-    return client_from_access_functions(
-        api_key, load, __update_token(token_path), asyncio=asyncio)
-
-
-def __fetch_and_register_token_from_redirect(
-        oauth, redirected_url, api_key, token_path, token_write_func, asyncio):
     token = oauth.fetch_token(
         TOKEN_ENDPOINT,
         authorization_response=redirected_url,
@@ -92,7 +120,7 @@ def __fetch_and_register_token_from_redirect(
         include_client_id=True)
 
     # Don't emit token details in debug logs
-    _register_token_redactions(token)
+    register_redactions(token)
 
     # Set up token writing and perform the initial token write
     update_token = (
@@ -127,8 +155,28 @@ def __fetch_and_register_token_from_redirect(
         token_metadata=metadata_manager)
 
 
-class RedirectTimeoutError(Exception):
-    pass
+################################################################################
+# Console-based authentication methods and helpers
+
+
+def client_from_token_file(token_path, api_key, asyncio=False):
+    '''
+    Returns a session from an existing token file. The session will perform
+    an auth refresh as needed. It will also update the token on disk whenever
+    appropriate.
+
+    :param token_path: Path to an existing token. Updated tokens will be written
+                       to this path. If you do not yet have a token, use
+                       :func:`~tda.auth.client_from_login_flow` or
+                       :func:`~tda.auth.easy_client` to create one.
+    :param api_key: Your TD Ameritrade application's API key, also known as the
+                    client ID.
+    '''
+
+    load = __token_loader(token_path)
+
+    return client_from_access_functions(
+        api_key, load, __update_token(token_path), asyncio=asyncio)
 
 
 class TokenMetadata:
@@ -239,7 +287,7 @@ class TokenMetadata:
         self.creation_timestamp = now
 
         # Don't emit token details in debug logs
-        _register_token_redactions(new_token)
+        register_redactions(new_token)
 
         token_write_func = self.wrapped_token_write_func()
         token_write_func(new_token)
@@ -250,6 +298,10 @@ class TokenMetadata:
             token=new_token,
             token_endpoint=TOKEN_ENDPOINT,
             update_token=token_write_func)
+
+
+class RedirectTimeoutError(Exception):
+    pass
 
 
 # TODO: Raise an exception when passing both token_path and token_write_func
@@ -277,11 +329,10 @@ def client_from_login_flow(webdriver, api_key, redirect_url, token_path,
     get_logger().info(('Creating new token with redirect URL \'{}\' ' +
                        'and token path \'{}\'').format(redirect_url, token_path))
 
-    api_key = __normalize_api_key(api_key)
+    api_key = normalize_api_key(api_key)
 
     oauth = OAuth2Client(api_key, redirect_uri=redirect_url)
-    authorization_url, state = oauth.create_authorization_url(
-        'https://auth.tdameritrade.com/auth')
+    authorization_url, state = get_auth_url_and_state(oauth)
 
     # Open the login page and wait for the redirect
     print('\n**************************************************************\n')
@@ -318,8 +369,8 @@ def client_from_login_flow(webdriver, api_key, redirect_url, token_path,
         time.sleep(redirect_wait_time_seconds)
         num_waits += 1
 
-    return __fetch_and_register_token_from_redirect(
-        oauth, current_url, api_key, token_path, token_write_func,
+    return fetch_token_from_redirect(
+        oauth, current_url, api_key, state, token_path, token_write_func,
         asyncio)
 
 
@@ -347,11 +398,10 @@ def client_from_manual_flow(api_key, redirect_url, token_path,
     get_logger().info(('Creating new token with redirect URL \'{}\' ' +
                        'and token path \'{}\'').format(redirect_url, token_path))
 
-    api_key = __normalize_api_key(api_key)
+    api_key = normalize_api_key(api_key)
 
     oauth = OAuth2Client(api_key, redirect_uri=redirect_url)
-    authorization_url, state = oauth.create_authorization_url(
-        'https://auth.tdameritrade.com/auth')
+    authorization_url, state = get_auth_url_and_state(oauth)
 
     print('\n**************************************************************\n')
     print('This is the manual login and token creation flow for tda-api.')
@@ -387,8 +437,8 @@ def client_from_manual_flow(api_key, redirect_url, token_path,
 
     redirected_url = prompt('Redirect URL> ').strip()
 
-    return __fetch_and_register_token_from_redirect(
-        oauth, redirected_url, api_key, token_path, token_write_func,
+    return fetch_token_from_redirect(
+        oauth, redirected_url, api_key, state, token_path, token_write_func,
         asyncio)
 
 
@@ -476,10 +526,10 @@ def client_from_access_functions(api_key, token_read_func,
         token = token['token']
 
     # Don't emit token details in debug logs
-    _register_token_redactions(token)
+    register_redactions(token)
 
     # Return a new session configured to refresh credentials
-    api_key = __normalize_api_key(api_key)
+    api_key = normalize_api_key(api_key)
 
     wrapped_token_write_func = metadata.wrapped_token_write_func()
 
