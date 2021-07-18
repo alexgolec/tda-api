@@ -17,9 +17,11 @@ from django.contrib import admin
 from django.urls import include, path
 
 import tda_example.views
+import webapp.views
 
 urlpatterns = [
     path('admin/', admin.site.urls),
     path('td-example/', include('tda_example.urls')),
-    path('', tda_example.views.index, name='index'),
+    path('register', webapp.views.register, name='register'),
+    path('', webapp.views.index, name='index'),
 ]

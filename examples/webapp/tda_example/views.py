@@ -1,6 +1,4 @@
 from authlib.integrations.httpx_client import OAuth2Client
-from django.contrib.auth import login, authenticate
-from django.contrib.auth.forms import UserCreationForm
 from django.http import HttpResponse, Http404
 from django.shortcuts import redirect, render
 from django.views.decorators.http import require_http_methods, require_GET
@@ -12,12 +10,7 @@ from . import secrets
 from .models import TDALoginData
 
 
-@require_http_methods(['GET'])
-def index(request):
-    return HttpResponse('tda lol')
-
-
-def require_login(request):
+def token_oauth_flow(request):
     if not request.user.is_authenticated:
         raise Http404('Login required')
 
@@ -31,23 +24,6 @@ def require_login(request):
     tda_login_data.save()
 
     return render(request, 'tda_login.html', {'auth_url': auth_url})
-
-
-@require_http_methods(['GET', 'POST'])
-def register(request):
-    if request.method == 'POST':
-        form = UserCreationForm(request.POST)
-        if form.is_valid():
-            form.save()
-            username = form.cleaned_data.get('username')
-            raw_password = form.cleaned_data.get('password1')
-            user = authenticate(username=username, password=raw_password)
-            login(request, user)
-            return require_login(request)
-    else:
-        form = UserCreationForm()
-
-    return render(request, 'register.html', {'form': form})
 
 
 @require_http_methods(['GET'])
@@ -80,6 +56,5 @@ def accounts(request):
     client = request.user.tdalogindata.get_client()
 
     accounts = json.dumps(client.get_accounts().json(), indent=4)
-    print(accounts)
 
     return HttpResponse(accounts)

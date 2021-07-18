@@ -1,0 +1,8 @@
+import os
+
+
+#TDA_API_KEY = os.environ['TDA_API_KEY']
+#TDA_CALLBACK_URL = os.environ['TDA_CALLBACK_URL']
+
+TDA_API_KEY = 'X5MUWQRRG9SMBQROM8I8FYAESQNJKHNP@AMER.OAUTHAP'
+TDA_CALLBACK_URL = 'http://127.0.0.1:8000/td-example/callback'
