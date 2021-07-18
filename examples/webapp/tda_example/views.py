@@ -10,7 +10,8 @@ from . import secrets
 from .models import TDALoginData
 
 
-def token_oauth_flow(request):
+@require_GET
+def token_oauth(request):
     if not request.user.is_authenticated:
         raise Http404('Login required')
 
