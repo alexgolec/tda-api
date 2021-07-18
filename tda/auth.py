@@ -23,19 +23,13 @@ def get_logger():
     return logging.getLogger(__name__)
 
 
-def __update_token(token_path, asyncio):
+def __update_token(token_path):
     def update_token(t, *args, **kwargs):
         get_logger().info('Updating token to file {}'.format(token_path))
 
         with open(token_path, 'w') as f:
             json.dump(t, f)
-
-    if asyncio:
-        async def update_token_async(t, *args, **kwargs):
-            update_token(tm *args, **kwargs)
-        return update_token_async
-    else:
-        return update_token
+    return update_token
 
 
 def __token_loader(token_path):
@@ -85,7 +79,7 @@ def client_from_token_file(token_path, api_key, asyncio=False):
     load = __token_loader(token_path)
 
     return client_from_access_functions(
-        api_key, load, __update_token(token_path, asyncio), asyncio=asyncio)
+        api_key, load, __update_token(token_path), asyncio=asyncio)
 
 
 def __fetch_and_register_token_from_redirect(
@@ -102,7 +96,7 @@ def __fetch_and_register_token_from_redirect(
 
     # Set up token writing and perform the initial token write
     update_token = (
-        __update_token(token_path, asyncio) if token_write_func is None
+        __update_token(token_path) if token_write_func is None
         else token_write_func)
     metadata_manager = TokenMetadata(int(time.time()), update_token)
     update_token = metadata_manager.wrapped_token_write_func()
