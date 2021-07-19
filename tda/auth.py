@@ -112,7 +112,7 @@ def __fetch_and_register_token_from_redirect(
     # and friends, this functionality cannot be fully tested.
     if asyncio:
         async def oauth_client_update_token(t, *args, **kwargs):
-            update_token(t, *args, **kwargs)
+            update_token(t, *args, **kwargs)  # pragma: no cover
         session_class = AsyncOAuth2Client
         client_class = AsyncClient
     else:
