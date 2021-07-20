@@ -1,4 +1,5 @@
 from colorama import Fore, Back, Style, init
+from unittest.mock import MagicMock
 
 import asyncio
 import asynctest
@@ -206,3 +207,16 @@ def no_duplicates(f):
     __NO_DUPLICATES_DEFINED_NAMES.add(name)
     return f
 
+
+class MockOAuthClient(MagicMock):
+    def __call__(self, *args, **kwargs):
+        if 'update_token' in kwargs:
+            assert not inspect.iscoroutinefunction(kwargs['update_token'])
+        return MagicMock.__call__(self, *args, **kwargs)
+
+
+class MockAsyncOAuthClient(MagicMock):
+    def __call__(self, *args, **kwargs):
+        if 'update_token' in kwargs:
+            assert inspect.iscoroutinefunction(kwargs['update_token'])
+        return MagicMock.__call__(self, *args, **kwargs)

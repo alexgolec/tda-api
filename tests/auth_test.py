@@ -1,5 +1,10 @@
 from tda import auth
-from .utils import AnyStringWith, no_duplicates
+from .utils import (
+        AnyStringWith,
+        MockAsyncOAuthClient,
+        MockOAuthClient,
+        no_duplicates
+)
 from unittest.mock import patch, ANY, MagicMock
 from unittest.mock import ANY as _
 
@@ -35,8 +40,9 @@ class ClientFromTokenFileTest(unittest.TestCase):
 
     @no_duplicates
     @patch('tda.auth.Client')
-    @patch('tda.auth.OAuth2Client')
-    def test_pickle_loads(self, session, client):
+    @patch('tda.auth.OAuth2Client', new_callable=MockOAuthClient)
+    @patch('tda.auth.AsyncOAuth2Client', new_callable=MockAsyncOAuthClient)
+    def test_pickle_loads(self, async_session, sync_session, client):
         self.write_token()
 
         client.return_value = 'returned client'
@@ -44,7 +50,7 @@ class ClientFromTokenFileTest(unittest.TestCase):
         self.assertEqual('returned client',
                          auth.client_from_token_file(self.pickle_path, API_KEY))
         client.assert_called_once_with(API_KEY, _, token_metadata=_)
-        session.assert_called_once_with(
+        sync_session.assert_called_once_with(
             API_KEY,
             token=self.token,
             token_endpoint=_,
@@ -52,8 +58,9 @@ class ClientFromTokenFileTest(unittest.TestCase):
 
     @no_duplicates
     @patch('tda.auth.Client')
-    @patch('tda.auth.OAuth2Client')
-    def test_json_loads(self, session, client):
+    @patch('tda.auth.OAuth2Client', new_callable=MockOAuthClient)
+    @patch('tda.auth.AsyncOAuth2Client', new_callable=MockAsyncOAuthClient)
+    def test_json_loads(self, async_session, sync_session, client):
         self.write_token()
 
         client.return_value = 'returned client'
@@ -61,7 +68,7 @@ class ClientFromTokenFileTest(unittest.TestCase):
         self.assertEqual('returned client',
                          auth.client_from_token_file(self.json_path, API_KEY))
         client.assert_called_once_with(API_KEY, _, token_metadata=_)
-        session.assert_called_once_with(
+        sync_session.assert_called_once_with(
             API_KEY,
             token=self.token,
             token_endpoint=_,
@@ -69,14 +76,16 @@ class ClientFromTokenFileTest(unittest.TestCase):
 
     @no_duplicates
     @patch('tda.auth.Client')
-    @patch('tda.auth.OAuth2Client')
-    def test_update_token_updates_token(self, session, client):
+    @patch('tda.auth.OAuth2Client', new_callable=MockOAuthClient)
+    @patch('tda.auth.AsyncOAuth2Client', new_callable=MockAsyncOAuthClient)
+    def test_update_token_updates_token(
+            self, async_session, sync_session, client):
         self.write_token()
 
         auth.client_from_token_file(self.json_path, API_KEY)
-        session.assert_called_once()
+        sync_session.assert_called_once()
 
-        session_call = session.mock_calls[0]
+        session_call = sync_session.mock_calls[0]
         update_token = session_call[2]['update_token']
 
         updated_token = {'updated': 'token'}
@@ -90,8 +99,9 @@ class ClientFromTokenFileTest(unittest.TestCase):
 
     @no_duplicates
     @patch('tda.auth.Client')
-    @patch('tda.auth.OAuth2Client')
-    def test_api_key_is_normalized(self, session, client):
+    @patch('tda.auth.OAuth2Client', new_callable=MockOAuthClient)
+    @patch('tda.auth.AsyncOAuth2Client', new_callable=MockAsyncOAuthClient)
+    def test_api_key_is_normalized(self, async_session, sync_session, client):
         self.write_token()
 
         client.return_value = 'returned client'
@@ -100,7 +110,7 @@ class ClientFromTokenFileTest(unittest.TestCase):
                          auth.client_from_token_file(self.json_path, 'API_KEY'))
         client.assert_called_once_with(
                 'API_KEY@AMER.OAUTHAP', _, token_metadata=_)
-        session.assert_called_once_with(
+        sync_session.assert_called_once_with(
             'API_KEY@AMER.OAUTHAP',
             token=self.token,
             token_endpoint=_,
@@ -112,8 +122,10 @@ class ClientFromAccessFunctionsTest(unittest.TestCase):
 
     @no_duplicates
     @patch('tda.auth.Client')
-    @patch('tda.auth.OAuth2Client')
-    def test_success_with_write_func_legacy_token(self, session, client):
+    @patch('tda.auth.OAuth2Client', new_callable=MockOAuthClient)
+    @patch('tda.auth.AsyncOAuth2Client', new_callable=MockAsyncOAuthClient)
+    def test_success_with_write_func_legacy_token(
+            self, async_session, sync_session, client):
         token = {'token': 'yes'}
 
         token_read_func = MagicMock()
@@ -130,7 +142,7 @@ class ClientFromAccessFunctionsTest(unittest.TestCase):
                              token_read_func,
                              token_write_func))
 
-        session.assert_called_once_with(
+        sync_session.assert_called_once_with(
             'API_KEY@AMER.OAUTHAP',
             token=token,
             token_endpoint=_,
@@ -138,7 +150,7 @@ class ClientFromAccessFunctionsTest(unittest.TestCase):
         token_read_func.assert_called_once()
 
         # Verify that the write function is called when the updater is called
-        session_call = session.mock_calls[0]
+        session_call = sync_session.mock_calls[0]
         update_token = session_call[2]['update_token']
 
         update_token(token)
@@ -150,8 +162,10 @@ class ClientFromAccessFunctionsTest(unittest.TestCase):
 
     @no_duplicates
     @patch('tda.auth.Client')
-    @patch('tda.auth.OAuth2Client')
-    def test_success_with_write_func_metadata_aware_token(self, session, client):
+    @patch('tda.auth.OAuth2Client', new_callable=MockOAuthClient)
+    @patch('tda.auth.AsyncOAuth2Client', new_callable=MockAsyncOAuthClient)
+    def test_success_with_write_func_metadata_aware_token(
+            self, async_session, sync_session, client):
         token = {
                 'creation_timestamp': MOCK_NOW,
                 'token': {'token': 'yes'}
@@ -171,7 +185,7 @@ class ClientFromAccessFunctionsTest(unittest.TestCase):
                              token_read_func,
                              token_write_func))
 
-        session.assert_called_once_with(
+        sync_session.assert_called_once_with(
             'API_KEY@AMER.OAUTHAP',
             token=token['token'],
             token_endpoint=_,
@@ -179,7 +193,7 @@ class ClientFromAccessFunctionsTest(unittest.TestCase):
         token_read_func.assert_called_once()
 
         # Verify that the write function is called when the updater is called
-        session_call = session.mock_calls[0]
+        session_call = sync_session.mock_calls[0]
         update_token = session_call[2]['update_token']
 
         update_token(token['token'])
@@ -200,15 +214,15 @@ class ClientFromLoginFlow(unittest.TestCase):
 
     @no_duplicates
     @patch('tda.auth.Client')
-    @patch('tda.auth.OAuth2Client')
+    @patch('tda.auth.OAuth2Client', new_callable=MockOAuthClient)
+    @patch('tda.auth.AsyncOAuth2Client', new_callable=MockAsyncOAuthClient)
     @patch('time.time', unittest.mock.MagicMock(return_value=MOCK_NOW))
-    def test_no_token_file_https(self, session_constructor, client):
+    def test_no_token_file_https(self, async_session, sync_session, client):
         AUTH_URL = 'https://auth.url.com'
 
-        session = MagicMock()
-        session_constructor.return_value = session
-        session.create_authorization_url.return_value = AUTH_URL, None
-        session.fetch_token.return_value = self.token
+        sync_session.return_value = sync_session
+        sync_session.create_authorization_url.return_value = AUTH_URL, None
+        sync_session.fetch_token.return_value = self.token
 
         webdriver = MagicMock()
         webdriver.current_url = REDIRECT_URL + '/token_params'
@@ -229,18 +243,19 @@ class ClientFromLoginFlow(unittest.TestCase):
 
     @no_duplicates
     @patch('tda.auth.Client')
-    @patch('tda.auth.OAuth2Client')
+    @patch('tda.auth.OAuth2Client', new_callable=MockOAuthClient)
+    @patch('tda.auth.AsyncOAuth2Client', new_callable=MockAsyncOAuthClient)
     @patch('builtins.print')
     @patch('time.time', unittest.mock.MagicMock(return_value=MOCK_NOW))
-    def test_no_token_file_http(self, print_func, session_constructor, client):
+    def test_no_token_file_http(
+            self, print_func, async_session, sync_session, client):
         AUTH_URL = 'https://auth.url.com'
 
         redirect_url = 'http://redirect.url.com'
 
-        session = MagicMock()
-        session_constructor.return_value = session
-        session.create_authorization_url.return_value = AUTH_URL, None
-        session.fetch_token.return_value = self.token
+        sync_session.return_value = sync_session
+        sync_session.create_authorization_url.return_value = AUTH_URL, None
+        sync_session.fetch_token.return_value = self.token
 
         webdriver = MagicMock()
         webdriver.current_url = redirect_url + '/token_params'
@@ -263,19 +278,19 @@ class ClientFromLoginFlow(unittest.TestCase):
 
     @no_duplicates
     @patch('tda.auth.Client')
-    @patch('tda.auth.OAuth2Client')
+    @patch('tda.auth.OAuth2Client', new_callable=MockOAuthClient)
+    @patch('tda.auth.AsyncOAuth2Client', new_callable=MockAsyncOAuthClient)
     @patch('time.time', unittest.mock.MagicMock(return_value=MOCK_NOW))
     def test_no_token_file_http_redirected_to_https(
-            self, session_constructor, client):
+            self, async_session, sync_session, client):
         AUTH_URL = 'https://auth.url.com'
 
         redirect_url = 'http://redirect.url.com'
         redirect_url_https = 'https://redirect.url.com'
 
-        session = MagicMock()
-        session_constructor.return_value = session
-        session.create_authorization_url.return_value = AUTH_URL, None
-        session.fetch_token.return_value = self.token
+        sync_session.return_value = sync_session
+        sync_session.create_authorization_url.return_value = AUTH_URL, None
+        sync_session.fetch_token.return_value = self.token
 
         webdriver = MagicMock()
         webdriver.current_url = redirect_url_https + '/token_params'
@@ -296,14 +311,14 @@ class ClientFromLoginFlow(unittest.TestCase):
 
     @no_duplicates
     @patch('tda.auth.Client')
-    @patch('tda.auth.OAuth2Client')
-    def test_normalize_api_key(self, session_constructor, client):
+    @patch('tda.auth.OAuth2Client', new_callable=MockOAuthClient)
+    @patch('tda.auth.AsyncOAuth2Client', new_callable=MockAsyncOAuthClient)
+    def test_normalize_api_key(self, async_session, sync_session, client):
         AUTH_URL = 'https://auth.url.com'
 
-        session = MagicMock()
-        session_constructor.return_value = session
-        session.create_authorization_url.return_value = AUTH_URL, None
-        session.fetch_token.return_value = self.token
+        sync_session.return_value = sync_session
+        sync_session.create_authorization_url.return_value = AUTH_URL, None
+        sync_session.fetch_token.return_value = self.token
 
         webdriver = MagicMock()
         webdriver.current_url = REDIRECT_URL + '/token_params'
@@ -318,21 +333,21 @@ class ClientFromLoginFlow(unittest.TestCase):
 
         self.assertEqual(
                 'API_KEY@AMER.OAUTHAP',
-                session_constructor.call_args[0][0])
+                sync_session.call_args[0][0])
 
 
     @no_duplicates
     @patch('tda.auth.Client')
-    @patch('tda.auth.OAuth2Client')
-    def test_unexpected_redirect_url(self, session_constructor, client):
+    @patch('tda.auth.OAuth2Client', new_callable=MockOAuthClient)
+    @patch('tda.auth.AsyncOAuth2Client', new_callable=MockAsyncOAuthClient)
+    def test_unexpected_redirect_url(self, async_session, sync_session, client):
         AUTH_URL = 'https://auth.url.com'
 
         redirect_url = 'http://redirect.url.com'
 
-        session = MagicMock()
-        session_constructor.return_value = session
-        session.create_authorization_url.return_value = AUTH_URL, None
-        session.fetch_token.return_value = self.token
+        sync_session.return_value = sync_session
+        sync_session.create_authorization_url.return_value = AUTH_URL, None
+        sync_session.fetch_token.return_value = self.token
 
         webdriver = MagicMock()
         webdriver.current_url = 'https://bogus.com' + '/token_params'
@@ -347,15 +362,16 @@ class ClientFromLoginFlow(unittest.TestCase):
 
     @no_duplicates
     @patch('tda.auth.Client')
-    @patch('tda.auth.OAuth2Client')
+    @patch('tda.auth.OAuth2Client', new_callable=MockOAuthClient)
+    @patch('tda.auth.AsyncOAuth2Client', new_callable=MockAsyncOAuthClient)
     @patch('time.time', unittest.mock.MagicMock(return_value=MOCK_NOW))
-    def test_default_token_write_func(self, session_constructor, client):
+    def test_default_token_write_func(
+            self, async_session, sync_session, client):
         AUTH_URL = 'https://auth.url.com'
 
-        session = MagicMock()
-        session_constructor.return_value = session
-        session.create_authorization_url.return_value = AUTH_URL, None
-        session.fetch_token.return_value = self.token
+        sync_session.return_value = sync_session
+        sync_session.create_authorization_url.return_value = AUTH_URL, None
+        sync_session.fetch_token.return_value = self.token
 
         webdriver = MagicMock()
         webdriver.current_url = REDIRECT_URL + '/token_params'
@@ -368,7 +384,7 @@ class ClientFromLoginFlow(unittest.TestCase):
                              self.json_path,
                              redirect_wait_time_seconds=0.0))
 
-        session_constructor.assert_called_with(
+        sync_session.assert_called_with(
                 _, token=_, auto_refresh_url=_, auto_refresh_kwargs=_,
                 update_token=_)
 
@@ -381,15 +397,15 @@ class ClientFromLoginFlow(unittest.TestCase):
 
     @no_duplicates
     @patch('tda.auth.Client')
-    @patch('tda.auth.OAuth2Client')
+    @patch('tda.auth.OAuth2Client', new_callable=MockOAuthClient)
+    @patch('tda.auth.AsyncOAuth2Client', new_callable=MockAsyncOAuthClient)
     @patch('time.time', unittest.mock.MagicMock(return_value=MOCK_NOW))
-    def test_custom_token_write_func(self, session_constructor, client):
+    def test_custom_token_write_func(self, async_session, sync_session, client):
         AUTH_URL = 'https://auth.url.com'
 
-        session = MagicMock()
-        session_constructor.return_value = session
-        session.create_authorization_url.return_value = AUTH_URL, None
-        session.fetch_token.return_value = self.token
+        sync_session.return_value = sync_session
+        sync_session.create_authorization_url.return_value = AUTH_URL, None
+        sync_session.fetch_token.return_value = self.token
 
         webdriver = MagicMock()
         webdriver.current_url = REDIRECT_URL + '/token_params'
@@ -407,7 +423,7 @@ class ClientFromLoginFlow(unittest.TestCase):
                              redirect_wait_time_seconds=0.0,
                              token_write_func=dummy_token_write_func))
 
-        session_constructor.assert_called_with(
+        sync_session.assert_called_with(
                 _, token=_, auto_refresh_url=_, auto_refresh_kwargs=_,
                 update_token=_)
 
@@ -427,16 +443,17 @@ class ClientFromManualFlow(unittest.TestCase):
 
     @no_duplicates
     @patch('tda.auth.Client')
-    @patch('tda.auth.OAuth2Client')
+    @patch('tda.auth.OAuth2Client', new_callable=MockOAuthClient)
+    @patch('tda.auth.AsyncOAuth2Client', new_callable=MockAsyncOAuthClient)
     @patch('tda.auth.prompt')
     @patch('time.time', unittest.mock.MagicMock(return_value=MOCK_NOW))
-    def test_no_token_file(self, prompt_func, session_constructor, client):
+    def test_no_token_file(
+            self, prompt_func, async_session, sync_session, client):
         AUTH_URL = 'https://auth.url.com'
 
-        session = MagicMock()
-        session_constructor.return_value = session
-        session.create_authorization_url.return_value = AUTH_URL, None
-        session.fetch_token.return_value = self.token
+        sync_session.return_value = sync_session
+        sync_session.create_authorization_url.return_value = AUTH_URL, None
+        sync_session.fetch_token.return_value = self.token
 
         client.return_value = 'returned client'
         prompt_func.return_value = 'http://redirect.url.com/?data'
@@ -453,15 +470,16 @@ class ClientFromManualFlow(unittest.TestCase):
 
     @no_duplicates
     @patch('tda.auth.Client')
-    @patch('tda.auth.OAuth2Client')
+    @patch('tda.auth.OAuth2Client', new_callable=MockOAuthClient)
+    @patch('tda.auth.AsyncOAuth2Client', new_callable=MockAsyncOAuthClient)
     @patch('tda.auth.prompt')
-    def test_normalize_api_key(self, prompt_func, session_constructor, client):
+    def test_normalize_api_key(
+            self, prompt_func, async_session, sync_session, client):
         AUTH_URL = 'https://auth.url.com'
 
-        session = MagicMock()
-        session_constructor.return_value = session
-        session.create_authorization_url.return_value = AUTH_URL, None
-        session.fetch_token.return_value = self.token
+        sync_session.return_value = sync_session
+        sync_session.create_authorization_url.return_value = AUTH_URL, None
+        sync_session.fetch_token.return_value = self.token
 
         webdriver = MagicMock()
         webdriver.current_url = REDIRECT_URL + '/token_params'
@@ -475,21 +493,22 @@ class ClientFromManualFlow(unittest.TestCase):
 
         self.assertEqual(
                 'API_KEY@AMER.OAUTHAP',
-                session_constructor.call_args[0][0])
+                sync_session.call_args[0][0])
 
 
     @no_duplicates
     @patch('tda.auth.Client')
-    @patch('tda.auth.OAuth2Client')
+    @patch('tda.auth.OAuth2Client', new_callable=MockOAuthClient)
+    @patch('tda.auth.AsyncOAuth2Client', new_callable=MockAsyncOAuthClient)
     @patch('tda.auth.prompt')
     @patch('time.time', unittest.mock.MagicMock(return_value=MOCK_NOW))
-    def test_custom_token_write_func(self, prompt_func, session_constructor, client):
+    def test_custom_token_write_func(
+            self, prompt_func, async_session, sync_session, client):
         AUTH_URL = 'https://auth.url.com'
 
-        session = MagicMock()
-        session_constructor.return_value = session
-        session.create_authorization_url.return_value = AUTH_URL, None
-        session.fetch_token.return_value = self.token
+        sync_session.return_value = sync_session
+        sync_session.create_authorization_url.return_value = AUTH_URL, None
+        sync_session.fetch_token.return_value = self.token
 
         webdriver = MagicMock()
         webdriver.current_url = REDIRECT_URL + '/token_params'
@@ -507,7 +526,7 @@ class ClientFromManualFlow(unittest.TestCase):
                              self.json_path,
                              token_write_func=dummy_token_write_func))
 
-        session_constructor.assert_called_with(
+        sync_session.assert_called_with(
                 _, token=_, auto_refresh_url=_, auto_refresh_kwargs=_,
                 update_token=_)
 
@@ -519,20 +538,20 @@ class ClientFromManualFlow(unittest.TestCase):
 
     @no_duplicates
     @patch('tda.auth.Client')
-    @patch('tda.auth.OAuth2Client')
+    @patch('tda.auth.OAuth2Client', new_callable=MockOAuthClient)
+    @patch('tda.auth.AsyncOAuth2Client', new_callable=MockAsyncOAuthClient)
     @patch('tda.auth.prompt')
     @patch('builtins.print')
     @patch('time.time', unittest.mock.MagicMock(return_value=MOCK_NOW))
     def test_print_warning_on_http_redirect_uri(
-            self, print_func, prompt_func, session_constructor, client):
+            self, print_func, prompt_func, async_session, sync_session, client):
         AUTH_URL = 'https://auth.url.com'
 
         redirect_url = 'http://redirect.url.com'
 
-        session = MagicMock()
-        session_constructor.return_value = session
-        session.create_authorization_url.return_value = AUTH_URL, None
-        session.fetch_token.return_value = self.token
+        sync_session.return_value = sync_session
+        sync_session.create_authorization_url.return_value = AUTH_URL, None
+        sync_session.fetch_token.return_value = self.token
 
         client.return_value = 'returned client'
         prompt_func.return_value = 'http://redirect.url.com/?data'
