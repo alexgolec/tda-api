@@ -4,7 +4,7 @@ plus legacy vs. new formats, plus refresh token updating, etc. This test suite
 exercises the combinatorial explosion of possibilities.
 '''
 
-from .utils import no_duplicates
+from .utils import no_duplicates, MockOAuthClient, MockAsyncOAuthClient
 from unittest.mock import patch, MagicMock
 
 import copy
@@ -145,9 +145,11 @@ class TokenLifecycleTest(unittest.TestCase):
     # Creation via client_from_token_file
 
     @no_duplicates
-    @patch('tda.auth.OAuth2Client')
+    @patch('tda.auth.OAuth2Client', new_callable=MockOAuthClient)
+    @patch('tda.auth.AsyncOAuth2Client', new_callable=MockAsyncOAuthClient)
     @patch('time.time', MagicMock(return_value=MOCK_NOW))
-    def test_client_from_token_file_legacy_token(self, mock_OAuth2Client):
+    def test_client_from_token_file_legacy_token(
+            self, mock_AsyncOAuth2Client, mock_OAuth2Client):
         self.write_legacy_token()
         client = self.client_from_token_file()
 
@@ -161,9 +163,11 @@ class TokenLifecycleTest(unittest.TestCase):
 
 
     @no_duplicates
-    @patch('tda.auth.OAuth2Client')
+    @patch('tda.auth.OAuth2Client', new_callable=MockOAuthClient)
+    @patch('tda.auth.AsyncOAuth2Client', new_callable=MockAsyncOAuthClient)
     @patch('time.time', MagicMock(return_value=MOCK_NOW))
-    def test_client_from_token_file_old_metadata_token(self, mock_OAuth2Client):
+    def test_client_from_token_file_old_metadata_token(
+            self, mock_AsyncOAuth2Client, mock_OAuth2Client):
         self.write_old_metadata_token()
         client = self.client_from_token_file()
 
@@ -177,9 +181,11 @@ class TokenLifecycleTest(unittest.TestCase):
 
 
     @no_duplicates
-    @patch('tda.auth.OAuth2Client')
+    @patch('tda.auth.OAuth2Client', new_callable=MockOAuthClient)
+    @patch('tda.auth.AsyncOAuth2Client', new_callable=MockAsyncOAuthClient)
     @patch('time.time', MagicMock(return_value=MOCK_NOW))
-    def test_client_from_token_file_recent_metadata_token(self, mock_OAuth2Client):
+    def test_client_from_token_file_recent_metadata_token(
+            self, mock_AsyncOAuth2Client, mock_OAuth2Client):
         self.write_recent_metadata_token()
         client = self.client_from_token_file()
 
@@ -192,10 +198,11 @@ class TokenLifecycleTest(unittest.TestCase):
         self.verify_not_updated_token()
 
     @no_duplicates
-    @patch('tda.auth.OAuth2Client')
+    @patch('tda.auth.OAuth2Client', new_callable=MockOAuthClient)
+    @patch('tda.auth.AsyncOAuth2Client', new_callable=MockAsyncOAuthClient)
     @patch('time.time', MagicMock(return_value=MOCK_NOW))
     def test_client_from_token_file_metadata_token_no_timestamp(
-            self, mock_OAuth2Client):
+            self, mock_AsyncOAuth2Client, mock_OAuth2Client):
         self.write_metadata_token_no_timestamp()
         client = self.client_from_token_file()
 
@@ -211,10 +218,11 @@ class TokenLifecycleTest(unittest.TestCase):
     # Creation via client_from_login_flow
 
     @no_duplicates
-    @patch('tda.auth.OAuth2Client')
+    @patch('tda.auth.OAuth2Client', new_callable=MockOAuthClient)
+    @patch('tda.auth.AsyncOAuth2Client', new_callable=MockAsyncOAuthClient)
     @patch('time.time')
     def test_client_from_login_flow_old_token(
-            self, mock_time, mock_OAuth2Client):
+            self, mock_time, mock_AsyncOAuth2Client, mock_OAuth2Client):
         self.write_legacy_token()
         mock_time.return_value = CREATION_TIMESTAMP
         client = self.client_from_login_flow(mock_OAuth2Client)
@@ -231,10 +239,11 @@ class TokenLifecycleTest(unittest.TestCase):
 
 
     @no_duplicates
-    @patch('tda.auth.OAuth2Client')
+    @patch('tda.auth.OAuth2Client', new_callable=MockOAuthClient)
+    @patch('tda.auth.AsyncOAuth2Client', new_callable=MockAsyncOAuthClient)
     @patch('time.time')
     def test_client_from_login_flow_recent_token(
-            self, mock_time, mock_OAuth2Client):
+            self, mock_time, mock_AsyncOAuth2Client, mock_OAuth2Client):
         self.write_legacy_token()
         mock_time.return_value = RECENT_TIMESTAMP
         client = self.client_from_login_flow(mock_OAuth2Client)
@@ -253,11 +262,12 @@ class TokenLifecycleTest(unittest.TestCase):
     # Creation via client_from_manual_flow
 
     @no_duplicates
-    @patch('tda.auth.OAuth2Client')
+    @patch('tda.auth.OAuth2Client', new_callable=MockOAuthClient)
+    @patch('tda.auth.AsyncOAuth2Client', new_callable=MockAsyncOAuthClient)
     @patch('time.time')
     @patch('tda.auth.prompt', MagicMock())
     def test_client_from_manual_flow_old_token(
-            self, mock_time, mock_OAuth2Client):
+            self, mock_time, mock_AsyncOAuth2Client, mock_OAuth2Client):
         self.write_legacy_token()
         mock_time.return_value = CREATION_TIMESTAMP
         client = self.client_from_manual_flow(mock_OAuth2Client)
@@ -274,11 +284,12 @@ class TokenLifecycleTest(unittest.TestCase):
 
 
     @no_duplicates
-    @patch('tda.auth.OAuth2Client')
+    @patch('tda.auth.OAuth2Client', new_callable=MockOAuthClient)
+    @patch('tda.auth.AsyncOAuth2Client', new_callable=MockAsyncOAuthClient)
     @patch('time.time')
     @patch('tda.auth.prompt', MagicMock())
     def test_client_from_manual_flow_recent_token(
-            self, mock_time, mock_OAuth2Client):
+            self, mock_time, mock_AsyncOAuth2Client, mock_OAuth2Client):
         self.write_legacy_token()
         mock_time.return_value = RECENT_TIMESTAMP
         client = self.client_from_manual_flow(mock_OAuth2Client)

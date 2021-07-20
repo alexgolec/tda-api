@@ -107,9 +107,6 @@ def __fetch_and_register_token_from_redirect(
     # exception is the token update function: the synchronous version expects a
     # synchronous one, the asynchronous requires an async one. The
     # oauth_client_update_token variable will contain the appropriate one.
-    #
-    # XXX: Due to the lack of support for injecting events into the OAuth2Client 
-    # and friends, this functionality cannot be fully tested.
     if asyncio:
         async def oauth_client_update_token(t, *args, **kwargs):
             update_token(t, *args, **kwargs)  # pragma: no cover
@@ -485,20 +482,21 @@ def client_from_access_functions(api_key, token_read_func,
     api_key = __normalize_api_key(api_key)
 
     wrapped_token_write_func = metadata.wrapped_token_write_func()
-    session_kwargs = {
-        'token': token,
-        'token_endpoint': TOKEN_ENDPOINT,
-        'update_token': wrapped_token_write_func,
-    }
 
     if asyncio:
+        async def oauth_client_update_token(t, *args, **kwargs):
+            wrapped_token_write_func(t, *args, **kwargs)  # pragma: no cover
         session_class = AsyncOAuth2Client
         client_class = AsyncClient
     else:
+        oauth_client_update_token = wrapped_token_write_func
         session_class = OAuth2Client
         client_class = Client
 
     return client_class(
         api_key,
-        session_class(api_key, **session_kwargs),
+        session_class(api_key,
+            token=token,
+            token_endpoint=TOKEN_ENDPOINT,
+            update_token=oauth_client_update_token),
         token_metadata=metadata)
