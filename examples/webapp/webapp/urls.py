@@ -22,6 +22,7 @@ import webapp.views
 urlpatterns = [
     path('admin/', admin.site.urls),
     path('td-example/', include('tda_example.urls')),
+    path('accounts', webapp.views.accounts, name='accounts'),
     path('register', webapp.views.register, name='register'),
     path('', webapp.views.index, name='index'),
 ]

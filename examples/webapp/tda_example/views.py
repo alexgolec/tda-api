@@ -4,7 +4,6 @@ from django.shortcuts import redirect, render
 from django.views.decorators.http import require_http_methods, require_GET
 
 import tda
-import json
 
 from . import secrets
 from .models import TDALoginData
@@ -47,15 +46,3 @@ def callback(request):
             token_write_func=tda_login_data.token_write_func())
 
     return HttpResponse('callback')
-
-
-@require_GET
-def accounts(request):
-    if not request.user.is_authenticated:
-        raise Http404('Login required')
-
-    client = request.user.tdalogindata.get_client()
-
-    accounts = json.dumps(client.get_accounts().json(), indent=4)
-
-    return HttpResponse(accounts)

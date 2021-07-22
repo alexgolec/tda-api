@@ -4,6 +4,8 @@ from django.contrib.auth.forms import UserCreationForm
 from django.http import HttpResponse, Http404
 from django.shortcuts import redirect, render
 
+import json
+
 import tda_example.views as tda_views
 
 
@@ -22,8 +24,20 @@ def register(request):
             raw_password = form.cleaned_data.get('password1')
             user = authenticate(username=username, password=raw_password)
             login(request, user)
-            return redirect(tda_views.token_oauth_flow)
+            return redirect(tda_views.token_oauth)
     else:
         form = UserCreationForm()
 
     return render(request, 'register.html', {'form': form})
+
+
+@require_GET
+def accounts(request):
+    if not request.user.is_authenticated:
+        raise Http404('Login required')
+
+    client = request.user.tdalogindata.get_client()
+
+    accounts = json.dumps(client.get_accounts().json(), indent=4)
+
+    return HttpResponse(accounts)
