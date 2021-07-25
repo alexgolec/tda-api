@@ -19,6 +19,28 @@ API_KEY = 'APIKEY@AMER.OAUTHAP'
 MOCK_NOW = 1613745082
 
 
+class GetAuthUrlAndStateTest(unittest.TestCase):
+
+    def test_no_additional_state(self):
+        oauth = MagicMock()
+        oauth.create_authorization_url.return_value = 'auth_url'
+
+        self.assertEqual(auth.get_auth_url_and_state(oauth), 'auth_url')
+
+    @patch('tda.auth.generate_token')
+    def test_additional_state(self, generate_token):
+        oauth = MagicMock()
+        oauth.create_authorization_url.return_value = 'auth_url'
+        generate_token.return_value = '123456789'
+
+        additional_state = 'additional_state'
+
+        self.assertEqual(auth.get_auth_url_and_state(oauth, additional_state),
+                'auth_url')
+        oauth.create_authorization_url.assert_called_once_with(
+                _, state='123456789:additional_state')
+
+
 class ClientFromTokenFileTest(unittest.TestCase):
 
     def setUp(self):
