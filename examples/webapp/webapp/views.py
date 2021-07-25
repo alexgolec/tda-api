@@ -3,6 +3,9 @@ from django.contrib.auth import login, authenticate
 from django.contrib.auth.forms import UserCreationForm
 from django.http import HttpResponse, Http404
 from django.shortcuts import redirect, render
+from django.urls import reverse
+
+from urllib.parse import urlencode
 
 import json
 
@@ -24,6 +27,7 @@ def register(request):
             raw_password = form.cleaned_data.get('password1')
             user = authenticate(username=username, password=raw_password)
             login(request, user)
+
             return redirect(tda_views.token_oauth)
     else:
         form = UserCreationForm()

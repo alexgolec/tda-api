@@ -2,6 +2,7 @@
 # Authentication Wrappers
 
 from authlib.integrations.httpx_client import AsyncOAuth2Client, OAuth2Client
+from authlib.common.security import generate_token
 from prompt_toolkit import prompt
 
 import json
@@ -57,7 +58,7 @@ def __token_loader(token_path):
 # Helper methods made public for the benefit of webapp-based login flows
 
 
-def get_auth_url_and_state(oauth):
+def get_auth_url_and_state(oauth, additional_state=None):
     '''
     Returns an authorization URL and OAuth authorization state for the given 
     client. This information allows us to perform the first stage of the OAuth 
@@ -70,8 +71,12 @@ def get_auth_url_and_state(oauth):
              encodes the OAuth state with which the authorization URL was
              created.
     '''
+    state = generate_token()
+    if additional_state:
+        state += ':' + additional_state
+
     return oauth.create_authorization_url(
-        'https://auth.tdameritrade.com/auth')
+        'https://auth.tdameritrade.com/auth', state=state)
 
 
 def normalize_api_key(api_key):

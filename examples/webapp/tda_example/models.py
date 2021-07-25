@@ -11,18 +11,6 @@ from . import secrets
 class TDALoginData(models.Model):
     user = models.OneToOneField(User, on_delete=models.CASCADE)
 
-    # OAuth login state, used as an XSRF protection during the TDAmeritrade 
-    # login process. Note this field presents a race condition: if the user 
-    # attempts to log in to TDAmeritrade multiple times, only the most recent 
-    # one will be successful as each initiated login attempt overwrites this 
-    # field. 
-    #
-    # Implementing this properly involves creating an instance of this object
-    # and tying it back to the user through a session. Given the unlikelihood of 
-    # the user attempting to log in multiple times, this is left as an exercise 
-    # for the reader.
-    oauth_login_state = models.TextField()
-
     # The actual token, represented as a JSON dump. Users of this framework 
     # should not access this directly, and should instead rely on the helper 
     # methods below.
@@ -58,3 +46,22 @@ class TDALoginData(models.Model):
         return tda.auth.client_from_access_functions(
                 secrets.TDA_API_KEY, self.token_read_func(),
                 self.token_write_func(), asyncio)
+
+
+class TDAOauthState(models.Model):
+    '''
+    OAuth login state, used as an XSRF protection during the TDAmeritrade login
+    process. Stored in its own table rather than in session state because users 
+    of signed cookie middleware would expose the secret in the cookie.
+    '''
+
+    user = models.ForeignKey(User, on_delete=models.CASCADE)
+    oauth_secret = models.TextField()
+
+    # Datetime of the creation of this object, used to determine expiration 
+    # time.
+    datetime = models.DateTimeField(auto_now_add=True)
+
+    @classmethod
+    def delete_expired_states(cls, expiration_time_seconds=60*60*24):
+        pass
