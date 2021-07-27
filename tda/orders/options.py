@@ -51,7 +51,7 @@ class OptionSymbol:
 
     def __init__(self, underlying_symbol, expiration_date, contract_type,
                  strike_price_as_string):
-        self.underlying_symbol = underlying_symbol
+        self.underlying_symbol = underlying_symbol.upper()
 
         if contract_type not in ('C', 'P'):
             raise ValueError('Contract type must be one of \'C\' or \'P\'')

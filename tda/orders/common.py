@@ -4,7 +4,7 @@ from enum import Enum
 class __BaseInstrument:
     def __init__(self, asset_type, symbol):
         self._assetType = asset_type
-        self._symbol = symbol
+        self._symbol = symbol.upper()
 
 
 class EquityInstrument(__BaseInstrument):

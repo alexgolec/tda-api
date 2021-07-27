@@ -413,7 +413,7 @@ class BaseClient(EnumEnforcer):
             projection, self.Instrument.Projection)
 
         if isinstance(symbols, str):
-            symbols = [symbols]
+            symbols = [symbols.upper()]
 
         params = {
             'apikey': self.api_key,
@@ -650,7 +650,7 @@ class BaseClient(EnumEnforcer):
 
         params = {
             'apikey': self.api_key,
-            'symbol': symbol,
+            'symbol': symbol.upper(),
         }
 
         if contract_type is not None:
@@ -801,7 +801,7 @@ class BaseClient(EnumEnforcer):
         if need_extended_hours_data is not None:
             params['needExtendedHoursData'] = need_extended_hours_data
 
-        path = '/v1/marketdata/{}/pricehistory'.format(symbol)
+        path = '/v1/marketdata/{}/pricehistory'.format(symbol.upper())
         return self._get_request(path, params)
 
     ##########################################################################
@@ -823,7 +823,7 @@ class BaseClient(EnumEnforcer):
         }
 
         import urllib
-        path = '/v1/marketdata/{}/quotes'.format(symbol)
+        path = '/v1/marketdata/{}/quotes'.format(symbol.upper())
         return self._get_request(path, params)
 
     def get_quotes(self, symbols):
@@ -833,7 +833,7 @@ class BaseClient(EnumEnforcer):
         <https://developer.tdameritrade.com/quotes/apis/get/marketdata/
         quotes>`__.'''
         if isinstance(symbols, str):
-            symbols = [symbols]
+            symbols = [symbols.upper()]
 
         params = {
             'apikey': self.api_key,
@@ -906,7 +906,7 @@ class BaseClient(EnumEnforcer):
         if transaction_type is not None:
             params['type'] = transaction_type
         if symbol is not None:
-            params['symbol'] = symbol
+            params['symbol'] = symbol.upper()
         if start_date is not None:
             params['startDate'] = self._format_date('start_date', start_date)
         if end_date is not None:
