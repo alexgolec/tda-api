@@ -700,6 +700,35 @@ class OrderBuilderTest(unittest.TestCase):
         with self.assertRaises(ValueError):
             self.order_builder.add_option_leg(
                 OptionInstruction.BUY_TO_OPEN, 'GOOG31433C1342', 0)
+    
+    @no_duplicates
+    def test_add_option_leg_success_lowercase_symbols(self):
+        self.order_builder.add_option_leg(
+            OptionInstruction.BUY_TO_OPEN, 'GooG31433C1342', 10)
+        self.assertFalse(has_diff({
+            'orderLegCollection': [{
+                'instruction': 'BUY_TO_OPEN',
+                'instrument': {
+                    'symbol': 'GOOG31433C1342',
+                    'assetType': 'OPTION'
+                },
+                'quantity': 10,
+            }]
+        }, self.order_builder.build()))
+
+    @no_duplicates
+    def test_add_equity_leg_success_lowercase_symbols(self):
+        self.order_builder.add_equity_leg(EquityInstruction.BUY, 'goog', 10)
+        self.assertFalse(has_diff({
+            'orderLegCollection': [{
+                'instruction': 'BUY',
+                'instrument': {
+                    'symbol': 'GOOG',
+                    'assetType': 'EQUITY'
+                },
+                'quantity': 10,
+            }]
+        }, self.order_builder.build()))
 
 
 class OrderBuilderExamplesTest(unittest.TestCase):

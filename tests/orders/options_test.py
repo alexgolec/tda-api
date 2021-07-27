@@ -196,6 +196,11 @@ class OptionSymbolTest(unittest.TestCase):
                 ValueError, 'string representing a positive float'):
             OptionSymbol('GOOG', '121520', 'C', '23fwe')
 
+    @no_duplicates
+    def test_parse_lowercase_symbol(self):
+        op = OptionSymbol.parse_symbol('gooG_012122P2200')
+        self.assertEqual(op.underlying_symbol, 'GOOG')
+
 
 class OptionTemplatesTest(unittest.TestCase):
 
