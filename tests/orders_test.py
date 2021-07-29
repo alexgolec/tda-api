@@ -177,4 +177,140 @@ class BuilderTemplates(unittest.TestCase):
             }]
         }, equity_buy_to_cover_limit('GOOG', 10, 199.99).build()))
 
+    #lowercase symbols
+
+
+    def test_equity_buy_market_lowercase_symbols(self):
+        self.assertFalse(has_diff({
+            'orderType': 'MARKET',
+            'session': 'NORMAL',
+            'duration': 'DAY',
+            'orderStrategyType': 'SINGLE',
+            'orderLegCollection': [{
+                'instruction': 'BUY',
+                'quantity': 10,
+                'instrument': {
+                    'symbol': 'GOOG',
+                    'assetType': 'EQUITY',
+                }
+            }]
+        }, equity_buy_market('goog', 10).build()))
+
+    def test_equity_buy_limit_lowercase_symbols(self):
+        self.assertFalse(has_diff({
+            'orderType': 'LIMIT',
+            'session': 'NORMAL',
+            'duration': 'DAY',
+            'price': '199.99',
+            'orderStrategyType': 'SINGLE',
+            'orderLegCollection': [{
+                'instruction': 'BUY',
+                'quantity': 10,
+                'instrument': {
+                    'symbol': 'GOOG',
+                    'assetType': 'EQUITY',
+                }
+            }]
+        }, equity_buy_limit('GooG', 10, 199.99).build()))
+
+    def test_equity_sell_market_lowercase_symbols(self):
+        self.assertFalse(has_diff({
+            'orderType': 'MARKET',
+            'session': 'NORMAL',
+            'duration': 'DAY',
+            'orderStrategyType': 'SINGLE',
+            'orderLegCollection': [{
+                'instruction': 'SELL',
+                'quantity': 10,
+                'instrument': {
+                    'symbol': 'GOOG',
+                    'assetType': 'EQUITY',
+                }
+            }]
+        }, equity_sell_market('gOOg', 10).build()))
+
+    def test_equity_sell_limit_lowercase_symbols(self):
+        self.assertFalse(has_diff({
+            'orderType': 'LIMIT',
+            'session': 'NORMAL',
+            'duration': 'DAY',
+            'price': '199.99',
+            'orderStrategyType': 'SINGLE',
+            'orderLegCollection': [{
+                'instruction': 'SELL',
+                'quantity': 10,
+                'instrument': {
+                    'symbol': 'GOOG',
+                    'assetType': 'EQUITY',
+                }
+            }]
+        }, equity_sell_limit('gOOg', 10, 199.99).build()))
+
+    def test_equity_sell_short_market_lowercase_symbols(self):
+        self.assertFalse(has_diff({
+            'orderType': 'MARKET',
+            'session': 'NORMAL',
+            'duration': 'DAY',
+            'orderStrategyType': 'SINGLE',
+            'orderLegCollection': [{
+                'instruction': 'SELL_SHORT',
+                'quantity': 10,
+                'instrument': {
+                    'symbol': 'GOOG',
+                    'assetType': 'EQUITY',
+                }
+            }]
+        }, equity_sell_short_market('goog', 10).build()))
+
+    def test_equity_sell_short_limit_lowercase_symbols(self):
+        self.assertFalse(has_diff({
+            'orderType': 'LIMIT',
+            'session': 'NORMAL',
+            'duration': 'DAY',
+            'price': '199.99',
+            'orderStrategyType': 'SINGLE',
+            'orderLegCollection': [{
+                'instruction': 'SELL_SHORT',
+                'quantity': 10,
+                'instrument': {
+                    'symbol': 'GOOG',
+                    'assetType': 'EQUITY',
+                }
+            }]
+        }, equity_sell_short_limit('GOog', 10, 199.99).build()))
+
+    def test_equity_buy_to_cover_market_lowercase_symbols(self):
+        self.assertFalse(has_diff({
+            'orderType': 'MARKET',
+            'session': 'NORMAL',
+            'duration': 'DAY',
+            'orderStrategyType': 'SINGLE',
+            'orderLegCollection': [{
+                'instruction': 'BUY_TO_COVER',
+                'quantity': 10,
+                'instrument': {
+                    'symbol': 'GOOG',
+                    'assetType': 'EQUITY',
+                }
+            }]
+        }, equity_buy_to_cover_market('goOG', 10).build()))
+
+    def test_equity_buy_to_cover_limit_lowercase_symbols(self):
+        self.assertFalse(has_diff({
+            'orderType': 'LIMIT',
+            'session': 'NORMAL',
+            'duration': 'DAY',
+            'price': '199.99',
+            'orderStrategyType': 'SINGLE',
+            'orderLegCollection': [{
+                'instruction': 'BUY_TO_COVER',
+                'quantity': 10,
+                'instrument': {
+                    'symbol': 'GOOG',
+                    'assetType': 'EQUITY',
+                }
+            }]
+        }, equity_buy_to_cover_limit('GOog', 10, 199.99).build()))
+
+
     

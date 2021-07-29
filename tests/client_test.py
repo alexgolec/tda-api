@@ -612,6 +612,37 @@ class _TestClient:
                 'symbol': 'AAPL,MSFT',
                 'projection': 'fundamental'})
 
+    # search_instruments lowercase/mixedcase symbol
+
+    def test_search_instruments_lowercase(self):
+        self.client.search_instruments(
+            ['Aapl', 'msfT'], self.client_class.Instrument.Projection.FUNDAMENTAL)
+        self.mock_session.get.assert_called_once_with(
+            self.make_url('/v1/instruments'), params={
+                'apikey': API_KEY,
+                'symbol': 'AAPL,MSFT',
+                'projection': 'fundamental'})
+
+    
+    def test_search_instruments_one_instrument_lowercase(self):
+        self.client.search_instruments(
+            'aapl', self.client_class.Instrument.Projection.FUNDAMENTAL)
+        self.mock_session.get.assert_called_once_with(
+            self.make_url('/v1/instruments'), params={
+                'apikey': API_KEY,
+                'symbol': 'AAPL',
+                'projection': 'fundamental'})
+
+    
+    def test_search_instruments_unchecked_lowercase(self):
+        self.client.set_enforce_enums(False)
+        self.client.search_instruments(['Aapl', 'MsfT'], 'fundamental')
+        self.mock_session.get.assert_called_once_with(
+            self.make_url('/v1/instruments'), params={
+                'apikey': API_KEY,
+                'symbol': 'AAPL,MSFT',
+                'projection': 'fundamental'})
+
     # get_instrument
 
     
@@ -1123,6 +1154,23 @@ class _TestClient:
     
     def test_get_quotes_single_symbol(self):
         self.client.get_quotes('AAPL')
+        self.mock_session.get.assert_called_once_with(
+            self.make_url('/v1/marketdata/quotes'), params={
+                'apikey': API_KEY,
+                'symbol': 'AAPL'})
+
+    # get_quotes lowercase/mixedcase
+        
+    def test_get_quotes_lowercase(self):
+        self.client.get_quotes(['AapL', 'msfT'])
+        self.mock_session.get.assert_called_once_with(
+            self.make_url('/v1/marketdata/quotes'), params={
+                'apikey': API_KEY,
+                'symbol': 'AAPL,MSFT'})
+
+    
+    def test_get_quotes_single_symbol_lowercase(self):
+        self.client.get_quotes('aapl')
         self.mock_session.get.assert_called_once_with(
             self.make_url('/v1/marketdata/quotes'), params={
                 'apikey': API_KEY,

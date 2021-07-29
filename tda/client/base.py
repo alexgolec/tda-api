@@ -63,6 +63,11 @@ class BaseClient(EnumEnforcer):
         self.request_number += 1
         return self.request_number
 
+    def capitalize(self, ticker_list):
+        for i in range(len(ticker_list)):
+            ticker_list[i] = ticker_list[i].upper()
+        return ticker_list
+
     def _assert_type(self, name, value, exp_types):
         value_type = type(value)
         value_type_name = '{}.{}'.format(
@@ -414,6 +419,9 @@ class BaseClient(EnumEnforcer):
 
         if isinstance(symbols, str):
             symbols = [symbols.upper()]
+
+        if len(symbols) > 1:
+            self.capitalize(symbols)
 
         params = {
             'apikey': self.api_key,
@@ -834,6 +842,9 @@ class BaseClient(EnumEnforcer):
         quotes>`__.'''
         if isinstance(symbols, str):
             symbols = [symbols.upper()]
+
+        if len(symbols) > 1:
+            self.capitalize(symbols)
 
         params = {
             'apikey': self.api_key,

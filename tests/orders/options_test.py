@@ -44,6 +44,43 @@ class OptionSymbolTest(unittest.TestCase):
 
         self.assertEqual('GOOG_012122C2200.25', op.build())
 
+    #lowercase/mixed-case test
+    @no_duplicates
+    def test_parse_success_put_lowercase(self):
+        op = OptionSymbol.parse_symbol('goog_012122P2200')
+        self.assertEqual(op.underlying_symbol, 'GOOG')
+        self.assertEqual(
+                op.expiration_date, datetime.date(
+                    year=2022, month=1, day=21))
+        self.assertEqual(op.contract_type, 'P')
+        self.assertEqual(op.strike_price, '2200')
+
+        self.assertEqual('GOOG_012122P2200', op.build())
+
+    @no_duplicates
+    def test_parse_success_call_lowercase(self):
+        op = OptionSymbol.parse_symbol('gooG_012122C2200')
+        self.assertEqual(op.underlying_symbol, 'GOOG')
+        self.assertEqual(
+                op.expiration_date, datetime.date(
+                    year=2022, month=1, day=21))
+        self.assertEqual(op.contract_type, 'C')
+        self.assertEqual(op.strike_price, '2200')
+
+        self.assertEqual('GOOG_012122C2200', op.build())
+
+    @no_duplicates
+    def test_parse_success_decimal_point_in_strike_lowercase(self):
+        op = OptionSymbol.parse_symbol('gooG_012122C2200.25')
+        self.assertEqual(op.underlying_symbol, 'GOOG')
+        self.assertEqual(
+                op.expiration_date, datetime.date(
+                    year=2022, month=1, day=21))
+        self.assertEqual(op.contract_type, 'C')
+        self.assertEqual(op.strike_price, '2200.25')
+
+        self.assertEqual('GOOG_012122C2200.25', op.build())
+
     @no_duplicates
     def test_parse_missing_underscore(self):
         with self.assertRaisesRegex(ValueError, 'missing underscore'):
@@ -166,6 +203,71 @@ class OptionSymbolTest(unittest.TestCase):
 
         self.assertEqual('GOOG_121520P2200', op.build())
 
+    #lowercase/mixed-case test
+    @no_duplicates
+    def test_init_success_call_lowercase(self):
+        op = OptionSymbol('goog', '121520', 'C', '2200')
+        self.assertEqual(op.underlying_symbol, 'GOOG')
+        self.assertEqual(
+                op.expiration_date, datetime.date(
+                    year=2020, month=12, day=15))
+        self.assertEqual(op.contract_type, 'C')
+        self.assertEqual(op.strike_price, '2200')
+
+        self.assertEqual('GOOG_121520C2200', op.build())
+
+    @no_duplicates
+    def test_init_success_put_lowercase(self):
+        op = OptionSymbol('GOog', '121520', 'P', '2200')
+        self.assertEqual(op.underlying_symbol, 'GOOG')
+        self.assertEqual(
+                op.expiration_date, datetime.date(
+                    year=2020, month=12, day=15))
+        self.assertEqual(op.contract_type, 'P')
+        self.assertEqual(op.strike_price, '2200')
+
+        self.assertEqual('GOOG_121520P2200', op.build())
+
+    @no_duplicates
+    def test_init_success_datetime_lowercase(self):
+        op = OptionSymbol(
+                'goOG', datetime.datetime(year=2020, month=12, day=15),
+                'P', '2200')
+        self.assertEqual(op.underlying_symbol, 'GOOG')
+        self.assertEqual(
+                op.expiration_date, datetime.date(
+                    year=2020, month=12, day=15))
+        self.assertEqual(op.contract_type, 'P')
+        self.assertEqual(op.strike_price, '2200')
+
+        self.assertEqual('GOOG_121520P2200', op.build())
+
+    @no_duplicates
+    def test_init_success_date_lowercase(self):
+        op = OptionSymbol(
+                'goog', datetime.date(year=2020, month=12, day=15),
+                'P', '2200')
+        self.assertEqual(op.underlying_symbol, 'GOOG')
+        self.assertEqual(
+                op.expiration_date, datetime.date(
+                    year=2020, month=12, day=15))
+        self.assertEqual(op.contract_type, 'P')
+        self.assertEqual(op.strike_price, '2200')
+
+        self.assertEqual('GOOG_121520P2200', op.build())
+
+    @no_duplicates
+    def test_init_success_decimal_in_strike_lowercase(self):
+        op = OptionSymbol('goOg', '121520', 'P', '2200.25')
+        self.assertEqual(op.underlying_symbol, 'GOOG')
+        self.assertEqual(
+                op.expiration_date, datetime.date(
+                    year=2020, month=12, day=15))
+        self.assertEqual(op.contract_type, 'P')
+        self.assertEqual(op.strike_price, '2200.25')
+
+        self.assertEqual('GOOG_121520P2200.25', op.build())
+
     @no_duplicates
     def test_init_invalid_date(self):
         with self.assertRaisesRegex(
@@ -240,6 +342,42 @@ class OptionTemplatesTest(unittest.TestCase):
                 }
             }]
         }, option_buy_to_open_limit('GOOG_012122P2200', 10, 32.5).build()))
+    
+    # Buy to open lowercase ticker
+    @no_duplicates
+    def test_option_buy_to_open_market_lowercase(self):
+        self.assertFalse(has_diff({
+            'orderType': 'MARKET',
+            'session': 'NORMAL',
+            'duration': 'DAY',
+            'orderStrategyType': 'SINGLE',
+            'orderLegCollection': [{
+                'instruction': 'BUY_TO_OPEN',
+                'quantity': 10,
+                'instrument': {
+                    'symbol': 'GOOG_012122P2200',
+                    'assetType': 'OPTION',
+                }
+            }]
+        }, option_buy_to_open_market('gOoG_012122P2200', 10).build()))
+
+    @no_duplicates
+    def test_option_buy_to_open_limit_lowercase(self):
+        self.assertFalse(has_diff({
+            'orderType': 'LIMIT',
+            'session': 'NORMAL',
+            'duration': 'DAY',
+            'orderStrategyType': 'SINGLE',
+            'price': '32.50',
+            'orderLegCollection': [{
+                'instruction': 'BUY_TO_OPEN',
+                'quantity': 10,
+                'instrument': {
+                    'symbol': 'GOOG_012122P2200',
+                    'assetType': 'OPTION',
+                }
+            }]
+        }, option_buy_to_open_limit('goog_012122P2200', 10, 32.5).build()))
 
     # Sell to open
 
@@ -278,6 +416,42 @@ class OptionTemplatesTest(unittest.TestCase):
             }]
         }, option_sell_to_open_limit('GOOG_012122P2200', 10, 32.5).build()))
 
+    # Sell to open lowercase/mixed-case ticker
+    @no_duplicates
+    def test_option_sell_to_open_market_lowercase(self):
+        self.assertFalse(has_diff({
+            'orderType': 'MARKET',
+            'session': 'NORMAL',
+            'duration': 'DAY',
+            'orderStrategyType': 'SINGLE',
+            'orderLegCollection': [{
+                'instruction': 'SELL_TO_OPEN',
+                'quantity': 10,
+                'instrument': {
+                    'symbol': 'GOOG_012122P2200',
+                    'assetType': 'OPTION',
+                }
+            }]
+        }, option_sell_to_open_market('goOG_012122P2200', 10).build()))
+
+    @no_duplicates
+    def test_option_sell_to_open_limit_lowercase(self):
+        self.assertFalse(has_diff({
+            'orderType': 'LIMIT',
+            'session': 'NORMAL',
+            'duration': 'DAY',
+            'orderStrategyType': 'SINGLE',
+            'price': '32.50',
+            'orderLegCollection': [{
+                'instruction': 'SELL_TO_OPEN',
+                'quantity': 10,
+                'instrument': {
+                    'symbol': 'GOOG_012122P2200',
+                    'assetType': 'OPTION',
+                }
+            }]
+        }, option_sell_to_open_limit('goog_012122P2200', 10, 32.5).build()))
+
     # Buy to close
 
     @no_duplicates
@@ -314,6 +488,42 @@ class OptionTemplatesTest(unittest.TestCase):
                 }
             }]
         }, option_buy_to_close_limit('GOOG_012122P2200', 10, 32.5).build()))
+
+    #Buy to close lowercase/mixed-case ticker
+    @no_duplicates
+    def test_option_buy_to_close_market_lowercase(self):
+        self.assertFalse(has_diff({
+            'orderType': 'MARKET',
+            'session': 'NORMAL',
+            'duration': 'DAY',
+            'orderStrategyType': 'SINGLE',
+            'orderLegCollection': [{
+                'instruction': 'BUY_TO_CLOSE',
+                'quantity': 10,
+                'instrument': {
+                    'symbol': 'GOOG_012122P2200',
+                    'assetType': 'OPTION',
+                }
+            }]
+        }, option_buy_to_close_market('gooG_012122P2200', 10).build()))
+
+    @no_duplicates
+    def test_option_buy_to_close_limit_lowercase(self):
+        self.assertFalse(has_diff({
+            'orderType': 'LIMIT',
+            'session': 'NORMAL',
+            'duration': 'DAY',
+            'orderStrategyType': 'SINGLE',
+            'price': '32.50',
+            'orderLegCollection': [{
+                'instruction': 'BUY_TO_CLOSE',
+                'quantity': 10,
+                'instrument': {
+                    'symbol': 'GOOG_012122P2200',
+                    'assetType': 'OPTION',
+                }
+            }]
+        }, option_buy_to_close_limit('goOG_012122P2200', 10, 32.5).build()))
 
     # Sell to close
 
@@ -352,6 +562,41 @@ class OptionTemplatesTest(unittest.TestCase):
             }]
         }, option_sell_to_close_limit('GOOG_012122P2200', 10, 32.5).build()))
 
+    #sell to close lowercase/mixed-case ticker
+    @no_duplicates
+    def test_option_sell_to_close_market_lowercase(self):
+        self.assertFalse(has_diff({
+            'orderType': 'MARKET',
+            'session': 'NORMAL',
+            'duration': 'DAY',
+            'orderStrategyType': 'SINGLE',
+            'orderLegCollection': [{
+                'instruction': 'SELL_TO_CLOSE',
+                'quantity': 10,
+                'instrument': {
+                    'symbol': 'GOOG_012122P2200',
+                    'assetType': 'OPTION',
+                }
+            }]
+        }, option_sell_to_close_market('gooG_012122P2200', 10).build()))
+
+    @no_duplicates
+    def test_option_sell_to_close_limit_lowercase(self):
+        self.assertFalse(has_diff({
+            'orderType': 'LIMIT',
+            'session': 'NORMAL',
+            'duration': 'DAY',
+            'orderStrategyType': 'SINGLE',
+            'price': '32.50',
+            'orderLegCollection': [{
+                'instruction': 'SELL_TO_CLOSE',
+                'quantity': 10,
+                'instrument': {
+                    'symbol': 'GOOG_012122P2200',
+                    'assetType': 'OPTION',
+                }
+            }]
+        }, option_sell_to_close_limit('gooG_012122P2200', 10, 32.5).build()))
 
 
 class VerticalTemplatesTest(unittest.TestCase):
@@ -595,5 +840,248 @@ class VerticalTemplatesTest(unittest.TestCase):
             'GOOG_012122P2200',
             'GOOG_012122P2400',
             3, 30.6).build()))
+
+    #lowercase/mixed-case ticker
+    @no_duplicates
+    def test_bull_call_vertical_open_lowercase(self):
+        self.assertFalse(has_diff({
+            'orderType': 'NET_DEBIT',
+            'session': 'NORMAL',
+            'duration': 'DAY',
+            'orderStrategyType': 'SINGLE',
+            'price': '30.60',
+            'complexOrderStrategyType': 'VERTICAL',
+            'quantity': 3,
+            'orderLegCollection': [{
+                'instruction': 'BUY_TO_OPEN',
+                'quantity': 3,
+                'instrument': {
+                    'symbol': 'GOOG_012122C2200',
+                    'assetType': 'OPTION',
+                }
+            }, {
+                'instruction': 'SELL_TO_OPEN',
+                'quantity': 3,
+                'instrument': {
+                    'symbol': 'GOOG_012122C2400',
+                    'assetType': 'OPTION',
+                }
+            }]
+        }, bull_call_vertical_open(
+            'GOog_012122C2200',
+            'goOG_012122C2400',
+            3, 30.6).build()))
+
+    @no_duplicates
+    def test_bull_call_vertical_close_lowercase(self):
+        self.assertFalse(has_diff({
+            'orderType': 'NET_CREDIT',
+            'session': 'NORMAL',
+            'duration': 'DAY',
+            'orderStrategyType': 'SINGLE',
+            'price': '30.60',
+            'complexOrderStrategyType': 'VERTICAL',
+            'quantity': 3,
+            'orderLegCollection': [{
+                'instruction': 'SELL_TO_CLOSE',
+                'quantity': 3,
+                'instrument': {
+                    'symbol': 'GOOG_012122C2200',
+                    'assetType': 'OPTION',
+                }
+            }, {
+                'instruction': 'BUY_TO_CLOSE',
+                'quantity': 3,
+                'instrument': {
+                    'symbol': 'GOOG_012122C2400',
+                    'assetType': 'OPTION',
+                }
+            }]
+        }, bull_call_vertical_close(
+            'Goog_012122C2200',
+            'goOG_012122C2400',
+            3, 30.6).build()))
+
+    @no_duplicates
+    def test_bear_call_vertical_open_lowercase(self):
+        self.assertFalse(has_diff({
+            'orderType': 'NET_CREDIT',
+            'session': 'NORMAL',
+            'duration': 'DAY',
+            'orderStrategyType': 'SINGLE',
+            'price': '30.60',
+            'complexOrderStrategyType': 'VERTICAL',
+            'quantity': 3,
+            'orderLegCollection': [{
+                'instruction': 'SELL_TO_OPEN',
+                'quantity': 3,
+                'instrument': {
+                    'symbol': 'GOOG_012122C2200',
+                    'assetType': 'OPTION',
+                }
+            }, {
+                'instruction': 'BUY_TO_OPEN',
+                'quantity': 3,
+                'instrument': {
+                    'symbol': 'GOOG_012122C2400',
+                    'assetType': 'OPTION',
+                }
+            }]
+        }, bear_call_vertical_open(
+            'gooG_012122C2200',
+            'goOG_012122C2400',
+            3, 30.6).build()))
+
+    @no_duplicates
+    def test_bear_call_vertical_close_lowercase(self):
+        self.assertFalse(has_diff({
+            'orderType': 'NET_DEBIT',
+            'session': 'NORMAL',
+            'duration': 'DAY',
+            'orderStrategyType': 'SINGLE',
+            'price': '30.60',
+            'complexOrderStrategyType': 'VERTICAL',
+            'quantity': 3,
+            'orderLegCollection': [{
+                'instruction': 'BUY_TO_CLOSE',
+                'quantity': 3,
+                'instrument': {
+                    'symbol': 'GOOG_012122C2200',
+                    'assetType': 'OPTION',
+                }
+            }, {
+                'instruction': 'SELL_TO_CLOSE',
+                'quantity': 3,
+                'instrument': {
+                    'symbol': 'GOOG_012122C2400',
+                    'assetType': 'OPTION',
+                }
+            }]
+        }, bear_call_vertical_close(
+            'Goog_012122C2200',
+            'gOOg_012122C2400',
+            3, 30.6).build()))
+
+    @no_duplicates
+    def test_bull_put_vertical_open_lowercase(self):
+        self.assertFalse(has_diff({
+            'orderType': 'NET_CREDIT',
+            'session': 'NORMAL',
+            'duration': 'DAY',
+            'orderStrategyType': 'SINGLE',
+            'price': '30.60',
+            'complexOrderStrategyType': 'VERTICAL',
+            'quantity': 3,
+            'orderLegCollection': [{
+                'instruction': 'BUY_TO_OPEN',
+                'quantity': 3,
+                'instrument': {
+                    'symbol': 'GOOG_012122P2200',
+                    'assetType': 'OPTION',
+                }
+            }, {
+                'instruction': 'SELL_TO_OPEN',
+                'quantity': 3,
+                'instrument': {
+                    'symbol': 'GOOG_012122P2400',
+                    'assetType': 'OPTION',
+                }
+            }]
+        }, bull_put_vertical_open(
+            'GooG_012122P2200',
+            'gooG_012122P2400',
+            3, 30.6).build()))
+
+    @no_duplicates
+    def test_bull_put_vertical_close_lowercase(self):
+        self.assertFalse(has_diff({
+            'orderType': 'NET_DEBIT',
+            'session': 'NORMAL',
+            'duration': 'DAY',
+            'orderStrategyType': 'SINGLE',
+            'price': '30.60',
+            'complexOrderStrategyType': 'VERTICAL',
+            'quantity': 3,
+            'orderLegCollection': [{
+                'instruction': 'SELL_TO_CLOSE',
+                'quantity': 3,
+                'instrument': {
+                    'symbol': 'GOOG_012122P2200',
+                    'assetType': 'OPTION',
+                }
+            }, {
+                'instruction': 'BUY_TO_CLOSE',
+                'quantity': 3,
+                'instrument': {
+                    'symbol': 'GOOG_012122P2400',
+                    'assetType': 'OPTION',
+                }
+            }]
+        }, bull_put_vertical_close(
+            'gooG_012122P2200',
+            'goOG_012122P2400',
+            3, 30.6).build()))
+
+    @no_duplicates
+    def test_bear_put_vertical_open_lowercase(self):
+        self.assertFalse(has_diff({
+            'orderType': 'NET_DEBIT',
+            'session': 'NORMAL',
+            'duration': 'DAY',
+            'orderStrategyType': 'SINGLE',
+            'price': '30.60',
+            'complexOrderStrategyType': 'VERTICAL',
+            'quantity': 3,
+            'orderLegCollection': [{
+                'instruction': 'SELL_TO_OPEN',
+                'quantity': 3,
+                'instrument': {
+                    'symbol': 'GOOG_012122P2200',
+                    'assetType': 'OPTION',
+                }
+            }, {
+                'instruction': 'BUY_TO_OPEN',
+                'quantity': 3,
+                'instrument': {
+                    'symbol': 'GOOG_012122P2400',
+                    'assetType': 'OPTION',
+                }
+            }]
+        }, bear_put_vertical_open(
+            'goog_012122P2200',
+            'gooG_012122P2400',
+            3, 30.6).build()))
+
+    @no_duplicates
+    def test_bear_put_vertical_close_lowercase(self):
+        self.assertFalse(has_diff({
+            'orderType': 'NET_CREDIT',
+            'session': 'NORMAL',
+            'duration': 'DAY',
+            'orderStrategyType': 'SINGLE',
+            'price': '30.60',
+            'complexOrderStrategyType': 'VERTICAL',
+            'quantity': 3,
+            'orderLegCollection': [{
+                'instruction': 'BUY_TO_CLOSE',
+                'quantity': 3,
+                'instrument': {
+                    'symbol': 'GOOG_012122P2200',
+                    'assetType': 'OPTION',
+                }
+            }, {
+                'instruction': 'SELL_TO_CLOSE',
+                'quantity': 3,
+                'instrument': {
+                    'symbol': 'GOOG_012122P2400',
+                    'assetType': 'OPTION',
+                }
+            }]
+        }, bear_put_vertical_close(
+            'goog_012122P2200',
+            'GooG_012122P2400',
+            3, 30.6).build()))
+
+
 
 
