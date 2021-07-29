@@ -155,6 +155,11 @@ class StreamClient(EnumEnforcer):
         self.request_number += 1
         return self.request_number
 
+    def capitalize(self, symbols_list):
+        for i in range(len(symbols_list)):
+            symbols_list[i] = symbols_list[i].upper()
+        return symbols_list
+
     async def _send(self, obj):
         if self._socket is None:
             raise ValueError(
@@ -569,6 +574,7 @@ class StreamClient(EnumEnforcer):
         times.
 
         :param symbols: Equity symbols to subscribe to.'''
+        symbols = self.capitalize(symbols)
         await self._service_op(
             symbols, 'CHART_EQUITY', 'SUBS', self.ChartEquityFields,
             fields=self.ChartEquityFields.all_fields())
@@ -583,6 +589,7 @@ class StreamClient(EnumEnforcer):
 
         :param symbols: Equity symbols to add to the subscription.
         '''
+        symbols = self.capitalize(symbols)
         await self._service_op(
             symbols, 'CHART_EQUITY', 'ADD', self.ChartEquityFields,
             fields=self.ChartEquityFields.all_fields())
@@ -640,6 +647,7 @@ class StreamClient(EnumEnforcer):
 
         :param symbols: Futures symbols to subscribe to.
         '''
+        symbols = self.capitalize(symbols)
         await self._service_op(
             symbols, 'CHART_FUTURES', 'SUBS', self.ChartFuturesFields,
             fields=self.ChartFuturesFields.all_fields())
@@ -654,6 +662,7 @@ class StreamClient(EnumEnforcer):
 
         :param symbols: Futures symbols to add to the subscription.
         '''
+        symbols = self.capitalize(symbols)
         await self._service_op(
             symbols, 'CHART_FUTURES', 'ADD', self.ChartFuturesFields,
             fields=self.ChartFuturesFields.all_fields())
@@ -876,6 +885,7 @@ class StreamClient(EnumEnforcer):
                        the fields to return in streaming entries. If unset, all
                        fields will be requested.
         '''
+        symbols = self.capitalize(symbols)
         if fields and self.LevelOneEquityFields.SYMBOL not in fields:
             fields.append(self.LevelOneEquityFields.SYMBOL)
         await self._service_op(
@@ -1021,6 +1031,7 @@ class StreamClient(EnumEnforcer):
                        the fields to return in streaming entries. If unset, all
                        fields will be requested.
         '''
+        symbols = self.capitalize(symbols)
         if fields and self.LevelOneOptionFields.SYMBOL not in fields:
             fields.append(self.LevelOneOptionFields.SYMBOL)
         await self._service_op(
@@ -1180,6 +1191,7 @@ class StreamClient(EnumEnforcer):
                        the fields to return in streaming entries. If unset, all
                        fields will be requested.
         '''
+        symbols = self.capitalize(symbols)
         if fields and self.LevelOneFuturesFields.SYMBOL not in fields:
             fields.append(self.LevelOneFuturesFields.SYMBOL)
         await self._service_op(
@@ -1312,6 +1324,7 @@ class StreamClient(EnumEnforcer):
                        the fields to return in streaming entries. If unset, all
                        fields will be requested.
         '''
+        symbols = self.capitalize(symbols)
         if fields and self.LevelOneForexFields.SYMBOL not in fields:
             fields.append(self.LevelOneForexFields.SYMBOL)
         await self._service_op(
@@ -1463,6 +1476,7 @@ class StreamClient(EnumEnforcer):
                        representing the fields to return in streaming entries.
                        If unset, all fields will be requested.
         '''
+        symbols = self.capitalize(symbols)
         if fields and self.LevelOneFuturesOptionsFields.SYMBOL not in fields:
             fields.append(self.LevelOneFuturesOptionsFields.SYMBOL)
         await self._service_op(
@@ -1511,6 +1525,7 @@ class StreamClient(EnumEnforcer):
 
         :param symbols: Equity symbols to subscribe to
         '''
+        symbols = self.capitalize(symbols)
         if fields and self.TimesaleFields.SYMBOL not in fields:
             fields.append(self.TimesaleFields.SYMBOL)
         await self._service_op(
@@ -1534,6 +1549,7 @@ class StreamClient(EnumEnforcer):
 
         :param symbols: Futures symbols to subscribe to
         '''
+        symbols = self.capitalize(symbols)
         if fields and self.TimesaleFields.SYMBOL not in fields:
             fields.append(self.TimesaleFields.SYMBOL)
         await self._service_op(
@@ -1557,6 +1573,7 @@ class StreamClient(EnumEnforcer):
 
         :param symbols: Options symbols to subscribe to
         '''
+        symbols = self.capitalize(symbols)
         if fields and self.TimesaleFields.SYMBOL not in fields:
             fields.append(self.TimesaleFields.SYMBOL)
         await self._service_op(
@@ -1641,6 +1658,7 @@ class StreamClient(EnumEnforcer):
         Subscribe to the NYSE level two order book. Note this stream has no
         official documentation.
         '''
+        symbols = self.capitalize(symbols)
         await self._service_op(
             symbols, 'LISTED_BOOK', 'SUBS',
             self.BookFields, fields=self.BookFields.all_fields())
@@ -1661,6 +1679,7 @@ class StreamClient(EnumEnforcer):
         Subscribe to the NASDAQ level two order book. Note this stream has no
         official documentation.
         '''
+        symbols = self.capitalize(symbols)
         await self._service_op(symbols, 'NASDAQ_BOOK', 'SUBS',
                                self.BookFields,
                                fields=self.BookFields.all_fields())
@@ -1682,6 +1701,7 @@ class StreamClient(EnumEnforcer):
         official documentation, and it's not entirely clear what exchange it
         corresponds to. Use at your own risk.
         '''
+        symbols = self.capitalize(symbols)
         await self._service_op(symbols, 'OPTIONS_BOOK', 'SUBS',
                                self.BookFields,
                                fields=self.BookFields.all_fields())
@@ -1732,6 +1752,7 @@ class StreamClient(EnumEnforcer):
 
         Subscribe to news headlines related to the given symbols.
         '''
+        symbols = self.capitalize(symbols)
         await self._service_op(symbols, 'NEWS_HEADLINE', 'SUBS',
                                self.NewsHeadlineFields,
                                fields=self.NewsHeadlineFields.all_fields())
