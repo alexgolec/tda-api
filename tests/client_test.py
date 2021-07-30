@@ -1008,6 +1008,243 @@ class _TestClient:
                 'symbol': 'AAPL',
                 'optionType': 'S'})
 
+
+    # get_option_chain _lowercase_symbols
+
+    
+    def test_get_option_chain_vanilla_lowercase_symbols(self):
+        self.client.get_option_chain('aapL')
+        self.mock_session.get.assert_called_once_with(
+            self.make_url('/v1/marketdata/chains'), params={
+                'apikey': API_KEY,
+                'symbol': 'AAPL'})
+
+    
+    def test_get_option_chain_contract_type_lowercase_symbols(self):
+        self.client.get_option_chain(
+            'AapL', contract_type=self.client_class.Options.ContractType.PUT)
+        self.mock_session.get.assert_called_once_with(
+            self.make_url('/v1/marketdata/chains'), params={
+                'apikey': API_KEY,
+                'symbol': 'AAPL',
+                'contractType': 'PUT'})
+
+    
+    def test_get_option_chain_contract_type_unchecked_lowercase_symbols(self):
+        self.client.set_enforce_enums(False)
+        self.client.get_option_chain('aaPL', contract_type='PUT')
+        self.mock_session.get.assert_called_once_with(
+            self.make_url('/v1/marketdata/chains'), params={
+                'apikey': API_KEY,
+                'symbol': 'AAPL',
+                'contractType': 'PUT'})
+
+    
+    def test_get_option_chain_strike_count_lowercase_symbols(self):
+        self.client.get_option_chain('Aapl', strike_count=100)
+        self.mock_session.get.assert_called_once_with(
+            self.make_url('/v1/marketdata/chains'), params={
+                'apikey': API_KEY,
+                'symbol': 'AAPL',
+                'strikeCount': 100})
+
+    
+    def test_get_option_chain_include_quotes_lowercase_symbols(self):
+        self.client.get_option_chain('aapL', include_quotes=True)
+        self.mock_session.get.assert_called_once_with(
+            self.make_url('/v1/marketdata/chains'), params={
+                'apikey': API_KEY,
+                'symbol': 'AAPL',
+                'includeQuotes': True})
+
+    
+    def test_get_option_chain_strategy_lowercase_symbols(self):
+        self.client.get_option_chain(
+            'aapL', strategy=self.client_class.Options.Strategy.STRANGLE)
+        self.mock_session.get.assert_called_once_with(
+            self.make_url('/v1/marketdata/chains'), params={
+                'apikey': API_KEY,
+                'symbol': 'AAPL',
+                'strategy': 'STRANGLE'})
+
+    
+    def test_get_option_chain_strategy_unchecked_lowercase_symbols(self):
+        self.client.set_enforce_enums(False)
+        self.client.get_option_chain('aapL', strategy='STRANGLE')
+        self.mock_session.get.assert_called_once_with(
+            self.make_url('/v1/marketdata/chains'), params={
+                'apikey': API_KEY,
+                'symbol': 'AAPL',
+                'strategy': 'STRANGLE'})
+
+    
+    def test_get_option_chain_interval_lowercase_symbols(self):
+        self.client.get_option_chain('aapl', interval=10.0)
+        self.mock_session.get.assert_called_once_with(
+            self.make_url('/v1/marketdata/chains'), params={
+                'apikey': API_KEY,
+                'symbol': 'AAPL',
+                'interval': 10.0})
+
+    
+    def test_get_option_chain_strike_lowercase_symbols(self):
+        self.client.get_option_chain('aapl', strike=123)
+        self.mock_session.get.assert_called_once_with(
+            self.make_url('/v1/marketdata/chains'), params={
+                'apikey': API_KEY,
+                'symbol': 'AAPL',
+                'strike': 123})
+
+    
+    def test_get_option_chain_strike_range_lowercase_symbols(self):
+        self.client.get_option_chain(
+            'aapL', strike_range=self.client_class.Options.StrikeRange.IN_THE_MONEY)
+        self.mock_session.get.assert_called_once_with(
+            self.make_url('/v1/marketdata/chains'), params={
+                'apikey': API_KEY,
+                'symbol': 'AAPL',
+                'range': 'IN_THE_MONEY'})
+
+    
+    def test_get_option_chain_strike_range_unchecked_lowercase_symbols(self):
+        self.client.set_enforce_enums(False)
+        self.client.get_option_chain('aapL', strike_range='ITM')
+        self.mock_session.get.assert_called_once_with(
+            self.make_url('/v1/marketdata/chains'), params={
+                'apikey': API_KEY,
+                'symbol': 'AAPL',
+                'range': 'ITM'})
+
+    
+    def test_get_option_chain_from_date_datetime_lowercase_symbols(self):
+        self.client.get_option_chain(
+            'aapL', from_date=NOW_DATETIME)
+        self.mock_session.get.assert_called_once_with(
+            self.make_url('/v1/marketdata/chains'), params={
+                'apikey': API_KEY,
+                'symbol': 'AAPL',
+                'fromDate': NOW_DATE_ISO})
+
+    
+    def test_get_option_chain_from_date_date_lowercase_symbols(self):
+        self.client.get_option_chain('aapL', from_date=NOW_DATE)
+        self.mock_session.get.assert_called_once_with(
+            self.make_url('/v1/marketdata/chains'), params={
+                'apikey': API_KEY,
+                'symbol': 'AAPL',
+                'fromDate': NOW_DATE_ISO})
+
+    
+    def test_get_option_chain_from_date_str_lowercase_symbols(self):
+        with self.assertRaises(ValueError) as cm:
+            self.client.get_option_chain('aaPL', from_date='2020-01-01')
+        self.assertEqual(str(cm.exception),
+                         "expected type in (datetime.date, datetime.datetime) for " +
+                         "from_date, got 'builtins.str'")
+
+    
+    def test_get_option_chain_to_date_datetime_lowercase_symbols(self):
+        self.client.get_option_chain('AapL', to_date=NOW_DATETIME)
+        self.mock_session.get.assert_called_once_with(
+            self.make_url('/v1/marketdata/chains'), params={
+                'apikey': API_KEY,
+                'symbol': 'AAPL',
+                'toDate': NOW_DATE_ISO})
+
+    
+    def test_get_option_chain_to_date_date_lowercase_symbols(self):
+        self.client.get_option_chain('AApl', to_date=NOW_DATE)
+        self.mock_session.get.assert_called_once_with(
+            self.make_url('/v1/marketdata/chains'), params={
+                'apikey': API_KEY,
+                'symbol': 'AAPL',
+                'toDate': NOW_DATE_ISO})
+
+    
+    def test_get_option_chain_to_date_str_lowercase_symbols(self):
+        with self.assertRaises(ValueError) as cm:
+            self.client.get_option_chain('aapl', to_date='2020-01-01')
+        self.assertEqual(str(cm.exception),
+                         "expected type in (datetime.date, datetime.datetime) for " +
+                         "to_date, got 'builtins.str'")
+
+    
+    def test_get_option_chain_volatility_lowercase_symbols(self):
+        self.client.get_option_chain('aaPL', volatility=40.0)
+        self.mock_session.get.assert_called_once_with(
+            self.make_url('/v1/marketdata/chains'), params={
+                'apikey': API_KEY,
+                'symbol': 'AAPL',
+                'volatility': 40.0})
+
+    
+    def test_get_option_chain_underlying_price_lowercase_symbols(self):
+        self.client.get_option_chain('aapl', underlying_price=234.0)
+        self.mock_session.get.assert_called_once_with(
+            self.make_url('/v1/marketdata/chains'), params={
+                'apikey': API_KEY,
+                'symbol': 'AAPL',
+                'underlyingPrice': 234.0})
+
+    
+    def test_get_option_chain_interest_rate_lowercase_symbols(self):
+        self.client.get_option_chain('aapL', interest_rate=0.07)
+        self.mock_session.get.assert_called_once_with(
+            self.make_url('/v1/marketdata/chains'), params={
+                'apikey': API_KEY,
+                'symbol': 'AAPL',
+                'interestRate': 0.07})
+
+    
+    def test_get_option_chain_days_to_expiration_lowercase_symbols(self):
+        self.client.get_option_chain('aaPL', days_to_expiration=12)
+        self.mock_session.get.assert_called_once_with(
+            self.make_url('/v1/marketdata/chains'), params={
+                'apikey': API_KEY,
+                'symbol': 'AAPL',
+                'daysToExpiration': 12})
+
+    
+    def test_get_option_chain_exp_month_lowercase_symbols(self):
+        self.client.get_option_chain(
+            'aapL', exp_month=self.client_class.Options.ExpirationMonth.JANUARY)
+        self.mock_session.get.assert_called_once_with(
+            self.make_url('/v1/marketdata/chains'), params={
+                'apikey': API_KEY,
+                'symbol': 'AAPL',
+                'expMonth': 'JAN'})
+
+    
+    def test_get_option_chain_exp_month_unchecked_lowercase_symbols(self):
+        self.client.set_enforce_enums(False)
+        self.client.get_option_chain('aapL', exp_month='JAN')
+        self.mock_session.get.assert_called_once_with(
+            self.make_url('/v1/marketdata/chains'), params={
+                'apikey': API_KEY,
+                'symbol': 'AAPL',
+                'expMonth': 'JAN'})
+
+    
+    def test_get_option_chain_option_type_lowercase_symbols(self):
+        self.client.get_option_chain(
+            'aaPL', option_type=self.client_class.Options.Type.STANDARD)
+        self.mock_session.get.assert_called_once_with(
+            self.make_url('/v1/marketdata/chains'), params={
+                'apikey': API_KEY,
+                'symbol': 'AAPL',
+                'optionType': 'S'})
+
+    
+    def test_get_option_chain_option_type_unchecked_lowercase_symbols(self):
+        self.client.set_enforce_enums(False)
+        self.client.get_option_chain('aAPL', option_type='S')
+        self.mock_session.get.assert_called_once_with(
+            self.make_url('/v1/marketdata/chains'), params={
+                'apikey': API_KEY,
+                'symbol': 'AAPL',
+                'optionType': 'S'})
+
+
     # get_price_history
 
     
@@ -1284,6 +1521,13 @@ class _TestClient:
         self.assertEqual(str(cm.exception),
                          "expected type in (datetime.date, datetime.datetime) for " +
                          "end_date, got 'builtins.str'")
+
+    def test_get_transactions_symbol_lowercase_symbols(self):
+        self.client.get_transactions(ACCOUNT_ID, symbol='aapL')
+        self.mock_session.get.assert_called_once_with(
+            self.make_url('/v1/accounts/{accountId}/transactions'), params={
+                'apikey': API_KEY,
+                'symbol': 'AAPL'})
 
     # get_preferences
 

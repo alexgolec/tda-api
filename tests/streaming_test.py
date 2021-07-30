@@ -6912,3 +6912,197 @@ class StreamClientTest(asynctest.TestCase):
     async def test_subscribe_without_login(self, ws_connect):
         with self.assertRaisesRegex(ValueError, '.*Socket not open.*'):
             await self.client.chart_equity_subs(['GOOG,MSFT'])
+
+    ###########################################################################
+    # Handler edge cases _lowercase_symbols
+    #
+    # Note: We use CHART_EQUITY as a test case, which leaks the implementation
+    # detail that the handler disasynctest.patching is implemented by a common component.
+    # If this were to ever change, these tests will have to be revisited.
+
+    @no_duplicates
+    @asynctest.patch('tda.streaming.ws_client.connect', new_callable=asynctest.CoroutineMock)
+    async def test_messages_received_while_awaiting_response_lowercase_symbols(self, ws_connect):
+        socket = await self.login_and_get_socket(ws_connect)
+
+        stream_item = self.streaming_entry('CHART_EQUITY', 'SUBS')
+
+        socket.recv.side_effect = [
+            json.dumps(self.success_response(1, 'CHART_EQUITY', 'SUBS')),
+            json.dumps(stream_item),
+            json.dumps(self.success_response(2, 'CHART_EQUITY', 'ADD'))]
+
+        await self.client.chart_equity_subs(['Goog,msft'])
+        await self.client.chart_equity_add(['intc'])
+
+        handler = Mock()
+        async_handler = asynctest.CoroutineMock()
+        self.client.add_chart_equity_handler(handler)
+        self.client.add_chart_equity_handler(async_handler)
+        await self.client.handle_message()
+        handler.assert_called_once_with(stream_item['data'][0])
+        async_handler.assert_called_once_with(stream_item['data'][0])
+
+    @no_duplicates
+    @asynctest.patch('tda.streaming.ws_client.connect', new_callable=asynctest.CoroutineMock)
+    async def test_messages_received_while_awaiting_failed_response_bad_code_lowercase_symbols(
+            self, ws_connect):
+        socket = await self.login_and_get_socket(ws_connect)
+
+        stream_item = self.streaming_entry('CHART_EQUITY', 'SUBS')
+
+        failed_add_response = self.success_response(2, 'CHART_EQUITY', 'ADD')
+        failed_add_response['response'][0]['content']['code'] = 21
+
+        socket.recv.side_effect = [
+            json.dumps(self.success_response(1, 'CHART_EQUITY', 'SUBS')),
+            json.dumps(stream_item),
+            json.dumps(failed_add_response)]
+
+        await self.client.chart_equity_subs(['Goog,msfT'])
+        with self.assertRaises(tda.streaming.UnexpectedResponseCode):
+            await self.client.chart_equity_add(['intC'])
+
+        handler = Mock()
+        async_handler = asynctest.CoroutineMock()
+        self.client.add_chart_equity_handler(handler)
+        self.client.add_chart_equity_handler(async_handler)
+        await self.client.handle_message()
+        handler.assert_called_once_with(stream_item['data'][0])
+        async_handler.assert_called_once_with(stream_item['data'][0])
+
+    @no_duplicates
+    @asynctest.patch('tda.streaming.ws_client.connect', new_callable=asynctest.CoroutineMock)
+    async def test_messages_received_while_receiving_unexpected_response_lowercase_symbols(
+            self, ws_connect):
+        socket = await self.login_and_get_socket(ws_connect)
+
+        stream_item = self.streaming_entry('CHART_EQUITY', 'SUBS')
+
+        failed_add_response = self.success_response(999, 'CHART_EQUITY', 'ADD')
+        failed_add_response['response'][0]['content']['code'] = 21
+
+        socket.recv.side_effect = [
+            json.dumps(self.success_response(1, 'CHART_EQUITY', 'SUBS')),
+            json.dumps(stream_item),
+            json.dumps(failed_add_response)]
+
+        await self.client.chart_equity_subs(['goog,msft'])
+        with self.assertRaises(tda.streaming.UnexpectedResponse):
+            await self.client.chart_equity_add(['intC'])
+
+        handler = Mock()
+        async_handler = asynctest.CoroutineMock()
+        self.client.add_chart_equity_handler(handler)
+        self.client.add_chart_equity_handler(async_handler)
+        await self.client.handle_message()
+        handler.assert_called_once_with(stream_item['data'][0])
+        async_handler.assert_called_once_with(stream_item['data'][0])
+
+    @no_duplicates
+    @asynctest.patch('tda.streaming.ws_client.connect', new_callable=asynctest.CoroutineMock)
+    async def test_notify_heartbeat_messages_ignored_lowercase_symbols(self, ws_connect):
+        socket = await self.login_and_get_socket(ws_connect)
+
+        socket.recv.side_effect = [
+            json.dumps(self.success_response(1, 'CHART_EQUITY', 'SUBS')),
+            json.dumps({'notify': [{'heartbeat': '1591499624412'}]})]
+
+        await self.client.chart_equity_subs(['Goog, msft'])
+
+        handler = Mock()
+        async_handler = asynctest.CoroutineMock()
+        self.client.add_chart_equity_handler(handler)
+        self.client.add_chart_equity_handler(async_handler)
+        await self.client.handle_message()
+        handler.assert_not_called()
+        async_handler.assert_not_called()
+
+    @no_duplicates
+    @asynctest.patch('tda.streaming.ws_client.connect', new_callable=asynctest.CoroutineMock)
+    async def test_handle_message_unexpected_response_lowercase_symbols(self, ws_connect):
+        socket = await self.login_and_get_socket(ws_connect)
+
+        socket.recv.side_effect = [
+            json.dumps(self.success_response(1, 'CHART_EQUITY', 'SUBS')),
+            json.dumps(self.success_response(2, 'CHART_EQUITY', 'SUBS'))]
+
+        await self.client.chart_equity_subs(['GOOg,msfT'])
+
+        with self.assertRaises(tda.streaming.UnexpectedResponse):
+            await self.client.handle_message()
+
+    @no_duplicates
+    @asynctest.patch('tda.streaming.ws_client.connect', new_callable=asynctest.CoroutineMock)
+    async def test_handle_message_unparsable_message_lowercase_symbols(self, ws_connect):
+        socket = await self.login_and_get_socket(ws_connect)
+
+        socket.recv.side_effect = [
+            json.dumps(self.success_response(1, 'CHART_EQUITY', 'SUBS')),
+            '{"data":[{"service":"LEVELONE_FUTURES", ' +
+            '"timestamp":1590248118165,"command":"SUBS",' +
+            '"content":[{"key":"/GOOG","delayed":false,' +
+            '"1":�,"2":�,"3":�,"6":"?","7":"?","12":�,"13":�,' +
+            '"14":�,"15":"?","16":"Symbol not found","17":"?",' +
+            '"18":�,"21":"unavailable","22":"Unknown","24":�,'
+            '"28":"D,D","33":�}]}]}']
+
+        await self.client.chart_equity_subs(['GOog, msfT'])
+
+        with self.assertRaises(tda.streaming.UnparsableMessage):
+            await self.client.handle_message()
+
+    @no_duplicates
+    @asynctest.patch('tda.streaming.ws_client.connect', new_callable=asynctest.CoroutineMock)
+    async def test_handle_message_multiple_handlers_lowercase_symbols(self, ws_connect):
+        socket = await self.login_and_get_socket(ws_connect)
+
+        stream_item_1 = self.streaming_entry('CHART_EQUITY', 'SUBS')
+
+        socket.recv.side_effect = [
+            json.dumps(self.success_response(1, 'CHART_EQUITY', 'SUBS')),
+            json.dumps(stream_item_1)]
+
+        await self.client.chart_equity_subs(['goog,msfT'])
+
+        handler = Mock()
+        async_handler = asynctest.CoroutineMock()
+        self.client.add_chart_equity_handler(handler)
+        self.client.add_chart_equity_handler(async_handler)
+
+        await self.client.handle_message()
+        handler.assert_called_once_with(stream_item_1['data'][0])
+        async_handler.assert_called_once_with(stream_item_1['data'][0])
+
+    @no_duplicates
+    @asynctest.patch('tda.streaming.ws_client.connect', new_callable=asynctest.CoroutineMock)
+    async def test_multiple_data_per_message_lowercase_symbols(self, ws_connect):
+        socket = await self.login_and_get_socket(ws_connect)
+
+        stream_item = self.streaming_entry(
+            'CHART_EQUITY', 'SUBS', [{'msg': 1}])
+        stream_item['data'].append(self.streaming_entry(
+            'CHART_EQUITY', 'SUBS', [{'msg': 2}])['data'][0])
+
+        socket.recv.side_effect = [
+            json.dumps(self.success_response(1, 'CHART_EQUITY', 'SUBS')),
+            json.dumps(stream_item)]
+
+        await self.client.chart_equity_subs(['Goog,msfT'])
+
+        handler = Mock()
+        async_handler = asynctest.CoroutineMock()
+        self.client.add_chart_equity_handler(handler)
+        self.client.add_chart_equity_handler(async_handler)
+
+        await self.client.handle_message()
+        handler.assert_has_calls(
+            [call(stream_item['data'][0]), call(stream_item['data'][1])])
+        async_handler.assert_has_calls(
+            [call(stream_item['data'][0]), call(stream_item['data'][1])])
+
+    @no_duplicates
+    @asynctest.patch('tda.streaming.ws_client.connect', new_callable=asynctest.CoroutineMock)
+    async def test_subscribe_without_login_lowercase_symbols(self, ws_connect):
+        with self.assertRaisesRegex(ValueError, '.*Socket not open.*'):
+            await self.client.chart_equity_subs(['Goog,msft'])
