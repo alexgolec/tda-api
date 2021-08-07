@@ -7,8 +7,8 @@
 .. image:: https://img.shields.io/endpoint.svg?url=https%3A%2F%2Fshieldsio-patreon.vercel.app%2Fapi%3Fusername%3Dalexgolec%26type%3Dpatrons&style=flat
   :target: https://patreon.com/alexgolec
 
-.. image:: https://readthedocs.org/projects/tda-api/badge/?version=stable
-  :target: https://tda-api.readthedocs.io/en/stable/?badge=stable
+.. image:: https://readthedocs.org/projects/tda-api/badge/?version=latest
+  :target: https://tda-api.readthedocs.io/en/latest/?badge=latest
 
 .. image:: https://github.com/alexgolec/tda-api/workflows/tests/badge.svg
   :target: https://github.com/alexgolec/tda-api/actions?query=workflow%3Atests
@@ -38,7 +38,7 @@ How do I use ``tda-api``?
 -------------------------
 
 For a full description of ``tda-api``'s functionality, check out the 
-`documentation <https://tda-api.readthedocs.io/en/stable/>`__. Meawhile, here's 
+`documentation <https://tda-api.readthedocs.io/en/latest/>`__. Meawhile, here's 
 a quick getting started guide:
 
 Before you do anything, create an account and an application on the

@@ -170,7 +170,7 @@ orders easy:
               .set_order_type(OrderType.STOP_LIMIT)
               .clear_price()
               .set_stop_price(1250)
-      )
+      ))
 
 You can find the full listing of order templates and utility functions 
 :ref:`here <order_templates>`.
