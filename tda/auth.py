@@ -66,6 +66,10 @@ def get_auth_url_and_state(oauth, additional_state=None):
 
     :param oauth: ``OAuth2Client`` object with the appropriate API key and 
                   redirect URI.
+    :param additional_state: ``str`` of additional data that is appended to the 
+                             randomly-generated XSRF state. Will be replayed by 
+                             the server and can be used to store data about the 
+                             login.
     :return: An authorization URL, which the user may follow to perform the 
              OAuth authorization flow with TDAmeritrade, and state string which
              encodes the OAuth state with which the authorization URL was

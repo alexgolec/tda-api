@@ -15,7 +15,10 @@ from .models import TDALoginData, TDAOauthState
 def token_oauth(request):
     '''
     Initialize the login state and send the user to the TDA login notification 
-    page.
+    page. HTTP parameters are:
+     * dest: If set, this URL is encoded in the OAuth state alongside the XSRF
+             check state. The callback handler will decode this value and issue
+             a redirect on completion.
     '''
 
     if not request.user.is_authenticated:
@@ -26,7 +29,7 @@ def token_oauth(request):
             redirect_uri=secrets.TDA_CALLBACK_URL)
 
     if 'dest' in request.GET:
-        state_data = json.dumps({'next_url': request.GET['dest']})
+        state_data = json.dumps({'next_url': request.GET['token_next']})
         b64 = base64.urlsafe_b64encode(state_data.encode('utf-8'))
         additional_state = b64.decode('utf-8')
     else:
