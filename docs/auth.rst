@@ -214,7 +214,7 @@ incorrectly. Go back to your `application list
 <https://developer.tdameritrade.com/user/me/apps>`__ and copy-paste the 
 information again. Don't manually type it out, don't visually spot-check it. 
 Copy-paste it. Make sure to include details like trailing slashes, ``https`` 
-protol specifications, and port numbers. 
+protocol specifications, and port numbers. 
 
 Note ``tda-api`` *does not* require you to suffix your client ID with 
 ``@AMER.OAUTHAP``. It will accept it if you do so, but if you make even the 
