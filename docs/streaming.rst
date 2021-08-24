@@ -490,16 +490,17 @@ Equity Trades
 .. automethod:: tda.streaming::StreamClient.timesale_equity_subs
 .. automethod:: tda.streaming::StreamClient.add_timesale_equity_handler
 
---------------
-Futures Trades
---------------
+--------------------------
+Futures and Options Trades
+--------------------------
+
+These streams are defined and will connect, however it appears that they do 
+not provide data. Connecting to these results in heartbeat messages that indicate
+that the stream is open, but to date we haven't seen any data be passed throug.
+We currently believe this is an issue on TDA's side. 
 
 .. automethod:: tda.streaming::StreamClient.timesale_futures_subs
 .. automethod:: tda.streaming::StreamClient.add_timesale_futures_handler
-
---------------
-Options Trades
---------------
 
 .. automethod:: tda.streaming::StreamClient.timesale_options_subs
 .. automethod:: tda.streaming::StreamClient.add_timesale_options_handler
