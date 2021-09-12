@@ -14,7 +14,7 @@ class MyStreamConsumer:
     """
 
     def __init__(self, api_key, account_id, queue_size=0,
-                 credentials_path='./ameritrade-credentials.pickle'):
+                 credentials_path='./ameritrade-credentials.json'):
         """
         We're storing the configuration variables within the class for easy
         access later in the code!

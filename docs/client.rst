@@ -24,7 +24,7 @@ this will likely cause issues with the underlying OAuth2 session management**
   c = easy_client(
           api_key='APIKEY',
           redirect_uri='https://localhost',
-          token_path='/tmp/token.pickle')
+          token_path='/tmp/token.json')
 
   resp = c.get_price_history('AAPL',
           period_type=Client.PriceHistory.PeriodType.YEAR,
@@ -54,7 +54,7 @@ of slightly increased application complexity.
       c = easy_client(
               api_key='APIKEY',
               redirect_uri='https://localhost',
-              token_path='/tmp/token.pickle',
+              token_path='/tmp/token.json',
               asyncio=True)
 
       resp = await c.get_price_history('AAPL',

@@ -61,7 +61,7 @@ daily historical price data for the past twenty years:
   from tda import auth, client
   import json
 
-  token_path = '/path/to/token.pickle'
+  token_path = '/path/to/token.json'
   api_key = 'YOUR_API_KEY@AMER.OAUTHAP'
   redirect_uri = 'https://your.redirecturi.com'
   try:

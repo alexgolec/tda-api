@@ -30,7 +30,7 @@ run this outside regular trading hours you may not see anything):
   client = easy_client(
           api_key='APIKEY',
           redirect_uri='https://localhost',
-          token_path='/tmp/token.pickle')
+          token_path='/tmp/token.json')
   stream_client = StreamClient(client, account_id=1234567890)
 
   async def read_stream():
