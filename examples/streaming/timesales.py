@@ -3,6 +3,8 @@ from tda.client import Client
 from tda.streaming import StreamClient
 import asyncio
 import pprint
+import inspect
+import random
 
 API_KEY = "XXXXXX"
 ACCOUNT_ID = "XXXXXX"
@@ -47,12 +49,15 @@ class MyStreamConsumer:
 
         # The streaming client wants you to add a handler for every service type
         self.stream_client.add_timesale_equity_handler(
-            self.handle_timesale_equity)
-
-    async def stream(self):
+            self.all_handler)
+        self.stream_client.add_account_activity_handler(self.all_handler)
         await self.stream_client.login()  # Log into the streaming service
         await self.stream_client.quality_of_service(StreamClient.QOSLevel.EXPRESS)
+
+    async def stream(self):
+
         await self.stream_client.timesale_equity_subs(self.symbols)
+        await self.stream_client.account_activity_sub() # Use this sub to keep all sub alive or else td will close stream https://github.com/alexgolec/tda-api/issues/152#issuecomment-921114618
 
         # Kick off our handle_queue function as an independent coroutine
         asyncio.ensure_future(self.handle_queue())
@@ -61,7 +66,7 @@ class MyStreamConsumer:
         while True:
             await self.stream_client.handle_message()
 
-    async def handle_timesale_equity(self, msg):
+    async def all_handler(self, msg):
         """
         This is where we take msgs from the streaming client and put them on a
         queue for later consumption. We use a queue to prevent us from wasting
@@ -81,14 +86,84 @@ class MyStreamConsumer:
             msg = await self.queue.get()
             pprint.pprint(msg)
 
+    async def _dynamic_request(self, service, cmd, symbols):
+        """
+        We use inspect library to find the methods to execute and add service handler.
+        :param service: name of the service, this should match the service prefix
+        :param cmd: add/subs/unsubs
+        :param symbols: symbols
+        :return: None
+        """
+        methods_dict = {}
+        for method in inspect.getmembers(self.stream_client, predicate=inspect.ismethod):
+            method_name = method[0]
+            method_func = method[1]
+            # for cmds : unsubs/subs/add
+            if method_name.startswith(service) is True and method_name.endswith('_{}'.format(cmd)):
+                methods_dict[cmd] = method_func
+            elif method_name.startswith('add_{}_handler'.format(service)) is True and method_name.endswith('_handler'):
+                methods_dict['add_handler'] = method_func
+
+        methods_dict['add_handler'](self.all_handler)
+
+        # Call the request
+        await method_dict[cmd](symbols)
+
+    async def stimulate_incoming_requests(self):
+        """
+        Here we stimulate requests randomly from the 4 requests.
+        Ideally, you'll have another thread processing incoming requests to pipe to streaming client
+        :return:
+        """
+
+        service_requests = {
+            0: {
+                'scenario': 'sub_to_timesale',
+                'cmd': 'subs',
+                'service': 'timesale_equity',
+                'symbols': self.symbols
+            },
+            1: {
+                'scenario': 'unsub_to_timesale',
+                'cmd': 'unsubs',
+                'service': 'timesale_equity',
+                'symbols': self.symbols
+            },
+            2: {
+                'scenario': 'subcribe_to_fut',
+                'cmd': 'subs',
+                'service': 'level_one_futures',
+                'symbols': ['/ES', '/NQ']
+            },
+            3: {
+                'scenario': 'unsubcribe_to_fut',
+                'cmd': 'unsubs',
+                'service': 'level_one_futures',
+                'symbols': ['/ES']
+            },
+        }
+
+        while True:
+            random_scenario = random.randint(0, 3)
+
+            await self._dynamic_request(
+                service_requests[random_scenario]['service'],
+                service_requests[random_scenario]['cmd'],
+                service_requests[random_scenario]['symbols']
+            )
+            await asyncio.sleep(random.randint(5,30))
 
 async def main():
     """
     Create and instantiate the consumer, and start the stream
     """
     consumer = MyStreamConsumer(API_KEY, ACCOUNT_ID)
-    consumer.initialize()
-    await consumer.stream()
+    await consumer.initialize()
+
+    await asyncio.gather(
+        consumer.stream(),
+        consumer.stimulate_incoming_requests()
+    )
 
 if __name__ == '__main__':
     asyncio.run(main())
