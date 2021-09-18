@@ -525,6 +525,30 @@ class StreamClientTest(asynctest.TestCase):
 
     @no_duplicates
     @asynctest.patch('tda.streaming.ws_client.connect', new_callable=asynctest.CoroutineMock)
+    async def test_account_activity_unsubs_success(self, ws_connect):
+        socket = await self.login_and_get_socket(ws_connect)
+
+        socket.recv.side_effect = [json.dumps(self.success_response(
+            1, 'ACCT_ACTIVITY', 'UNSUBS'))]
+
+        await self.client.account_activity_unsub()
+        socket.recv.assert_awaited_once()
+        request = self.request_from_socket_mock(socket)
+
+        self.assertEqual(request, {
+            'account': '1001',
+            'service': 'ACCT_ACTIVITY',
+            'command': 'UNSUBS',
+            'requestid': '1',
+            'source': 'streamerInfo-appId',
+            'parameters': {
+                'keys': 'streamerSubscriptionKeys-keys-key',
+                'fields': '0,1,2,3'
+            }
+        })
+
+    @no_duplicates
+    @asynctest.patch('tda.streaming.ws_client.connect', new_callable=asynctest.CoroutineMock)
     async def test_account_activity_subs_failure(self, ws_connect):
         socket = await self.login_and_get_socket(ws_connect)
 
@@ -534,6 +558,18 @@ class StreamClientTest(asynctest.TestCase):
 
         with self.assertRaises(tda.streaming.UnexpectedResponseCode):
             await self.client.account_activity_sub()
+
+    @no_duplicates
+    @asynctest.patch('tda.streaming.ws_client.connect', new_callable=asynctest.CoroutineMock)
+    async def test_account_activity_unsubs_failure(self, ws_connect):
+        socket = await self.login_and_get_socket(ws_connect)
+
+        response = self.success_response(1, 'ACCT_ACTIVITY', 'UNSUBS')
+        response['response'][0]['content']['code'] = 21
+        socket.recv.side_effect = [json.dumps(response)]
+
+        with self.assertRaises(tda.streaming.UnexpectedResponseCode):
+            await self.client.account_activity_unsub()
 
     @no_duplicates
     @asynctest.patch('tda.streaming.ws_client.connect', new_callable=asynctest.CoroutineMock)
@@ -638,6 +674,30 @@ class StreamClientTest(asynctest.TestCase):
 
     @no_duplicates
     @asynctest.patch('tda.streaming.ws_client.connect', new_callable=asynctest.CoroutineMock)
+    async def test_chart_equity_unsubs_success(self, ws_connect):
+        socket = await self.login_and_get_socket(ws_connect)
+
+        socket.recv.side_effect = [json.dumps(self.success_response(
+            1, 'CHART_EQUITY', 'UNSUBS'))]
+
+        await self.client.chart_equity_unsubs(['GOOG', 'MSFT'])
+        socket.recv.assert_awaited_once()
+        request = self.request_from_socket_mock(socket)
+
+        self.assertEqual(request, {
+            'account': '1001',
+            'service': 'CHART_EQUITY',
+            'command': 'UNSUBS',
+            'requestid': '1',
+            'source': 'streamerInfo-appId',
+            'parameters': {
+                'keys': 'GOOG,MSFT',
+                'fields': '0,1,2,3,4,5,6,7,8'
+            }
+        })
+
+    @no_duplicates
+    @asynctest.patch('tda.streaming.ws_client.connect', new_callable=asynctest.CoroutineMock)
     async def test_chart_equity_subs_failure(self, ws_connect):
         socket = await self.login_and_get_socket(ws_connect)
 
@@ -647,6 +707,18 @@ class StreamClientTest(asynctest.TestCase):
 
         with self.assertRaises(tda.streaming.UnexpectedResponseCode):
             await self.client.chart_equity_subs(['GOOG', 'MSFT'])
+
+    @no_duplicates
+    @asynctest.patch('tda.streaming.ws_client.connect', new_callable=asynctest.CoroutineMock)
+    async def test_chart_equity_unsubs_failure(self, ws_connect):
+        socket = await self.login_and_get_socket(ws_connect)
+
+        response = self.success_response(1, 'CHART_EQUITY', 'UNSUBS')
+        response['response'][0]['content']['code'] = 21
+        socket.recv.side_effect = [json.dumps(response)]
+
+        with self.assertRaises(tda.streaming.UnexpectedResponseCode):
+            await self.client.chart_equity_unsubs(['GOOG', 'MSFT'])
 
     @no_duplicates
     @asynctest.patch('tda.streaming.ws_client.connect', new_callable=asynctest.CoroutineMock)
@@ -803,6 +875,30 @@ class StreamClientTest(asynctest.TestCase):
 
     @no_duplicates
     @asynctest.patch('tda.streaming.ws_client.connect', new_callable=asynctest.CoroutineMock)
+    async def test_chart_futures_unsubs_success(self, ws_connect):
+        socket = await self.login_and_get_socket(ws_connect)
+
+        socket.recv.side_effect = [json.dumps(self.success_response(
+            1, 'CHART_FUTURES', 'UNSUBS'))]
+
+        await self.client.chart_futures_unsubs(['/ES', '/CL'])
+        socket.recv.assert_awaited_once()
+        request = self.request_from_socket_mock(socket)
+
+        self.assertEqual(request, {
+            'account': '1001',
+            'service': 'CHART_FUTURES',
+            'command': 'UNSUBS',
+            'requestid': '1',
+            'source': 'streamerInfo-appId',
+            'parameters': {
+                'keys': '/ES,/CL',
+                'fields': '0,1,2,3,4,5,6'
+            }
+        })
+
+    @no_duplicates
+    @asynctest.patch('tda.streaming.ws_client.connect', new_callable=asynctest.CoroutineMock)
     async def test_chart_futures_subs_failure(self, ws_connect):
         socket = await self.login_and_get_socket(ws_connect)
 
@@ -812,6 +908,18 @@ class StreamClientTest(asynctest.TestCase):
 
         with self.assertRaises(tda.streaming.UnexpectedResponseCode):
             await self.client.chart_futures_subs(['/ES', '/CL'])
+
+    @no_duplicates
+    @asynctest.patch('tda.streaming.ws_client.connect', new_callable=asynctest.CoroutineMock)
+    async def test_chart_futures_unsubs_failure(self, ws_connect):
+        socket = await self.login_and_get_socket(ws_connect)
+
+        response = self.success_response(1, 'CHART_FUTURES', 'UNSUBS')
+        response['response'][0]['content']['code'] = 21
+        socket.recv.side_effect = [json.dumps(response)]
+
+        with self.assertRaises(tda.streaming.UnexpectedResponseCode):
+            await self.client.chart_futures_unsubs(['/ES', '/CL'])
 
     @no_duplicates
     @asynctest.patch('tda.streaming.ws_client.connect', new_callable=asynctest.CoroutineMock)
@@ -939,6 +1047,33 @@ class StreamClientTest(asynctest.TestCase):
 
     @no_duplicates
     @asynctest.patch('tda.streaming.ws_client.connect', new_callable=asynctest.CoroutineMock)
+    async def test_level_one_equity_unsubs_success_all_fields(self, ws_connect):
+        socket = await self.login_and_get_socket(ws_connect)
+
+        socket.recv.side_effect = [json.dumps(self.success_response(
+            1, 'QUOTE', 'UNSUBS'))]
+
+        await self.client.level_one_equity_unsubs(['GOOG', 'MSFT'])
+        socket.recv.assert_awaited_once()
+        request = self.request_from_socket_mock(socket)
+
+        self.assertEqual(request, {
+            'account': '1001',
+            'service': 'QUOTE',
+            'command': 'UNSUBS',
+            'requestid': '1',
+            'source': 'streamerInfo-appId',
+            'parameters': {
+                'keys': 'GOOG,MSFT',
+                'fields': ('0,1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,' +
+                           '20,21,22,23,24,25,26,27,28,29,30,31,32,33,34,35,' +
+                           '36,37,38,39,40,41,42,43,44,45,46,47,48,49,50,51,' +
+                           '52')
+            }
+        })
+
+    @no_duplicates
+    @asynctest.patch('tda.streaming.ws_client.connect', new_callable=asynctest.CoroutineMock)
     async def test_level_one_equity_subs_success_some_fields(self, ws_connect):
         socket = await self.login_and_get_socket(ws_connect)
 
@@ -997,6 +1132,35 @@ class StreamClientTest(asynctest.TestCase):
 
     @no_duplicates
     @asynctest.patch('tda.streaming.ws_client.connect', new_callable=asynctest.CoroutineMock)
+    async def test_level_one_equity_unsubs_success_some_fields_no_symbol(
+            self, ws_connect):
+        socket = await self.login_and_get_socket(ws_connect)
+
+        socket.recv.side_effect = [json.dumps(self.success_response(
+            1, 'QUOTE', 'UNSUBS'))]
+
+        await self.client.level_one_equity_unsubs(['GOOG', 'MSFT'], fields=[
+            StreamClient.LevelOneEquityFields.BID_PRICE,
+            StreamClient.LevelOneEquityFields.ASK_PRICE,
+            StreamClient.LevelOneEquityFields.QUOTE_TIME,
+        ])
+        socket.recv.assert_awaited_once()
+        request = self.request_from_socket_mock(socket)
+
+        self.assertEqual(request, {
+            'account': '1001',
+            'service': 'QUOTE',
+            'command': 'UNSUBS',
+            'requestid': '1',
+            'source': 'streamerInfo-appId',
+            'parameters': {
+                'keys': 'GOOG,MSFT',
+                'fields': '0,1,2,11'
+            }
+        })
+
+    @no_duplicates
+    @asynctest.patch('tda.streaming.ws_client.connect', new_callable=asynctest.CoroutineMock)
     async def test_level_one_equity_subs_failure(self, ws_connect):
         socket = await self.login_and_get_socket(ws_connect)
 
@@ -1006,6 +1170,18 @@ class StreamClientTest(asynctest.TestCase):
 
         with self.assertRaises(tda.streaming.UnexpectedResponseCode):
             await self.client.level_one_equity_subs(['GOOG', 'MSFT'])
+
+    @no_duplicates
+    @asynctest.patch('tda.streaming.ws_client.connect', new_callable=asynctest.CoroutineMock)
+    async def test_level_one_equity_unsubs_failure(self, ws_connect):
+        socket = await self.login_and_get_socket(ws_connect)
+
+        response = self.success_response(1, 'QUOTE', 'UNSUBS')
+        response['response'][0]['content']['code'] = 21
+        socket.recv.side_effect = [json.dumps(response)]
+
+        with self.assertRaises(tda.streaming.UnexpectedResponseCode):
+            await self.client.level_one_equity_unsubs(['GOOG', 'MSFT'])
 
     @no_duplicates
     @asynctest.patch('tda.streaming.ws_client.connect', new_callable=asynctest.CoroutineMock)
@@ -1302,6 +1478,33 @@ class StreamClientTest(asynctest.TestCase):
 
     @no_duplicates
     @asynctest.patch('tda.streaming.ws_client.connect', new_callable=asynctest.CoroutineMock)
+    async def test_level_one_option_unsubs_success_all_fields(self, ws_connect):
+        socket = await self.login_and_get_socket(ws_connect)
+
+        socket.recv.side_effect = [json.dumps(self.success_response(
+            1, 'OPTION', 'UNSUBS'))]
+
+        await self.client.level_one_option_unsubs(
+            ['GOOG_052920C620', 'MSFT_052920C145'])
+        socket.recv.assert_awaited_once()
+        request = self.request_from_socket_mock(socket)
+
+        self.assertEqual(request, {
+            'account': '1001',
+            'service': 'OPTION',
+            'command': 'UNSUBS',
+            'requestid': '1',
+            'source': 'streamerInfo-appId',
+            'parameters': {
+                'keys': 'GOOG_052920C620,MSFT_052920C145',
+                'fields': ('0,1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,' +
+                           '20,21,22,23,24,25,26,27,28,29,30,31,32,33,34,35,' +
+                           '36,37,38,39,40,41')
+            }
+        })
+
+    @no_duplicates
+    @asynctest.patch('tda.streaming.ws_client.connect', new_callable=asynctest.CoroutineMock)
     async def test_level_one_option_subs_success_some_fields(self, ws_connect):
         socket = await self.login_and_get_socket(ws_connect)
 
@@ -1362,6 +1565,36 @@ class StreamClientTest(asynctest.TestCase):
 
     @no_duplicates
     @asynctest.patch('tda.streaming.ws_client.connect', new_callable=asynctest.CoroutineMock)
+    async def test_level_one_option_unsubs_success_some_fields_no_symbol(
+            self, ws_connect):
+        socket = await self.login_and_get_socket(ws_connect)
+
+        socket.recv.side_effect = [json.dumps(self.success_response(
+            1, 'OPTION', 'UNSUBS'))]
+
+        await self.client.level_one_option_unsubs(
+            ['GOOG_052920C620', 'MSFT_052920C145'], fields=[
+                StreamClient.LevelOneOptionFields.BID_PRICE,
+                StreamClient.LevelOneOptionFields.ASK_PRICE,
+                StreamClient.LevelOneOptionFields.VOLATILITY,
+            ])
+        socket.recv.assert_awaited_once()
+        request = self.request_from_socket_mock(socket)
+
+        self.assertEqual(request, {
+            'account': '1001',
+            'service': 'OPTION',
+            'command': 'UNSUBS',
+            'requestid': '1',
+            'source': 'streamerInfo-appId',
+            'parameters': {
+                'keys': 'GOOG_052920C620,MSFT_052920C145',
+                'fields': '0,2,3,10'
+            }
+        })
+
+    @no_duplicates
+    @asynctest.patch('tda.streaming.ws_client.connect', new_callable=asynctest.CoroutineMock)
     async def test_level_one_option_subs_failure(self, ws_connect):
         socket = await self.login_and_get_socket(ws_connect)
 
@@ -1371,6 +1604,19 @@ class StreamClientTest(asynctest.TestCase):
 
         with self.assertRaises(tda.streaming.UnexpectedResponseCode):
             await self.client.level_one_option_subs(
+                ['GOOG_052920C620', 'MSFT_052920C145'])
+
+    @no_duplicates
+    @asynctest.patch('tda.streaming.ws_client.connect', new_callable=asynctest.CoroutineMock)
+    async def test_level_one_option_unsubs_failure(self, ws_connect):
+        socket = await self.login_and_get_socket(ws_connect)
+
+        response = self.success_response(1, 'OPTION', 'UNSUBS')
+        response['response'][0]['content']['code'] = 21
+        socket.recv.side_effect = [json.dumps(response)]
+
+        with self.assertRaises(tda.streaming.UnexpectedResponseCode):
+            await self.client.level_one_option_unsubs(
                 ['GOOG_052920C620', 'MSFT_052920C145'])
 
     @no_duplicates
@@ -1600,6 +1846,31 @@ class StreamClientTest(asynctest.TestCase):
 
     @no_duplicates
     @asynctest.patch('tda.streaming.ws_client.connect', new_callable=asynctest.CoroutineMock)
+    async def test_level_one_futures_unsubs_success_all_fields(self, ws_connect):
+        socket = await self.login_and_get_socket(ws_connect)
+
+        socket.recv.side_effect = [json.dumps(self.success_response(
+            1, 'LEVELONE_FUTURES', 'UNSUBS'))]
+
+        await self.client.level_one_futures_unsubs(['/ES', '/CL'])
+        socket.recv.assert_awaited_once()
+        request = self.request_from_socket_mock(socket)
+
+        self.assertEqual(request, {
+            'account': '1001',
+            'service': 'LEVELONE_FUTURES',
+            'command': 'UNSUBS',
+            'requestid': '1',
+            'source': 'streamerInfo-appId',
+            'parameters': {
+                'keys': '/ES,/CL',
+                'fields': ('0,1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,' +
+                           '20,21,22,23,24,25,26,27,28,29,30,31,32,33,34,35')
+            }
+        })
+
+    @no_duplicates
+    @asynctest.patch('tda.streaming.ws_client.connect', new_callable=asynctest.CoroutineMock)
     async def test_level_one_futures_subs_success_some_fields(self, ws_connect):
         socket = await self.login_and_get_socket(ws_connect)
 
@@ -1658,6 +1929,35 @@ class StreamClientTest(asynctest.TestCase):
 
     @no_duplicates
     @asynctest.patch('tda.streaming.ws_client.connect', new_callable=asynctest.CoroutineMock)
+    async def test_level_one_futures_unsubs_success_some_fields_no_symbol(
+            self, ws_connect):
+        socket = await self.login_and_get_socket(ws_connect)
+
+        socket.recv.side_effect = [json.dumps(self.success_response(
+            1, 'LEVELONE_FUTURES', 'UNSUBS'))]
+
+        await self.client.level_one_futures_unsubs(['/ES', '/CL'], fields=[
+            StreamClient.LevelOneFuturesFields.BID_PRICE,
+            StreamClient.LevelOneFuturesFields.ASK_PRICE,
+            StreamClient.LevelOneFuturesFields.FUTURE_PRICE_FORMAT,
+        ])
+        socket.recv.assert_awaited_once()
+        request = self.request_from_socket_mock(socket)
+
+        self.assertEqual(request, {
+            'account': '1001',
+            'service': 'LEVELONE_FUTURES',
+            'command': 'UNSUBS',
+            'requestid': '1',
+            'source': 'streamerInfo-appId',
+            'parameters': {
+                'keys': '/ES,/CL',
+                'fields': '0,1,2,28'
+            }
+        })
+
+    @no_duplicates
+    @asynctest.patch('tda.streaming.ws_client.connect', new_callable=asynctest.CoroutineMock)
     async def test_level_one_futures_subs_failure(self, ws_connect):
         socket = await self.login_and_get_socket(ws_connect)
 
@@ -1667,6 +1967,18 @@ class StreamClientTest(asynctest.TestCase):
 
         with self.assertRaises(tda.streaming.UnexpectedResponseCode):
             await self.client.level_one_futures_subs(['/ES', '/CL'])
+
+    @no_duplicates
+    @asynctest.patch('tda.streaming.ws_client.connect', new_callable=asynctest.CoroutineMock)
+    async def test_level_one_futures_unsubs_failure(self, ws_connect):
+        socket = await self.login_and_get_socket(ws_connect)
+
+        response = self.success_response(1, 'LEVELONE_FUTURES', 'UNSUBS')
+        response['response'][0]['content']['code'] = 21
+        socket.recv.side_effect = [json.dumps(response)]
+
+        with self.assertRaises(tda.streaming.UnexpectedResponseCode):
+            await self.client.level_one_futures_unsubs(['/ES', '/CL'])
 
     @no_duplicates
     @asynctest.patch('tda.streaming.ws_client.connect', new_callable=asynctest.CoroutineMock)
@@ -1893,6 +2205,31 @@ class StreamClientTest(asynctest.TestCase):
 
     @no_duplicates
     @asynctest.patch('tda.streaming.ws_client.connect', new_callable=asynctest.CoroutineMock)
+    async def test_level_one_forex_unsubs_success_all_fields(self, ws_connect):
+        socket = await self.login_and_get_socket(ws_connect)
+
+        socket.recv.side_effect = [json.dumps(self.success_response(
+            1, 'LEVELONE_FOREX', 'UNSUBS'))]
+
+        await self.client.level_one_forex_unsubs(['EUR/USD', 'EUR/GBP'])
+        socket.recv.assert_awaited_once()
+        request = self.request_from_socket_mock(socket)
+
+        self.assertEqual(request, {
+            'account': '1001',
+            'service': 'LEVELONE_FOREX',
+            'command': 'UNSUBS',
+            'requestid': '1',
+            'source': 'streamerInfo-appId',
+            'parameters': {
+                'keys': 'EUR/USD,EUR/GBP',
+                'fields': ('0,1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,18,19,' +
+                           '20,21,22,23,24,25,26,27,28,29')
+            }
+        })
+
+    @no_duplicates
+    @asynctest.patch('tda.streaming.ws_client.connect', new_callable=asynctest.CoroutineMock)
     async def test_level_one_forex_subs_success_some_fields(self, ws_connect):
         socket = await self.login_and_get_socket(ws_connect)
 
@@ -1951,6 +2288,35 @@ class StreamClientTest(asynctest.TestCase):
 
     @no_duplicates
     @asynctest.patch('tda.streaming.ws_client.connect', new_callable=asynctest.CoroutineMock)
+    async def test_level_one_forex_unsubs_success_some_fields_no_symbol(
+            self, ws_connect):
+        socket = await self.login_and_get_socket(ws_connect)
+
+        socket.recv.side_effect = [json.dumps(self.success_response(
+            1, 'LEVELONE_FOREX', 'UNSUBS'))]
+
+        await self.client.level_one_forex_unsubs(['EUR/USD', 'EUR/GBP'], fields=[
+            StreamClient.LevelOneForexFields.HIGH_PRICE,
+            StreamClient.LevelOneForexFields.LOW_PRICE,
+            StreamClient.LevelOneForexFields.MARKET_MAKER,
+        ])
+        socket.recv.assert_awaited_once()
+        request = self.request_from_socket_mock(socket)
+
+        self.assertEqual(request, {
+            'account': '1001',
+            'service': 'LEVELONE_FOREX',
+            'command': 'UNSUBS',
+            'requestid': '1',
+            'source': 'streamerInfo-appId',
+            'parameters': {
+                'keys': 'EUR/USD,EUR/GBP',
+                'fields': '0,10,11,26'
+            }
+        })
+
+    @no_duplicates
+    @asynctest.patch('tda.streaming.ws_client.connect', new_callable=asynctest.CoroutineMock)
     async def test_level_one_forex_subs_failure(self, ws_connect):
         socket = await self.login_and_get_socket(ws_connect)
 
@@ -1960,6 +2326,18 @@ class StreamClientTest(asynctest.TestCase):
 
         with self.assertRaises(tda.streaming.UnexpectedResponseCode):
             await self.client.level_one_forex_subs(['EUR/USD', 'EUR/GBP'])
+
+    @no_duplicates
+    @asynctest.patch('tda.streaming.ws_client.connect', new_callable=asynctest.CoroutineMock)
+    async def test_level_one_forex_unsubs_failure(self, ws_connect):
+        socket = await self.login_and_get_socket(ws_connect)
+
+        response = self.success_response(1, 'LEVELONE_FOREX', 'UNSUBS')
+        response['response'][0]['content']['code'] = 21
+        socket.recv.side_effect = [json.dumps(response)]
+
+        with self.assertRaises(tda.streaming.UnexpectedResponseCode):
+            await self.client.level_one_forex_unsubs(['EUR/USD', 'EUR/GBP'])
 
     @no_duplicates
     @asynctest.patch('tda.streaming.ws_client.connect', new_callable=asynctest.CoroutineMock)
@@ -2156,6 +2534,33 @@ class StreamClientTest(asynctest.TestCase):
 
     @no_duplicates
     @asynctest.patch('tda.streaming.ws_client.connect', new_callable=asynctest.CoroutineMock)
+    async def test_level_one_futures_options_unsubs_success_all_fields(
+            self, ws_connect):
+        socket = await self.login_and_get_socket(ws_connect)
+
+        socket.recv.side_effect = [json.dumps(self.success_response(
+            1, 'LEVELONE_FUTURES_OPTIONS', 'UNSUBS'))]
+
+        await self.client.level_one_futures_options_unsubs(
+            ['NQU20_C6500', 'NQU20_P6500'])
+        socket.recv.assert_awaited_once()
+        request = self.request_from_socket_mock(socket)
+
+        self.assertEqual(request, {
+            'account': '1001',
+            'service': 'LEVELONE_FUTURES_OPTIONS',
+            'command': 'UNSUBS',
+            'requestid': '1',
+            'source': 'streamerInfo-appId',
+            'parameters': {
+                'keys': 'NQU20_C6500,NQU20_P6500',
+                'fields': ('0,1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,' +
+                           '19,20,21,22,23,24,25,26,27,28,29,30,31,32,33,34,35')
+            }
+        })
+
+    @no_duplicates
+    @asynctest.patch('tda.streaming.ws_client.connect', new_callable=asynctest.CoroutineMock)
     async def test_level_one_futures_options_subs_success_some_fields(
             self, ws_connect):
         socket = await self.login_and_get_socket(ws_connect)
@@ -2217,6 +2622,36 @@ class StreamClientTest(asynctest.TestCase):
 
     @no_duplicates
     @asynctest.patch('tda.streaming.ws_client.connect', new_callable=asynctest.CoroutineMock)
+    async def test_level_one_futures_options_unsubs_success_some_fields_no_symol(
+            self, ws_connect):
+        socket = await self.login_and_get_socket(ws_connect)
+
+        socket.recv.side_effect = [json.dumps(self.success_response(
+            1, 'LEVELONE_FUTURES_OPTIONS', 'UNSUBS'))]
+
+        await self.client.level_one_futures_options_unsubs(
+            ['NQU20_C6500', 'NQU20_P6500'], fields=[
+                StreamClient.LevelOneFuturesOptionsFields.BID_SIZE,
+                StreamClient.LevelOneFuturesOptionsFields.ASK_SIZE,
+                StreamClient.LevelOneFuturesOptionsFields.FUTURE_PRICE_FORMAT,
+            ])
+        socket.recv.assert_awaited_once()
+        request = self.request_from_socket_mock(socket)
+
+        self.assertEqual(request, {
+            'account': '1001',
+            'service': 'LEVELONE_FUTURES_OPTIONS',
+            'command': 'UNSUBS',
+            'requestid': '1',
+            'source': 'streamerInfo-appId',
+            'parameters': {
+                'keys': 'NQU20_C6500,NQU20_P6500',
+                'fields': '0,4,5,28'
+            }
+        })
+
+    @no_duplicates
+    @asynctest.patch('tda.streaming.ws_client.connect', new_callable=asynctest.CoroutineMock)
     async def test_level_one_futures_options_subs_failure(self, ws_connect):
         socket = await self.login_and_get_socket(ws_connect)
 
@@ -2226,6 +2661,19 @@ class StreamClientTest(asynctest.TestCase):
 
         with self.assertRaises(tda.streaming.UnexpectedResponseCode):
             await self.client.level_one_futures_options_subs(
+                ['NQU20_C6500', 'NQU20_P6500'])
+
+    @no_duplicates
+    @asynctest.patch('tda.streaming.ws_client.connect', new_callable=asynctest.CoroutineMock)
+    async def test_level_one_futures_options_unsubs_failure(self, ws_connect):
+        socket = await self.login_and_get_socket(ws_connect)
+
+        response = self.success_response(1, 'LEVELONE_FUTURES_OPTIONS', 'UNSUBS')
+        response['response'][0]['content']['code'] = 21
+        socket.recv.side_effect = [json.dumps(response)]
+
+        with self.assertRaises(tda.streaming.UnexpectedResponseCode):
+            await self.client.level_one_futures_options_unsubs(
                 ['NQU20_C6500', 'NQU20_P6500'])
 
     @no_duplicates
@@ -2459,6 +2907,30 @@ class StreamClientTest(asynctest.TestCase):
 
     @no_duplicates
     @asynctest.patch('tda.streaming.ws_client.connect', new_callable=asynctest.CoroutineMock)
+    async def test_timesale_equity_unsubs_success_all_fields(self, ws_connect):
+        socket = await self.login_and_get_socket(ws_connect)
+
+        socket.recv.side_effect = [json.dumps(self.success_response(
+            1, 'TIMESALE_EQUITY', 'UNSUBS'))]
+
+        await self.client.timesale_equity_unsubs(['GOOG', 'MSFT'])
+        socket.recv.assert_awaited_once()
+        request = self.request_from_socket_mock(socket)
+
+        self.assertEqual(request, {
+            'account': '1001',
+            'service': 'TIMESALE_EQUITY',
+            'command': 'UNSUBS',
+            'requestid': '1',
+            'source': 'streamerInfo-appId',
+            'parameters': {
+                'keys': 'GOOG,MSFT',
+                'fields': ('0,1,2,3,4')
+            }
+        })
+
+    @no_duplicates
+    @asynctest.patch('tda.streaming.ws_client.connect', new_callable=asynctest.CoroutineMock)
     async def test_timesale_equity_subs_success_some_fields(self, ws_connect):
         socket = await self.login_and_get_socket(ws_connect)
 
@@ -2515,6 +2987,34 @@ class StreamClientTest(asynctest.TestCase):
 
     @no_duplicates
     @asynctest.patch('tda.streaming.ws_client.connect', new_callable=asynctest.CoroutineMock)
+    async def test_timesale_equity_unsubs_success_some_fields_no_symbol(
+            self, ws_connect):
+        socket = await self.login_and_get_socket(ws_connect)
+
+        socket.recv.side_effect = [json.dumps(self.success_response(
+            1, 'TIMESALE_EQUITY', 'UNSUBS'))]
+
+        await self.client.timesale_equity_unsubs(['GOOG', 'MSFT'], fields=[
+            StreamClient.TimesaleFields.TRADE_TIME,
+            StreamClient.TimesaleFields.LAST_SIZE,
+        ])
+        socket.recv.assert_awaited_once()
+        request = self.request_from_socket_mock(socket)
+
+        self.assertEqual(request, {
+            'account': '1001',
+            'service': 'TIMESALE_EQUITY',
+            'command': 'UNSUBS',
+            'requestid': '1',
+            'source': 'streamerInfo-appId',
+            'parameters': {
+                'keys': 'GOOG,MSFT',
+                'fields': '0,1,3'
+            }
+        })
+
+    @no_duplicates
+    @asynctest.patch('tda.streaming.ws_client.connect', new_callable=asynctest.CoroutineMock)
     async def test_timesale_equity_subs_failure(self, ws_connect):
         socket = await self.login_and_get_socket(ws_connect)
 
@@ -2524,6 +3024,18 @@ class StreamClientTest(asynctest.TestCase):
 
         with self.assertRaises(tda.streaming.UnexpectedResponseCode):
             await self.client.timesale_equity_subs(['GOOG', 'MSFT'])
+
+    @no_duplicates
+    @asynctest.patch('tda.streaming.ws_client.connect', new_callable=asynctest.CoroutineMock)
+    async def test_timesale_equity_unsubs_failure(self, ws_connect):
+        socket = await self.login_and_get_socket(ws_connect)
+
+        response = self.success_response(1, 'TIMESALE_EQUITY', 'UNSUBS')
+        response['response'][0]['content']['code'] = 21
+        socket.recv.side_effect = [json.dumps(response)]
+
+        with self.assertRaises(tda.streaming.UnexpectedResponseCode):
+            await self.client.timesale_equity_unsubs(['GOOG', 'MSFT'])
 
     @no_duplicates
     @asynctest.patch('tda.streaming.ws_client.connect', new_callable=asynctest.CoroutineMock)
@@ -2617,6 +3129,30 @@ class StreamClientTest(asynctest.TestCase):
 
     @no_duplicates
     @asynctest.patch('tda.streaming.ws_client.connect', new_callable=asynctest.CoroutineMock)
+    async def test_timesale_futures_unsubs_success_all_fields(self, ws_connect):
+        socket = await self.login_and_get_socket(ws_connect)
+
+        socket.recv.side_effect = [json.dumps(self.success_response(
+            1, 'TIMESALE_FUTURES', 'UNSUBS'))]
+
+        await self.client.timesale_futures_unsubs(['/ES', '/CL'])
+        socket.recv.assert_awaited_once()
+        request = self.request_from_socket_mock(socket)
+
+        self.assertEqual(request, {
+            'account': '1001',
+            'service': 'TIMESALE_FUTURES',
+            'command': 'UNSUBS',
+            'requestid': '1',
+            'source': 'streamerInfo-appId',
+            'parameters': {
+                'keys': '/ES,/CL',
+                'fields': ('0,1,2,3,4')
+            }
+        })
+
+    @no_duplicates
+    @asynctest.patch('tda.streaming.ws_client.connect', new_callable=asynctest.CoroutineMock)
     async def test_timesale_futures_subs_success_some_fields(self, ws_connect):
         socket = await self.login_and_get_socket(ws_connect)
 
@@ -2673,6 +3209,34 @@ class StreamClientTest(asynctest.TestCase):
 
     @no_duplicates
     @asynctest.patch('tda.streaming.ws_client.connect', new_callable=asynctest.CoroutineMock)
+    async def test_timesale_futures_unsubs_success_some_fields_no_symbol(
+            self, ws_connect):
+        socket = await self.login_and_get_socket(ws_connect)
+
+        socket.recv.side_effect = [json.dumps(self.success_response(
+            1, 'TIMESALE_FUTURES', 'UNSUBS'))]
+
+        await self.client.timesale_futures_unsubs(['/ES', '/CL'], fields=[
+            StreamClient.TimesaleFields.TRADE_TIME,
+            StreamClient.TimesaleFields.LAST_SIZE,
+        ])
+        socket.recv.assert_awaited_once()
+        request = self.request_from_socket_mock(socket)
+
+        self.assertEqual(request, {
+            'account': '1001',
+            'service': 'TIMESALE_FUTURES',
+            'command': 'UNSUBS',
+            'requestid': '1',
+            'source': 'streamerInfo-appId',
+            'parameters': {
+                'keys': '/ES,/CL',
+                'fields': '0,1,3'
+            }
+        })
+
+    @no_duplicates
+    @asynctest.patch('tda.streaming.ws_client.connect', new_callable=asynctest.CoroutineMock)
     async def test_timesale_futures_subs_failure(self, ws_connect):
         socket = await self.login_and_get_socket(ws_connect)
 
@@ -2682,6 +3246,18 @@ class StreamClientTest(asynctest.TestCase):
 
         with self.assertRaises(tda.streaming.UnexpectedResponseCode):
             await self.client.timesale_futures_subs(['/ES', '/CL'])
+
+    @no_duplicates
+    @asynctest.patch('tda.streaming.ws_client.connect', new_callable=asynctest.CoroutineMock)
+    async def test_timesale_futures_unsubs_failure(self, ws_connect):
+        socket = await self.login_and_get_socket(ws_connect)
+
+        response = self.success_response(1, 'TIMESALE_FUTURES', 'UNSUBS')
+        response['response'][0]['content']['code'] = 21
+        socket.recv.side_effect = [json.dumps(response)]
+
+        with self.assertRaises(tda.streaming.UnexpectedResponseCode):
+            await self.client.timesale_futures_unsubs(['/ES', '/CL'])
 
     @no_duplicates
     @asynctest.patch('tda.streaming.ws_client.connect', new_callable=asynctest.CoroutineMock)
@@ -2774,6 +3350,30 @@ class StreamClientTest(asynctest.TestCase):
 
     @no_duplicates
     @asynctest.patch('tda.streaming.ws_client.connect', new_callable=asynctest.CoroutineMock)
+    async def test_timesale_options_unsubs_success_all_fields(self, ws_connect):
+        socket = await self.login_and_get_socket(ws_connect)
+
+        socket.recv.side_effect = [json.dumps(self.success_response(
+            1, 'TIMESALE_OPTIONS', 'UNSUBS'))]
+
+        await self.client.timesale_options_unsubs(['/ES', '/CL'])
+        socket.recv.assert_awaited_once()
+        request = self.request_from_socket_mock(socket)
+
+        self.assertEqual(request, {
+            'account': '1001',
+            'service': 'TIMESALE_OPTIONS',
+            'command': 'UNSUBS',
+            'requestid': '1',
+            'source': 'streamerInfo-appId',
+            'parameters': {
+                'keys': '/ES,/CL',
+                'fields': ('0,1,2,3,4')
+            }
+        })
+
+    @no_duplicates
+    @asynctest.patch('tda.streaming.ws_client.connect', new_callable=asynctest.CoroutineMock)
     async def test_timesale_options_subs_success_some_fields(self, ws_connect):
         socket = await self.login_and_get_socket(ws_connect)
 
@@ -2831,6 +3431,34 @@ class StreamClientTest(asynctest.TestCase):
 
     @no_duplicates
     @asynctest.patch('tda.streaming.ws_client.connect', new_callable=asynctest.CoroutineMock)
+    async def test_timesale_options_unsubs_success_some_fields_no_symbol(self, ws_connect):
+        socket = await self.login_and_get_socket(ws_connect)
+
+        socket.recv.side_effect = [json.dumps(self.success_response(
+            1, 'TIMESALE_OPTIONS', 'UNSUBS'))]
+
+        await self.client.timesale_options_unsubs(
+            ['GOOG_052920C620', 'MSFT_052920C145'], fields=[
+                StreamClient.TimesaleFields.TRADE_TIME,
+                StreamClient.TimesaleFields.LAST_SIZE,
+            ])
+        socket.recv.assert_awaited_once()
+        request = self.request_from_socket_mock(socket)
+
+        self.assertEqual(request, {
+            'account': '1001',
+            'service': 'TIMESALE_OPTIONS',
+            'command': 'UNSUBS',
+            'requestid': '1',
+            'source': 'streamerInfo-appId',
+            'parameters': {
+                'keys': 'GOOG_052920C620,MSFT_052920C145',
+                'fields': '0,1,3'
+            }
+        })
+
+    @no_duplicates
+    @asynctest.patch('tda.streaming.ws_client.connect', new_callable=asynctest.CoroutineMock)
     async def test_timesale_options_subs_failure(self, ws_connect):
         socket = await self.login_and_get_socket(ws_connect)
 
@@ -2840,6 +3468,19 @@ class StreamClientTest(asynctest.TestCase):
 
         with self.assertRaises(tda.streaming.UnexpectedResponseCode):
             await self.client.timesale_options_subs(
+                ['GOOG_052920C620', 'MSFT_052920C145'])
+
+    @no_duplicates
+    @asynctest.patch('tda.streaming.ws_client.connect', new_callable=asynctest.CoroutineMock)
+    async def test_timesale_options_unsubs_failure(self, ws_connect):
+        socket = await self.login_and_get_socket(ws_connect)
+
+        response = self.success_response(1, 'TIMESALE_OPTIONS', 'UNSUBS')
+        response['response'][0]['content']['code'] = 21
+        socket.recv.side_effect = [json.dumps(response)]
+
+        with self.assertRaises(tda.streaming.UnexpectedResponseCode):
+            await self.client.timesale_options_unsubs(
                 ['GOOG_052920C620', 'MSFT_052920C145'])
 
     @no_duplicates
@@ -2936,6 +3577,30 @@ class StreamClientTest(asynctest.TestCase):
 
     @no_duplicates
     @asynctest.patch('tda.streaming.ws_client.connect', new_callable=asynctest.CoroutineMock)
+    async def test_listed_book_unsubs_success_all_fields(self, ws_connect):
+        socket = await self.login_and_get_socket(ws_connect)
+
+        socket.recv.side_effect = [json.dumps(self.success_response(
+            1, 'LISTED_BOOK', 'UNSUBS'))]
+
+        await self.client.listed_book_unsubs(['GOOG', 'MSFT'])
+        socket.recv.assert_awaited_once()
+        request = self.request_from_socket_mock(socket)
+
+        self.assertEqual(request, {
+            'account': '1001',
+            'service': 'LISTED_BOOK',
+            'command': 'UNSUBS',
+            'requestid': '1',
+            'source': 'streamerInfo-appId',
+            'parameters': {
+                'keys': 'GOOG,MSFT',
+                'fields': ('0,1,2,3')
+            }
+        })
+
+    @no_duplicates
+    @asynctest.patch('tda.streaming.ws_client.connect', new_callable=asynctest.CoroutineMock)
     async def test_listed_book_subs_failure(self, ws_connect):
         socket = await self.login_and_get_socket(ws_connect)
 
@@ -2945,6 +3610,18 @@ class StreamClientTest(asynctest.TestCase):
 
         with self.assertRaises(tda.streaming.UnexpectedResponseCode):
             await self.client.listed_book_subs(['GOOG', 'MSFT'])
+
+    @no_duplicates
+    @asynctest.patch('tda.streaming.ws_client.connect', new_callable=asynctest.CoroutineMock)
+    async def test_listed_book_unsubs_failure(self, ws_connect):
+        socket = await self.login_and_get_socket(ws_connect)
+
+        response = self.success_response(1, 'LISTED_BOOK', 'UNSUBS')
+        response['response'][0]['content']['code'] = 21
+        socket.recv.side_effect = [json.dumps(response)]
+
+        with self.assertRaises(tda.streaming.UnexpectedResponseCode):
+            await self.client.listed_book_unsubs(['GOOG', 'MSFT'])
 
     ##########################################################################
     # NASDAQ_BOOK
@@ -2975,6 +3652,30 @@ class StreamClientTest(asynctest.TestCase):
 
     @no_duplicates
     @asynctest.patch('tda.streaming.ws_client.connect', new_callable=asynctest.CoroutineMock)
+    async def test_nasdaq_book_unsubs_success_all_fields(self, ws_connect):
+        socket = await self.login_and_get_socket(ws_connect)
+
+        socket.recv.side_effect = [json.dumps(self.success_response(
+            1, 'NASDAQ_BOOK', 'UNSUBS'))]
+
+        await self.client.nasdaq_book_unsubs(['GOOG', 'MSFT'])
+        socket.recv.assert_awaited_once()
+        request = self.request_from_socket_mock(socket)
+
+        self.assertEqual(request, {
+            'account': '1001',
+            'service': 'NASDAQ_BOOK',
+            'command': 'UNSUBS',
+            'requestid': '1',
+            'source': 'streamerInfo-appId',
+            'parameters': {
+                'keys': 'GOOG,MSFT',
+                'fields': ('0,1,2,3')
+            }
+        })
+
+    @no_duplicates
+    @asynctest.patch('tda.streaming.ws_client.connect', new_callable=asynctest.CoroutineMock)
     async def test_nasdaq_book_subs_failure(self, ws_connect):
         socket = await self.login_and_get_socket(ws_connect)
 
@@ -2984,6 +3685,18 @@ class StreamClientTest(asynctest.TestCase):
 
         with self.assertRaises(tda.streaming.UnexpectedResponseCode):
             await self.client.nasdaq_book_subs(['GOOG', 'MSFT'])
+
+    @no_duplicates
+    @asynctest.patch('tda.streaming.ws_client.connect', new_callable=asynctest.CoroutineMock)
+    async def test_nasdaq_book_unsubs_failure(self, ws_connect):
+        socket = await self.login_and_get_socket(ws_connect)
+
+        response = self.success_response(1, 'NASDAQ_BOOK', 'UNSUBS')
+        response['response'][0]['content']['code'] = 21
+        socket.recv.side_effect = [json.dumps(response)]
+
+        with self.assertRaises(tda.streaming.UnexpectedResponseCode):
+            await self.client.nasdaq_book_unsubs(['GOOG', 'MSFT'])
 
     ##########################################################################
     # OPTIONS_BOOK
@@ -3015,6 +3728,31 @@ class StreamClientTest(asynctest.TestCase):
 
     @no_duplicates
     @asynctest.patch('tda.streaming.ws_client.connect', new_callable=asynctest.CoroutineMock)
+    async def test_options_book_unsubs_success_all_fields(self, ws_connect):
+        socket = await self.login_and_get_socket(ws_connect)
+
+        socket.recv.side_effect = [json.dumps(self.success_response(
+            1, 'OPTIONS_BOOK', 'UNSUBS'))]
+
+        await self.client.options_book_unsubs(
+            ['GOOG_052920C620', 'MSFT_052920C145'])
+        socket.recv.assert_awaited_once()
+        request = self.request_from_socket_mock(socket)
+
+        self.assertEqual(request, {
+            'account': '1001',
+            'service': 'OPTIONS_BOOK',
+            'command': 'UNSUBS',
+            'requestid': '1',
+            'source': 'streamerInfo-appId',
+            'parameters': {
+                'keys': 'GOOG_052920C620,MSFT_052920C145',
+                'fields': ('0,1,2,3')
+            }
+        })
+
+    @no_duplicates
+    @asynctest.patch('tda.streaming.ws_client.connect', new_callable=asynctest.CoroutineMock)
     async def test_options_book_subs_failure(self, ws_connect):
         socket = await self.login_and_get_socket(ws_connect)
 
@@ -3024,6 +3762,19 @@ class StreamClientTest(asynctest.TestCase):
 
         with self.assertRaises(tda.streaming.UnexpectedResponseCode):
             await self.client.options_book_subs(
+                ['GOOG_052920C620', 'MSFT_052920C145'])
+
+    @no_duplicates
+    @asynctest.patch('tda.streaming.ws_client.connect', new_callable=asynctest.CoroutineMock)
+    async def test_options_book_unsubs_failure(self, ws_connect):
+        socket = await self.login_and_get_socket(ws_connect)
+
+        response = self.success_response(1, 'OPTIONS_BOOK', 'UNSUBS')
+        response['response'][0]['content']['code'] = 21
+        socket.recv.side_effect = [json.dumps(response)]
+
+        with self.assertRaises(tda.streaming.UnexpectedResponseCode):
+            await self.client.options_book_unsubs(
                 ['GOOG_052920C620', 'MSFT_052920C145'])
 
     ##########################################################################
@@ -3506,6 +4257,30 @@ class StreamClientTest(asynctest.TestCase):
 
     @no_duplicates
     @asynctest.patch('tda.streaming.ws_client.connect', new_callable=asynctest.CoroutineMock)
+    async def test_news_headline_unsubs_success(self, ws_connect):
+        socket = await self.login_and_get_socket(ws_connect)
+
+        socket.recv.side_effect = [json.dumps(self.success_response(
+            1, 'NEWS_HEADLINE', 'UNSUBS'))]
+
+        await self.client.news_headline_unsubs(['GOOG', 'MSFT'])
+        socket.recv.assert_awaited_once()
+        request = self.request_from_socket_mock(socket)
+
+        self.assertEqual(request, {
+            'account': '1001',
+            'service': 'NEWS_HEADLINE',
+            'command': 'UNSUBS',
+            'requestid': '1',
+            'source': 'streamerInfo-appId',
+            'parameters': {
+                'keys': 'GOOG,MSFT',
+                'fields': ('0,1,2,3,4,5,6,7,8,9,10')
+            }
+        })
+
+    @no_duplicates
+    @asynctest.patch('tda.streaming.ws_client.connect', new_callable=asynctest.CoroutineMock)
     async def test_news_headline_subs_failure(self, ws_connect):
         socket = await self.login_and_get_socket(ws_connect)
 
@@ -3515,6 +4290,18 @@ class StreamClientTest(asynctest.TestCase):
 
         with self.assertRaises(tda.streaming.UnexpectedResponseCode):
             await self.client.news_headline_subs(['GOOG', 'MSFT'])
+
+    @no_duplicates
+    @asynctest.patch('tda.streaming.ws_client.connect', new_callable=asynctest.CoroutineMock)
+    async def test_news_headline_unsubs_failure(self, ws_connect):
+        socket = await self.login_and_get_socket(ws_connect)
+
+        response = self.success_response(1, 'NEWS_HEADLINE', 'UNSUBS')
+        response['response'][0]['content']['code'] = 21
+        socket.recv.side_effect = [json.dumps(response)]
+
+        with self.assertRaises(tda.streaming.UnexpectedResponseCode):
+            await self.client.news_headline_unsubs(['GOOG', 'MSFT'])
 
     @no_duplicates
     # TODO: Replace this with real messages.
