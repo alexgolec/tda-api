@@ -576,7 +576,7 @@ please note that these are best effort explanations resulting from reverse
 engineering and crowdsourced experience. Take them with a grain of salt. 
 
 If you have specific questions, please join our `Discord server 
-<https://discord.gg/nfrd9gh>`__ to discuss with the community.
+<https://discord.gg/BEr6y6Xqyv>`__ to discuss with the community.
 
 
 -------------------------------------------------------------------------------

@@ -154,8 +154,7 @@ the login flow. If it fails, it will fall back to the manual login flow:
 
 This script is installed by ``pip``, and will only be accessible if you've added
 pip's executable locations to your ``$PATH``. If you're having a hard time, feel
-free to ask for help on our `Discord server 
-<https://discord.gg/nfrd9gh>`__.
+free to ask for help on our `Discord server <https://discord.gg/BEr6y6Xqyv>`__.
 
 
 ----------------------

@@ -2,7 +2,7 @@
 ========================================
 
 .. image:: https://img.shields.io/discord/720378361880248621.svg?label=&logo=discord&logoColor=ffffff&color=7389D8&labelColor=6A7EC2
-  :target: https://discord.gg/nfrd9gh
+  :target: https://discord.gg/BEr6y6Xqyv
 
 .. image:: https://img.shields.io/endpoint.svg?url=https%3A%2F%2Fshieldsio-patreon.vercel.app%2Fapi%3Fusername%3Dalexgolec%26type%3Dpatrons&style=flat
   :target: https://patreon.com/alexgolec
@@ -115,8 +115,8 @@ not offer:
 What else?
 ----------
 
-We have a `Discord server <https://discord.gg/nfrd9gh>`__! You can join to get 
-help using ``tda-api`` or just to chat with interesting people.
+We have a `Discord server <https://discord.gg/BEr6y6Xqyv>`__! You can join to 
+get help using ``tda-api`` or just to chat with interesting people.
 
 Bug reports, suggestions, and patches are always welcome! Submit issues
 `here <https://github.com/alexgolec/tda-api/issues>`__ and pull requests

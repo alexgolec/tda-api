@@ -209,8 +209,7 @@ process looks like this:
 
 This script is installed by ``pip``, and will only be accessible if you've added
 pip's executable locations to your ``$PATH``. If you're having a hard time, feel
-free to ask for help on our `Discord server 
-<https://discord.gg/nfrd9gh>`__.
+free to ask for help on our `Discord server <https://discord.gg/BEr6y6Xqyv>`__.
 
 
 --------------------------
@@ -408,9 +407,9 @@ few things have been observed, however:
    debit or credit desired.
 
 If you successfully use these strategies, we want to know about it. Please let 
-us know by joining our `Discord server <https://discord.gg/nfrd9gh>`__ to chat 
-about it, or by `creating a feature request <https://github.com/alexgolec/
-tda-api/issues>`__.
+us know by joining our `Discord server <https://discord.gg/BEr6y6Xqyv>`__ to 
+chat about it, or by `creating a feature request <
+https://github.com/alexgolec/tda-api/issues>`__.
 
 .. autoclass:: tda.orders.common::ComplexOrderStrategyType
   :members:
