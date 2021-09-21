@@ -1,9 +1,12 @@
 if __name__ == '__main__':
     import argparse
+    import asyncio
     import json
     import sys
     import tda
     import unittest
+
+    from tda.streaming import StreamClient
 
     tda.debug.enable_bug_report_logging()
     import logging
@@ -18,6 +21,8 @@ if __name__ == '__main__':
 
         @classmethod
         def setUpClass(cls):
+            cls.account_id = args.account_id
+
             # Ensure we never run over an account with funds or assets under it
             account = cls.client.get_account(args.account_id).json()
             print(json.dumps(account, indent=4))
@@ -75,8 +80,29 @@ if __name__ == '__main__':
                     break
 
 
-        def test_something(self):
-            pass
+        def test_streaming(self):
+            print()
+            print('##########################################################')
+            print()
+            print('Testing stream connection and handling...')
+
+            stream_client = StreamClient(self.client, account_id=self.account_id)
+            async def read_stream():
+                await stream_client.login()
+                await stream_client.quality_of_service(StreamClient.QOSLevel.EXPRESS)
+
+                stream_client.add_nasdaq_book_handler(
+                        lambda msg: print(json.dumps(msg, indent=4)))
+                await stream_client.nasdaq_book_subs(['GOOG'])
+
+                # Handle one message and then declare victory
+                await stream_client.handle_message()
+
+            asyncio.run(read_stream())
+
+            print()
+            print('##########################################################')
+            print()
 
 
     parser = argparse.ArgumentParser('Runs functional tests')
