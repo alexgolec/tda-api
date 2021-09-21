@@ -13,6 +13,7 @@ import tda
 import urllib.parse
 
 import websockets.legacy.client as ws_client
+from websockets.extensions.permessage_deflate import ClientPerMessageDeflateFactory
 
 from .utils import EnumEnforcer
 
@@ -229,11 +230,15 @@ class StreamClient(EnumEnforcer):
         # Initialize socket
         wss_url = 'wss://{}/ws'.format(
             principals['streamerInfo']['streamerSocketUrl'])
+
+        ws_connect_args = {
+                'extensions': [ClientPerMessageDeflateFactory()],
+        }
+
         if self._ssl_context:
-            self._socket = await ws_client.connect(
-                wss_url, ssl=self._ssl_context)
-        else:
-            self._socket = await ws_client.connect(wss_url)
+            ws_connect_args['ssl'] = self._ssl_context
+
+        self._socket = await ws_client.connect(wss_url, **ws_connect_args)
 
         # Initialize miscellaneous parameters
         self._source = principals['streamerInfo']['appId']
