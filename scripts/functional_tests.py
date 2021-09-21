@@ -110,7 +110,11 @@ if __name__ == '__main__':
     parser.add_argument('--account_id', type=int, required=True)
     parser.add_argument('--api_key', type=str, required=True)
     parser.add_argument('--allow_balances', action='store_true', default=False)
+    parser.add_argument('--verbose', action='store_true', default=False)
     args = parser.parse_args()
+
+    if args.verbose:
+        logging.getLogger('').setLevel(logging.DEBUG)
 
     FunctionalTests.set_client(
             tda.auth.client_from_token_file(args.token, args.api_key))
