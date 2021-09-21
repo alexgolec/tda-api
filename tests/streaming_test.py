@@ -369,7 +369,7 @@ class StreamClientTest(asynctest.TestCase):
 
         await self.client.login()
 
-        ws_connect.assert_awaited_once_with(ANY)
+        ws_connect.assert_awaited_once_with(ANY, extensions=[ANY])
 
 
     @no_duplicates
@@ -387,7 +387,8 @@ class StreamClientTest(asynctest.TestCase):
 
         await self.client.login()
 
-        ws_connect.assert_awaited_once_with(ANY, ssl='ssl_context')
+        ws_connect.assert_awaited_once_with(
+                ANY, ssl='ssl_context', extensions=[ANY])
 
 
     @no_duplicates
