@@ -408,8 +408,8 @@ few things have been observed, however:
 
 If you successfully use these strategies, we want to know about it. Please let 
 us know by joining our `Discord server <https://discord.gg/BEr6y6Xqyv>`__ to 
-chat about it, or by `creating a feature request <
-https://github.com/alexgolec/tda-api/issues>`__.
+chat about it, or by `creating a feature request 
+<https://github.com/alexgolec/tda-api/issues>`__.
 
 .. autoclass:: tda.orders.common::ComplexOrderStrategyType
   :members:
