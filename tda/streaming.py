@@ -1269,7 +1269,7 @@ class StreamClient(EnumEnforcer):
         `Official documentation <https://developer.tdameritrade.com/content/
         streaming-data#_Toc504640604>`__
 
-        Subscribe to level one futures quote data.
+        Un-Subscribe to level one futures quote data.
 
         :param symbols: Futures symbols to receive quotes for
         :param fields: Iterable of :class:`LevelOneFuturesFields` representing
@@ -1419,7 +1419,7 @@ class StreamClient(EnumEnforcer):
         `Official documentation <https://developer.tdameritrade.com/content/
         streaming-data#_Toc504640606>`__
 
-        Subscribe to level one forex quote data.
+        Un-Subscribe to level one forex quote data.
 
         :param symbols: Forex symbols to receive quotes for
         :param fields: Iterable of :class:`LevelOneForexFields` representing
@@ -1654,7 +1654,7 @@ class StreamClient(EnumEnforcer):
         `Official documentation <https://developer.tdameritrade.com/content/
         streaming-data#_Toc504640628>`__
 
-        Subscribe to time of sale notifications for equities.
+        Un-Subscribe to time of sale notifications for equities.
 
         :param symbols: Equity symbols to subscribe to
         '''
@@ -1692,7 +1692,7 @@ class StreamClient(EnumEnforcer):
         `Official documentation <https://developer.tdameritrade.com/content/
         streaming-data#_Toc504640628>`__
 
-        Subscribe to time of sale notifications for futures.
+        Un-Subscribe to time of sale notifications for futures.
 
         :param symbols: Futures symbols to subscribe to
         '''
@@ -1730,7 +1730,7 @@ class StreamClient(EnumEnforcer):
         `Official documentation <https://developer.tdameritrade.com/content/
         streaming-data#_Toc504640628>`__
 
-        Subscribe to time of sale notifications for options.
+        Un-Subscribe to time of sale notifications for options.
 
         :param symbols: Options symbols to subscribe to
         '''
@@ -1853,7 +1853,7 @@ class StreamClient(EnumEnforcer):
 
     async def nasdaq_book_unsubs(self, symbols):
         '''
-        Subscribe to the NASDAQ level two order book. Note this stream has no
+        Un-Subscribe to the NASDAQ level two order book. Note this stream has no
         official documentation.
         '''
         await self._service_op(symbols, 'NASDAQ_BOOK', 'UNSUBS',
@@ -1883,7 +1883,7 @@ class StreamClient(EnumEnforcer):
 
     async def options_book_unsubs(self, symbols):
         '''
-        Subscribe to the level two order book for options. Note this stream has no
+        Un-Subscribe to the level two order book for options. Note this stream has no
         official documentation, and it's not entirely clear what exchange it
         corresponds to. Use at your own risk.
         '''
