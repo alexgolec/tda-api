@@ -124,7 +124,7 @@ and does not validate whether the symbol actually represents a traded option:
 
 .. code-block:: python
 
-  from tda.order.options import OptionSymbol
+  from tda.orders.options import OptionSymbol
 
   symbol = OptionSymbol(
       'TSLA', datetime.date(year=2020, month=11, day=20), 'P', '1360').build()
