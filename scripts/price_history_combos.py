@@ -1,6 +1,7 @@
 import argparse
 import datetime
 import json
+import sys
 import time
 
 from datetime import datetime, timedelta
@@ -21,15 +22,9 @@ args = parser.parse_args()
 client = tda.auth.client_from_token_file(args.token, args.api_key)
 
 
-equivalent_calls = {}
-
 def report_candles(candles, call):
-    print()
-    print('#############################')
-    print(*call)
-    print('{} candles'.format(len(candles)))
     if len(candles) <= 2:
-        return
+        return None, None
 
     date_diffs = set()
     for i in range(len(candles) - 1):
@@ -41,20 +36,16 @@ def report_candles(candles, call):
 
     earliest = min( (i['datetime'] / 1000 for i in candles) )
     latest = max( (i['datetime'] / 1000 for i in candles) )
-    print('Frequency:', min(date_diffs))
-    print(' Duration:', datetime.fromtimestamp(latest) -
-            datetime.fromtimestamp(earliest))
 
-    equivalent_calls[json.dumps(candles)] = call
-
-    print()
+    return min(date_diffs), (
+            datetime.fromtimestamp(latest) - datetime.fromtimestamp(earliest))
 
 
 def get_price_history(*args, **kwargs):
     while True:
         r = client.get_price_history(*args, **kwargs)
         if r.status_code == 429:
-            time.sleep(10)
+            time.sleep(60)
         else:
             return r
 
@@ -116,14 +107,21 @@ def find_earliest_data(period_type, period, freq_type, freq):
             frequency=freq,
             start_datetime=last_success,
             end_datetime=datetime.now())
-    print('Min:', datetime.fromtimestamp(r.json()['candles'][0]['datetime'] / 1000))
-    print('Max:', datetime.fromtimestamp(r.json()['candles'][-1]['datetime'] / 1000))
+    period, duration = report_candles(r.json()['candles'],
+            (period_type, period, freq_type, freq))
 
+    return (period, duration,
+            datetime.fromtimestamp(r.json()['candles'][0]['datetime'] / 1000),
+            datetime.fromtimestamp(r.json()['candles'][-1]['datetime'] / 1000))
+
+
+report = {}
 
 for period_type in Client.PriceHistory.PeriodType:
     for period in Client.PriceHistory.Period:
         for freq_type in Client.PriceHistory.FrequencyType:
             for freq in Client.PriceHistory.Frequency:
+                args = (period_type, period, freq_type, freq)
                 r = get_price_history(
                         'AAPL',
                         period_type=period_type,
@@ -131,11 +129,22 @@ for period_type in Client.PriceHistory.PeriodType:
                         frequency_type=freq_type,
                         frequency=freq)
                 if r.status_code == 200:
-                    report_candles(r.json()['candles'],
-                            (period_type, period, freq_type, freq))
-                    if freq_type == Client.PriceHistory.FrequencyType.MINUTE:
-                        find_earliest_data(
-                                period_type, period, freq_type, freq)
+                    find_earliest_data(*args)
+                    report[args] = find_earliest_data(*args)
+                else:
+                    report[args] = r.status_code
+                print(args, r.status_code)
 
-for candles, call in equivalent_calls.items():
-    print(call)
+for args in sorted(report.keys(), key=lambda k: str(k)):
+    period_type, period, freq_type, freq = args
+
+    try:
+        period_observed, duration, min_date, max_date = report[args]
+
+        print('{:<10} | {:<10} | {:<10} | {:<10} --> {}, {}'.format(
+            str(period_type), str(period), str(freq_type), str(freq),
+            str(period_observed), str(duration)))
+    except TypeError:
+        print('{:<10} | {:<10} | {:<10} | {:<10} --> {}'.format(
+            str(period_type), str(period), str(freq_type), str(freq),
+            report[args]))
