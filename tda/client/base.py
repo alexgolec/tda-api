@@ -803,6 +803,132 @@ class BaseClient(EnumEnforcer):
         path = '/v1/marketdata/{}/pricehistory'.format(symbol)
         return self._get_request(path, params)
 
+
+    ##########################################################################
+    # Price history utilities
+
+
+    def get_price_history_every_minute(
+            self, symbol, *, start_datetime=None, end_datetime=None):
+        '''
+        Fetch price history for a stock or ETF symbol at a per-minute
+        granularity. This endpoint currently appears to return up to 48 days of
+        data.
+        '''
+        return self.get_price_history(
+                symbol,
+                period_type=self.PriceHistory.PeriodType.DAY,
+                period=self.PriceHistory.Period.ONE_DAY,
+                frequency_type=self.PriceHistory.FrequencyType.MINUTE,
+                frequency=self.PriceHistory.Frequency.EVERY_MINUTE,
+                start_datetime=start_datetime,
+                end_datetime=end_datetime)
+
+
+    def get_price_history_every_five_minutes(
+            self, symbol, *, start_datetime=None, end_datetime=None):
+        '''
+        Fetch price history for a stock or ETF symbol at a per-five-minutes
+        granularity. This endpoint currently appears to return approximately
+        nine months of data.
+        '''
+        return self.get_price_history(
+                symbol,
+                period_type=self.PriceHistory.PeriodType.DAY,
+                period=self.PriceHistory.Period.ONE_DAY,
+                frequency_type=self.PriceHistory.FrequencyType.MINUTE,
+                frequency=self.PriceHistory.Frequency.EVERY_FIVE_MINUTES,
+                start_datetime=start_datetime,
+                end_datetime=end_datetime)
+
+
+    def get_price_history_every_ten_minutes(
+            self, symbol, *, start_datetime=None, end_datetime=None):
+        '''
+        Fetch price history for a stock or ETF symbol at a per-ten-minutes
+        granularity. This endpoint currently appears to return approximately
+        nine months of data.
+        '''
+        return self.get_price_history(
+                symbol,
+                period_type=self.PriceHistory.PeriodType.DAY,
+                period=self.PriceHistory.Period.ONE_DAY,
+                frequency_type=self.PriceHistory.FrequencyType.MINUTE,
+                frequency=self.PriceHistory.Frequency.EVERY_TEN_MINUTES,
+                start_datetime=start_datetime,
+                end_datetime=end_datetime)
+
+
+    def get_price_history_every_fifteen_minutes(
+            self, symbol, *, start_datetime=None, end_datetime=None):
+        '''
+        Fetch price history for a stock or ETF symbol at a per-fifteen-minutes
+        granularity. This endpoint currently appears to return approximately
+        nine months of data.
+        '''
+        return self.get_price_history(
+                symbol,
+                period_type=self.PriceHistory.PeriodType.DAY,
+                period=self.PriceHistory.Period.ONE_DAY,
+                frequency_type=self.PriceHistory.FrequencyType.MINUTE,
+                frequency=self.PriceHistory.Frequency.EVERY_FIFTEEN_MINUTES,
+                start_datetime=start_datetime,
+                end_datetime=end_datetime)
+
+
+    def get_price_history_every_thirty_minutes(
+            self, symbol, *, start_datetime=None, end_datetime=None):
+        '''
+        Fetch price history for a stock or ETF symbol at a per-thirty-minutes
+        granularity. This endpoint currently appears to return approximately
+        nine months of data.
+        '''
+        return self.get_price_history(
+                symbol,
+                period_type=self.PriceHistory.PeriodType.DAY,
+                period=self.PriceHistory.Period.ONE_DAY,
+                frequency_type=self.PriceHistory.FrequencyType.MINUTE,
+                frequency=self.PriceHistory.Frequency.EVERY_THIRTY_MINUTES,
+                start_datetime=start_datetime,
+                end_datetime=end_datetime)
+
+
+    def get_price_history_every_day(
+            self, symbol, *, start_datetime=None, end_datetime=None):
+        '''
+        Fetch price history for a stock or ETF symbol at a daily granularity. 
+        The exact period of time over which this endpoint returns data is 
+        unclear, although it has been observed returning data as far back as 
+        1985 (for ``AAPL``).
+        '''
+        return self.get_price_history(
+                symbol,
+                period_type=self.PriceHistory.PeriodType.YEAR,
+                period=self.PriceHistory.Period.TWENTY_YEARS,
+                frequency_type=self.PriceHistory.FrequencyType.DAILY,
+                frequency=self.PriceHistory.Frequency.EVERY_MINUTE,
+                start_datetime=start_datetime,
+                end_datetime=end_datetime)
+
+
+    def get_price_history_every_week(
+            self, symbol, *, start_datetime=None, end_datetime=None):
+        '''
+        Fetch price history for a stock or ETF symbol at a weekly granularity.
+        The exact period of time over which this endpoint returns data is 
+        unclear, although it has been observed returning data as far back as 
+        1985 (for ``AAPL``).
+        '''
+        return self.get_price_history(
+                symbol,
+                period_type=self.PriceHistory.PeriodType.YEAR,
+                period=self.PriceHistory.Period.TWENTY_YEARS,
+                frequency_type=self.PriceHistory.FrequencyType.WEEKLY,
+                frequency=self.PriceHistory.Frequency.EVERY_MINUTE,
+                start_datetime=start_datetime,
+                end_datetime=end_datetime)
+
+
     ##########################################################################
     # Quotes
 

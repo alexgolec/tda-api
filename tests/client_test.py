@@ -1101,6 +1101,392 @@ class _TestClient:
                 'apikey': API_KEY,
                 'needExtendedHoursData': True})
 
+
+    # get_price_history_every_minute
+
+
+    def test_get_price_history_every_minute_vanilla(self):
+        self.client.get_price_history_every_minute('AAPL')
+        params = {
+                'apikey': API_KEY,
+                'periodType': 'day',
+                # ONE_DAY
+                'period': 1,
+                'frequencyType': 'minute',
+                # EVERY_MINUTE
+                'frequency': 1,
+        }
+        self.mock_session.get.assert_called_once_with(
+            self.make_url('/v1/marketdata/AAPL/pricehistory'),
+            params=params)
+
+
+    def test_get_price_history_every_minute_start_datetime(self):
+        self.client.get_price_history_every_minute(
+                'AAPL', start_datetime=EARLIER_DATETIME)
+        params = {
+                'apikey': API_KEY,
+                'periodType': 'day',
+                # ONE_DAY
+                'period': 1,
+                'frequencyType': 'minute',
+                # EVERY_MINUTE
+                'frequency': 1,
+                'startDate': EARLIER_MILLIS,
+        }
+        self.mock_session.get.assert_called_once_with(
+            self.make_url('/v1/marketdata/AAPL/pricehistory'),
+            params=params)
+
+
+    def test_get_price_history_every_minute_end_datetime(self):
+        self.client.get_price_history_every_minute(
+                'AAPL', end_datetime=EARLIER_DATETIME)
+        params = {
+                'apikey': API_KEY,
+                'periodType': 'day',
+                # ONE_DAY
+                'period': 1,
+                'frequencyType': 'minute',
+                # EVERY_MINUTE
+                'frequency': 1,
+                'endDate': EARLIER_MILLIS,
+        }
+        self.mock_session.get.assert_called_once_with(
+            self.make_url('/v1/marketdata/AAPL/pricehistory'),
+            params=params)
+
+
+    # get_price_history_every_five_minutes
+
+
+    def test_get_price_history_every_five_minutes_vanilla(self):
+        self.client.get_price_history_every_five_minutes('AAPL')
+        params = {
+                'apikey': API_KEY,
+                'periodType': 'day',
+                # ONE_DAY
+                'period': 1,
+                'frequencyType': 'minute',
+                # EVERY_FIVE_MINUTES
+                'frequency': 5,
+        }
+        self.mock_session.get.assert_called_once_with(
+            self.make_url('/v1/marketdata/AAPL/pricehistory'),
+            params=params)
+
+
+    def test_get_price_history_every_five_minutes_start_datetime(self):
+        self.client.get_price_history_every_five_minutes(
+                'AAPL', start_datetime=EARLIER_DATETIME)
+        params = {
+                'apikey': API_KEY,
+                'periodType': 'day',
+                # ONE_DAY
+                'period': 1,
+                'frequencyType': 'minute',
+                # EVERY_FIVE_MINUTES
+                'frequency': 5,
+                'startDate': EARLIER_MILLIS,
+        }
+        self.mock_session.get.assert_called_once_with(
+            self.make_url('/v1/marketdata/AAPL/pricehistory'),
+            params=params)
+
+
+    def test_get_price_history_every_five_minutes_end_datetime(self):
+        self.client.get_price_history_every_five_minutes(
+                'AAPL', end_datetime=EARLIER_DATETIME)
+        params = {
+                'apikey': API_KEY,
+                'periodType': 'day',
+                # ONE_DAY
+                'period': 1,
+                'frequencyType': 'minute',
+                # EVERY_FIVE_MINUTES
+                'frequency': 5,
+                'endDate': EARLIER_MILLIS,
+        }
+        self.mock_session.get.assert_called_once_with(
+            self.make_url('/v1/marketdata/AAPL/pricehistory'),
+            params=params)
+
+
+    # get_price_history_every_ten_minutes
+
+
+    def test_get_price_history_every_ten_minutes_vanilla(self):
+        self.client.get_price_history_every_ten_minutes('AAPL')
+        params = {
+                'apikey': API_KEY,
+                'periodType': 'day',
+                # ONE_DAY
+                'period': 1,
+                'frequencyType': 'minute',
+                # EVERY_TEN_MINUTES
+                'frequency': 10,
+        }
+        self.mock_session.get.assert_called_once_with(
+            self.make_url('/v1/marketdata/AAPL/pricehistory'),
+            params=params)
+
+
+    def test_get_price_history_every_ten_minutes_start_datetime(self):
+        self.client.get_price_history_every_ten_minutes(
+                'AAPL', start_datetime=EARLIER_DATETIME)
+        params = {
+                'apikey': API_KEY,
+                'periodType': 'day',
+                # ONE_DAY
+                'period': 1,
+                'frequencyType': 'minute',
+                # EVERY_TEN_MINUTES
+                'frequency': 10,
+                'startDate': EARLIER_MILLIS,
+        }
+        self.mock_session.get.assert_called_once_with(
+            self.make_url('/v1/marketdata/AAPL/pricehistory'),
+            params=params)
+
+
+    def test_get_price_history_every_ten_minutes_end_datetime(self):
+        self.client.get_price_history_every_ten_minutes(
+                'AAPL', end_datetime=EARLIER_DATETIME)
+        params = {
+                'apikey': API_KEY,
+                'periodType': 'day',
+                # ONE_DAY
+                'period': 1,
+                'frequencyType': 'minute',
+                # EVERY_TEN_MINUTES
+                'frequency': 10,
+                'endDate': EARLIER_MILLIS,
+        }
+        self.mock_session.get.assert_called_once_with(
+            self.make_url('/v1/marketdata/AAPL/pricehistory'),
+            params=params)
+
+
+    # get_price_history_every_fifteen_minutes
+
+
+    def test_get_price_history_every_fifteen_minutes_vanilla(self):
+        self.client.get_price_history_every_fifteen_minutes('AAPL')
+        params = {
+                'apikey': API_KEY,
+                'periodType': 'day',
+                # ONE_DAY
+                'period': 1,
+                'frequencyType': 'minute',
+                # EVERY_FIFTEEN_MINUTES
+                'frequency': 15,
+        }
+        self.mock_session.get.assert_called_once_with(
+            self.make_url('/v1/marketdata/AAPL/pricehistory'),
+            params=params)
+
+
+    def test_get_price_history_every_fifteen_minutes_start_datetime(self):
+        self.client.get_price_history_every_fifteen_minutes(
+                'AAPL', start_datetime=EARLIER_DATETIME)
+        params = {
+                'apikey': API_KEY,
+                'periodType': 'day',
+                # ONE_DAY
+                'period': 1,
+                'frequencyType': 'minute',
+                # EVERY_FIFTEEN_MINUTES
+                'frequency': 15,
+                'startDate': EARLIER_MILLIS,
+        }
+        self.mock_session.get.assert_called_once_with(
+            self.make_url('/v1/marketdata/AAPL/pricehistory'),
+            params=params)
+
+
+    def test_get_price_history_every_fifteen_minutes_end_datetime(self):
+        self.client.get_price_history_every_fifteen_minutes(
+                'AAPL', end_datetime=EARLIER_DATETIME)
+        params = {
+                'apikey': API_KEY,
+                'periodType': 'day',
+                # ONE_DAY
+                'period': 1,
+                'frequencyType': 'minute',
+                # EVERY_FIFTEEN_MINUTES
+                'frequency': 15,
+                'endDate': EARLIER_MILLIS,
+        }
+        self.mock_session.get.assert_called_once_with(
+            self.make_url('/v1/marketdata/AAPL/pricehistory'),
+            params=params)
+
+
+    # get_price_history_every_thirty_minutes
+
+
+    def test_get_price_history_every_thirty_minutes_vanilla(self):
+        self.client.get_price_history_every_thirty_minutes('AAPL')
+        params = {
+                'apikey': API_KEY,
+                'periodType': 'day',
+                # ONE_DAY
+                'period': 1,
+                'frequencyType': 'minute',
+                # EVERY_THIRTY_MINUTES
+                'frequency': 30,
+        }
+        self.mock_session.get.assert_called_once_with(
+            self.make_url('/v1/marketdata/AAPL/pricehistory'),
+            params=params)
+
+
+    def test_get_price_history_every_thirty_minutes_start_datetime(self):
+        self.client.get_price_history_every_thirty_minutes(
+                'AAPL', start_datetime=EARLIER_DATETIME)
+        params = {
+                'apikey': API_KEY,
+                'periodType': 'day',
+                # ONE_DAY
+                'period': 1,
+                'frequencyType': 'minute',
+                # EVERY_THIRTY_MINUTES
+                'frequency': 30,
+                'startDate': EARLIER_MILLIS,
+        }
+        self.mock_session.get.assert_called_once_with(
+            self.make_url('/v1/marketdata/AAPL/pricehistory'),
+            params=params)
+
+
+    def test_get_price_history_every_thirty_minutes_end_datetime(self):
+        self.client.get_price_history_every_thirty_minutes(
+                'AAPL', end_datetime=EARLIER_DATETIME)
+        params = {
+                'apikey': API_KEY,
+                'periodType': 'day',
+                # ONE_DAY
+                'period': 1,
+                'frequencyType': 'minute',
+                # EVERY_THIRTY_MINUTES
+                'frequency': 30,
+                'endDate': EARLIER_MILLIS,
+        }
+        self.mock_session.get.assert_called_once_with(
+            self.make_url('/v1/marketdata/AAPL/pricehistory'),
+            params=params)
+
+
+    # get_price_history_every_day
+
+
+    def test_get_price_history_every_day_vanilla(self):
+        self.client.get_price_history_every_day('AAPL')
+        params = {
+                'apikey': API_KEY,
+                'periodType': 'year',
+                # TWENTY_YEARS
+                'period': 20,
+                'frequencyType': 'daily',
+                # DAILY
+                'frequency': 1,
+        }
+        self.mock_session.get.assert_called_once_with(
+            self.make_url('/v1/marketdata/AAPL/pricehistory'),
+            params=params)
+
+
+    def test_get_price_history_every_day_start_datetime(self):
+        self.client.get_price_history_every_day(
+                'AAPL', start_datetime=EARLIER_DATETIME)
+        params = {
+                'apikey': API_KEY,
+                'periodType': 'year',
+                # TWENTY_YEARS
+                'period': 20,
+                'frequencyType': 'daily',
+                # DAILY
+                'frequency': 1,
+                'startDate': EARLIER_MILLIS,
+        }
+        self.mock_session.get.assert_called_once_with(
+            self.make_url('/v1/marketdata/AAPL/pricehistory'),
+            params=params)
+
+
+    def test_get_price_history_every_day_end_datetime(self):
+        self.client.get_price_history_every_day(
+                'AAPL', end_datetime=EARLIER_DATETIME)
+        params = {
+                'apikey': API_KEY,
+                'periodType': 'year',
+                # TWENTY_YEARS
+                'period': 20,
+                'frequencyType': 'daily',
+                # DAILY
+                'frequency': 1,
+                'endDate': EARLIER_MILLIS,
+        }
+        self.mock_session.get.assert_called_once_with(
+            self.make_url('/v1/marketdata/AAPL/pricehistory'),
+            params=params)
+
+
+    # get_price_history_every_week
+
+
+    def test_get_price_history_every_week_vanilla(self):
+        self.client.get_price_history_every_week('AAPL')
+        params = {
+                'apikey': API_KEY,
+                'periodType': 'year',
+                # TWENTY_YEARS
+                'period': 20,
+                'frequencyType': 'weekly',
+                # DAILY
+                'frequency': 1,
+        }
+        self.mock_session.get.assert_called_once_with(
+            self.make_url('/v1/marketdata/AAPL/pricehistory'),
+            params=params)
+
+
+    def test_get_price_history_every_week_start_datetime(self):
+        self.client.get_price_history_every_week(
+                'AAPL', start_datetime=EARLIER_DATETIME)
+        params = {
+                'apikey': API_KEY,
+                'periodType': 'year',
+                # TWENTY_YEARS
+                'period': 20,
+                'frequencyType': 'weekly',
+                # DAILY
+                'frequency': 1,
+                'startDate': EARLIER_MILLIS,
+        }
+        self.mock_session.get.assert_called_once_with(
+            self.make_url('/v1/marketdata/AAPL/pricehistory'),
+            params=params)
+
+
+    def test_get_price_history_every_week_end_datetime(self):
+        self.client.get_price_history_every_week(
+                'AAPL', end_datetime=EARLIER_DATETIME)
+        params = {
+                'apikey': API_KEY,
+                'periodType': 'year',
+                # TWENTY_YEARS
+                'period': 20,
+                'frequencyType': 'weekly',
+                # DAILY
+                'frequency': 1,
+                'endDate': EARLIER_MILLIS,
+        }
+        self.mock_session.get.assert_called_once_with(
+            self.make_url('/v1/marketdata/AAPL/pricehistory'),
+            params=params)
+
+
     # get_quote
 
     
