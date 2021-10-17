@@ -26,12 +26,17 @@ SYMBOL = 'AAPL'
 TRANSACTION_ID = 400000
 WATCHLIST_ID = 5000000
 
+MIN_DATETIME = datetime.datetime(year=1971, month=1, day=1)
 MIN_ISO = '1971-01-01T00:00:00+0000'
+MIN_TIMESTAMP_MILLIS = int(MIN_DATETIME.timestamp()) * 1000
 
 NOW_DATETIME = datetime.datetime(2020, 1, 2, 3, 4, 5)
 NOW_DATE = datetime.date(2020, 1, 2)
 NOW_DATETIME_ISO = '2020-01-02T03:04:05+0000'
 NOW_DATE_ISO = '2020-01-02'
+
+NOW_DATETIME_PLUS_SEVEN_DAYS_TIMESTAMP_MILLIS = \
+        int((NOW_DATETIME + datetime.timedelta(days=7)).timestamp()) * 1000
 
 
 class mockdatetime(datetime.datetime):
@@ -1105,6 +1110,7 @@ class _TestClient:
     # get_price_history_every_minute
 
 
+    @patch('tda.client.base.datetime.datetime', mockdatetime)
     def test_get_price_history_every_minute_vanilla(self):
         self.client.get_price_history_every_minute('AAPL')
         params = {
@@ -1115,12 +1121,15 @@ class _TestClient:
                 'frequencyType': 'minute',
                 # EVERY_MINUTE
                 'frequency': 1,
+                'startDate': MIN_TIMESTAMP_MILLIS,
+                'endDate': NOW_DATETIME_PLUS_SEVEN_DAYS_TIMESTAMP_MILLIS,
         }
         self.mock_session.get.assert_called_once_with(
             self.make_url('/v1/marketdata/AAPL/pricehistory'),
             params=params)
 
 
+    @patch('tda.client.base.datetime.datetime', mockdatetime)
     def test_get_price_history_every_minute_start_datetime(self):
         self.client.get_price_history_every_minute(
                 'AAPL', start_datetime=EARLIER_DATETIME)
@@ -1133,12 +1142,14 @@ class _TestClient:
                 # EVERY_MINUTE
                 'frequency': 1,
                 'startDate': EARLIER_MILLIS,
+                'endDate': NOW_DATETIME_PLUS_SEVEN_DAYS_TIMESTAMP_MILLIS,
         }
         self.mock_session.get.assert_called_once_with(
             self.make_url('/v1/marketdata/AAPL/pricehistory'),
             params=params)
 
 
+    @patch('tda.client.base.datetime.datetime', mockdatetime)
     def test_get_price_history_every_minute_end_datetime(self):
         self.client.get_price_history_every_minute(
                 'AAPL', end_datetime=EARLIER_DATETIME)
@@ -1150,6 +1161,7 @@ class _TestClient:
                 'frequencyType': 'minute',
                 # EVERY_MINUTE
                 'frequency': 1,
+                'startDate': MIN_TIMESTAMP_MILLIS,
                 'endDate': EARLIER_MILLIS,
         }
         self.mock_session.get.assert_called_once_with(
@@ -1160,6 +1172,7 @@ class _TestClient:
     # get_price_history_every_five_minutes
 
 
+    @patch('tda.client.base.datetime.datetime', mockdatetime)
     def test_get_price_history_every_five_minutes_vanilla(self):
         self.client.get_price_history_every_five_minutes('AAPL')
         params = {
@@ -1170,12 +1183,15 @@ class _TestClient:
                 'frequencyType': 'minute',
                 # EVERY_FIVE_MINUTES
                 'frequency': 5,
+                'startDate': MIN_TIMESTAMP_MILLIS,
+                'endDate': NOW_DATETIME_PLUS_SEVEN_DAYS_TIMESTAMP_MILLIS,
         }
         self.mock_session.get.assert_called_once_with(
             self.make_url('/v1/marketdata/AAPL/pricehistory'),
             params=params)
 
 
+    @patch('tda.client.base.datetime.datetime', mockdatetime)
     def test_get_price_history_every_five_minutes_start_datetime(self):
         self.client.get_price_history_every_five_minutes(
                 'AAPL', start_datetime=EARLIER_DATETIME)
@@ -1188,12 +1204,14 @@ class _TestClient:
                 # EVERY_FIVE_MINUTES
                 'frequency': 5,
                 'startDate': EARLIER_MILLIS,
+                'endDate': NOW_DATETIME_PLUS_SEVEN_DAYS_TIMESTAMP_MILLIS,
         }
         self.mock_session.get.assert_called_once_with(
             self.make_url('/v1/marketdata/AAPL/pricehistory'),
             params=params)
 
 
+    @patch('tda.client.base.datetime.datetime', mockdatetime)
     def test_get_price_history_every_five_minutes_end_datetime(self):
         self.client.get_price_history_every_five_minutes(
                 'AAPL', end_datetime=EARLIER_DATETIME)
@@ -1205,6 +1223,7 @@ class _TestClient:
                 'frequencyType': 'minute',
                 # EVERY_FIVE_MINUTES
                 'frequency': 5,
+                'startDate': MIN_TIMESTAMP_MILLIS,
                 'endDate': EARLIER_MILLIS,
         }
         self.mock_session.get.assert_called_once_with(
@@ -1215,6 +1234,7 @@ class _TestClient:
     # get_price_history_every_ten_minutes
 
 
+    @patch('tda.client.base.datetime.datetime', mockdatetime)
     def test_get_price_history_every_ten_minutes_vanilla(self):
         self.client.get_price_history_every_ten_minutes('AAPL')
         params = {
@@ -1225,12 +1245,15 @@ class _TestClient:
                 'frequencyType': 'minute',
                 # EVERY_TEN_MINUTES
                 'frequency': 10,
+                'startDate': MIN_TIMESTAMP_MILLIS,
+                'endDate': NOW_DATETIME_PLUS_SEVEN_DAYS_TIMESTAMP_MILLIS,
         }
         self.mock_session.get.assert_called_once_with(
             self.make_url('/v1/marketdata/AAPL/pricehistory'),
             params=params)
 
 
+    @patch('tda.client.base.datetime.datetime', mockdatetime)
     def test_get_price_history_every_ten_minutes_start_datetime(self):
         self.client.get_price_history_every_ten_minutes(
                 'AAPL', start_datetime=EARLIER_DATETIME)
@@ -1243,12 +1266,14 @@ class _TestClient:
                 # EVERY_TEN_MINUTES
                 'frequency': 10,
                 'startDate': EARLIER_MILLIS,
+                'endDate': NOW_DATETIME_PLUS_SEVEN_DAYS_TIMESTAMP_MILLIS,
         }
         self.mock_session.get.assert_called_once_with(
             self.make_url('/v1/marketdata/AAPL/pricehistory'),
             params=params)
 
 
+    @patch('tda.client.base.datetime.datetime', mockdatetime)
     def test_get_price_history_every_ten_minutes_end_datetime(self):
         self.client.get_price_history_every_ten_minutes(
                 'AAPL', end_datetime=EARLIER_DATETIME)
@@ -1260,6 +1285,7 @@ class _TestClient:
                 'frequencyType': 'minute',
                 # EVERY_TEN_MINUTES
                 'frequency': 10,
+                'startDate': MIN_TIMESTAMP_MILLIS,
                 'endDate': EARLIER_MILLIS,
         }
         self.mock_session.get.assert_called_once_with(
@@ -1270,6 +1296,7 @@ class _TestClient:
     # get_price_history_every_fifteen_minutes
 
 
+    @patch('tda.client.base.datetime.datetime', mockdatetime)
     def test_get_price_history_every_fifteen_minutes_vanilla(self):
         self.client.get_price_history_every_fifteen_minutes('AAPL')
         params = {
@@ -1280,12 +1307,15 @@ class _TestClient:
                 'frequencyType': 'minute',
                 # EVERY_FIFTEEN_MINUTES
                 'frequency': 15,
+                'startDate': MIN_TIMESTAMP_MILLIS,
+                'endDate': NOW_DATETIME_PLUS_SEVEN_DAYS_TIMESTAMP_MILLIS,
         }
         self.mock_session.get.assert_called_once_with(
             self.make_url('/v1/marketdata/AAPL/pricehistory'),
             params=params)
 
 
+    @patch('tda.client.base.datetime.datetime', mockdatetime)
     def test_get_price_history_every_fifteen_minutes_start_datetime(self):
         self.client.get_price_history_every_fifteen_minutes(
                 'AAPL', start_datetime=EARLIER_DATETIME)
@@ -1298,12 +1328,14 @@ class _TestClient:
                 # EVERY_FIFTEEN_MINUTES
                 'frequency': 15,
                 'startDate': EARLIER_MILLIS,
+                'endDate': NOW_DATETIME_PLUS_SEVEN_DAYS_TIMESTAMP_MILLIS,
         }
         self.mock_session.get.assert_called_once_with(
             self.make_url('/v1/marketdata/AAPL/pricehistory'),
             params=params)
 
 
+    @patch('tda.client.base.datetime.datetime', mockdatetime)
     def test_get_price_history_every_fifteen_minutes_end_datetime(self):
         self.client.get_price_history_every_fifteen_minutes(
                 'AAPL', end_datetime=EARLIER_DATETIME)
@@ -1315,6 +1347,7 @@ class _TestClient:
                 'frequencyType': 'minute',
                 # EVERY_FIFTEEN_MINUTES
                 'frequency': 15,
+                'startDate': MIN_TIMESTAMP_MILLIS,
                 'endDate': EARLIER_MILLIS,
         }
         self.mock_session.get.assert_called_once_with(
@@ -1325,6 +1358,7 @@ class _TestClient:
     # get_price_history_every_thirty_minutes
 
 
+    @patch('tda.client.base.datetime.datetime', mockdatetime)
     def test_get_price_history_every_thirty_minutes_vanilla(self):
         self.client.get_price_history_every_thirty_minutes('AAPL')
         params = {
@@ -1335,12 +1369,15 @@ class _TestClient:
                 'frequencyType': 'minute',
                 # EVERY_THIRTY_MINUTES
                 'frequency': 30,
+                'startDate': MIN_TIMESTAMP_MILLIS,
+                'endDate': NOW_DATETIME_PLUS_SEVEN_DAYS_TIMESTAMP_MILLIS,
         }
         self.mock_session.get.assert_called_once_with(
             self.make_url('/v1/marketdata/AAPL/pricehistory'),
             params=params)
 
 
+    @patch('tda.client.base.datetime.datetime', mockdatetime)
     def test_get_price_history_every_thirty_minutes_start_datetime(self):
         self.client.get_price_history_every_thirty_minutes(
                 'AAPL', start_datetime=EARLIER_DATETIME)
@@ -1353,12 +1390,14 @@ class _TestClient:
                 # EVERY_THIRTY_MINUTES
                 'frequency': 30,
                 'startDate': EARLIER_MILLIS,
+                'endDate': NOW_DATETIME_PLUS_SEVEN_DAYS_TIMESTAMP_MILLIS,
         }
         self.mock_session.get.assert_called_once_with(
             self.make_url('/v1/marketdata/AAPL/pricehistory'),
             params=params)
 
 
+    @patch('tda.client.base.datetime.datetime', mockdatetime)
     def test_get_price_history_every_thirty_minutes_end_datetime(self):
         self.client.get_price_history_every_thirty_minutes(
                 'AAPL', end_datetime=EARLIER_DATETIME)
@@ -1370,6 +1409,7 @@ class _TestClient:
                 'frequencyType': 'minute',
                 # EVERY_THIRTY_MINUTES
                 'frequency': 30,
+                'startDate': MIN_TIMESTAMP_MILLIS,
                 'endDate': EARLIER_MILLIS,
         }
         self.mock_session.get.assert_called_once_with(
@@ -1380,6 +1420,7 @@ class _TestClient:
     # get_price_history_every_day
 
 
+    @patch('tda.client.base.datetime.datetime', mockdatetime)
     def test_get_price_history_every_day_vanilla(self):
         self.client.get_price_history_every_day('AAPL')
         params = {
@@ -1390,12 +1431,15 @@ class _TestClient:
                 'frequencyType': 'daily',
                 # DAILY
                 'frequency': 1,
+                'startDate': MIN_TIMESTAMP_MILLIS,
+                'endDate': NOW_DATETIME_PLUS_SEVEN_DAYS_TIMESTAMP_MILLIS,
         }
         self.mock_session.get.assert_called_once_with(
             self.make_url('/v1/marketdata/AAPL/pricehistory'),
             params=params)
 
 
+    @patch('tda.client.base.datetime.datetime', mockdatetime)
     def test_get_price_history_every_day_start_datetime(self):
         self.client.get_price_history_every_day(
                 'AAPL', start_datetime=EARLIER_DATETIME)
@@ -1408,12 +1452,14 @@ class _TestClient:
                 # DAILY
                 'frequency': 1,
                 'startDate': EARLIER_MILLIS,
+                'endDate': NOW_DATETIME_PLUS_SEVEN_DAYS_TIMESTAMP_MILLIS,
         }
         self.mock_session.get.assert_called_once_with(
             self.make_url('/v1/marketdata/AAPL/pricehistory'),
             params=params)
 
 
+    @patch('tda.client.base.datetime.datetime', mockdatetime)
     def test_get_price_history_every_day_end_datetime(self):
         self.client.get_price_history_every_day(
                 'AAPL', end_datetime=EARLIER_DATETIME)
@@ -1425,6 +1471,7 @@ class _TestClient:
                 'frequencyType': 'daily',
                 # DAILY
                 'frequency': 1,
+                'startDate': MIN_TIMESTAMP_MILLIS,
                 'endDate': EARLIER_MILLIS,
         }
         self.mock_session.get.assert_called_once_with(
@@ -1435,6 +1482,7 @@ class _TestClient:
     # get_price_history_every_week
 
 
+    @patch('tda.client.base.datetime.datetime', mockdatetime)
     def test_get_price_history_every_week_vanilla(self):
         self.client.get_price_history_every_week('AAPL')
         params = {
@@ -1445,12 +1493,15 @@ class _TestClient:
                 'frequencyType': 'weekly',
                 # DAILY
                 'frequency': 1,
+                'startDate': MIN_TIMESTAMP_MILLIS,
+                'endDate': NOW_DATETIME_PLUS_SEVEN_DAYS_TIMESTAMP_MILLIS,
         }
         self.mock_session.get.assert_called_once_with(
             self.make_url('/v1/marketdata/AAPL/pricehistory'),
             params=params)
 
 
+    @patch('tda.client.base.datetime.datetime', mockdatetime)
     def test_get_price_history_every_week_start_datetime(self):
         self.client.get_price_history_every_week(
                 'AAPL', start_datetime=EARLIER_DATETIME)
@@ -1463,12 +1514,14 @@ class _TestClient:
                 # DAILY
                 'frequency': 1,
                 'startDate': EARLIER_MILLIS,
+                'endDate': NOW_DATETIME_PLUS_SEVEN_DAYS_TIMESTAMP_MILLIS,
         }
         self.mock_session.get.assert_called_once_with(
             self.make_url('/v1/marketdata/AAPL/pricehistory'),
             params=params)
 
 
+    @patch('tda.client.base.datetime.datetime', mockdatetime)
     def test_get_price_history_every_week_end_datetime(self):
         self.client.get_price_history_every_week(
                 'AAPL', end_datetime=EARLIER_DATETIME)
@@ -1480,6 +1533,7 @@ class _TestClient:
                 'frequencyType': 'weekly',
                 # DAILY
                 'frequency': 1,
+                'startDate': MIN_TIMESTAMP_MILLIS,
                 'endDate': EARLIER_MILLIS,
         }
         self.mock_session.get.assert_called_once_with(

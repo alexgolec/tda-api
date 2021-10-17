@@ -808,6 +808,16 @@ class BaseClient(EnumEnforcer):
     # Price history utilities
 
 
+    def __normalize_start_and_end_datetimes(self, start_datetime, end_datetime):
+        if start_datetime is None:
+            start_datetime = datetime.datetime(year=1971, month=1, day=1)
+        if end_datetime is None:
+            end_datetime = (datetime.datetime.utcnow() +
+                    datetime.timedelta(days=7))
+
+        return start_datetime, end_datetime
+
+
     def get_price_history_every_minute(
             self, symbol, *, start_datetime=None, end_datetime=None):
         '''
@@ -815,6 +825,10 @@ class BaseClient(EnumEnforcer):
         granularity. This endpoint currently appears to return up to 48 days of
         data.
         '''
+
+        start_datetime, end_datetime = self.__normalize_start_and_end_datetimes(
+                start_datetime, end_datetime)
+
         return self.get_price_history(
                 symbol,
                 period_type=self.PriceHistory.PeriodType.DAY,
@@ -832,6 +846,10 @@ class BaseClient(EnumEnforcer):
         granularity. This endpoint currently appears to return approximately
         nine months of data.
         '''
+
+        start_datetime, end_datetime = self.__normalize_start_and_end_datetimes(
+                start_datetime, end_datetime)
+
         return self.get_price_history(
                 symbol,
                 period_type=self.PriceHistory.PeriodType.DAY,
@@ -849,6 +867,10 @@ class BaseClient(EnumEnforcer):
         granularity. This endpoint currently appears to return approximately
         nine months of data.
         '''
+
+        start_datetime, end_datetime = self.__normalize_start_and_end_datetimes(
+                start_datetime, end_datetime)
+
         return self.get_price_history(
                 symbol,
                 period_type=self.PriceHistory.PeriodType.DAY,
@@ -866,6 +888,10 @@ class BaseClient(EnumEnforcer):
         granularity. This endpoint currently appears to return approximately
         nine months of data.
         '''
+
+        start_datetime, end_datetime = self.__normalize_start_and_end_datetimes(
+                start_datetime, end_datetime)
+
         return self.get_price_history(
                 symbol,
                 period_type=self.PriceHistory.PeriodType.DAY,
@@ -883,6 +909,10 @@ class BaseClient(EnumEnforcer):
         granularity. This endpoint currently appears to return approximately
         nine months of data.
         '''
+
+        start_datetime, end_datetime = self.__normalize_start_and_end_datetimes(
+                start_datetime, end_datetime)
+
         return self.get_price_history(
                 symbol,
                 period_type=self.PriceHistory.PeriodType.DAY,
@@ -901,6 +931,10 @@ class BaseClient(EnumEnforcer):
         unclear, although it has been observed returning data as far back as 
         1985 (for ``AAPL``).
         '''
+
+        start_datetime, end_datetime = self.__normalize_start_and_end_datetimes(
+                start_datetime, end_datetime)
+
         return self.get_price_history(
                 symbol,
                 period_type=self.PriceHistory.PeriodType.YEAR,
@@ -919,6 +953,10 @@ class BaseClient(EnumEnforcer):
         unclear, although it has been observed returning data as far back as 
         1985 (for ``AAPL``).
         '''
+
+        start_datetime, end_datetime = self.__normalize_start_and_end_datetimes(
+                start_datetime, end_datetime)
+
         return self.get_price_history(
                 symbol,
                 period_type=self.PriceHistory.PeriodType.YEAR,
