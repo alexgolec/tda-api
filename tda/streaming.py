@@ -331,7 +331,10 @@ class StreamClient(EnumEnforcer):
 
         # response
         if 'response' in msg:
-            raise UnexpectedResponse(msg)
+            raise UnexpectedResponse(msg,
+                                     'unexpected response code during message handling: {}, msg is \'{}\''.format(
+                                         msg['response'][0]['content']['code'],
+                                         msg['response'][0]['content']['msg']))
 
         # data
         if 'data' in msg:
