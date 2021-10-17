@@ -114,6 +114,21 @@ subscription methods again seems to clear the old subscription and create a new
 one. Note this behavior is not officially documented, so this interpretation may 
 be incorrect.
 
+----------------------
+Un-Subscribing to Streams
+----------------------
+
+These functions have names that follow the pattern ``SERVICE_NAME_unsubs``. These
+functions send a request to disable the symbols of a streaming data for a particular data stream.
+They are *not* thread safe, so they should only be called in series.
+
+When unsubscribing to services with symbols, the service behaves such that the initial set of subscribe symbols
+minus the set of unsubscribe symbols -- as a result you get set difference and the set of symbols that were subscribe
+but is not in unsubscribe will continue to publish to your handler.
+
+It's known but not confirmed that if you unsubscribe from all streams, TD will close your stream if there are no other
+activities in 20 seconds. Please refer to this comment : https://github.com/alexgolec/tda-api/pull/256#issuecomment-939194648
+for ``Case: When no services are subscribed for 20 seconds - verify the last 2 messages from td``
 
 --------------------
 Registering Handlers
@@ -282,6 +297,7 @@ Equity Charts
 Minute-by-minute OHLCV data for equities.
 
 .. automethod:: tda.streaming::StreamClient.chart_equity_subs
+.. automethod:: tda.streaming::StreamClient.chart_equity_unsubs
 .. automethod:: tda.streaming::StreamClient.chart_equity_add
 .. automethod:: tda.streaming::StreamClient.add_chart_equity_handler
 .. autoclass:: tda.streaming::StreamClient.ChartEquityFields
@@ -298,6 +314,7 @@ Futures Charts
 Minute-by-minute OHLCV data for futures.
 
 .. automethod:: tda.streaming::StreamClient.chart_futures_subs
+.. automethod:: tda.streaming::StreamClient.chart_futures_unsubs
 .. automethod:: tda.streaming::StreamClient.chart_futures_add
 .. automethod:: tda.streaming::StreamClient.add_chart_futures_handler
 .. autoclass:: tda.streaming::StreamClient.ChartFuturesFields
@@ -323,6 +340,7 @@ Equities Quotes
 Level one quotes for equities traded on NYSE, AMEX, and PACIFIC.
 
 .. automethod:: tda.streaming::StreamClient.level_one_equity_subs
+.. automethod:: tda.streaming::StreamClient.level_one_equity_unsubs
 .. automethod:: tda.streaming::StreamClient.add_level_one_equity_handler
 .. autoclass:: tda.streaming::StreamClient.LevelOneEquityFields
   :members:
@@ -338,6 +356,7 @@ Level one quotes for options. Note you can use
 available option symbols.
 
 .. automethod:: tda.streaming::StreamClient.level_one_option_subs
+.. automethod:: tda.streaming::StreamClient.level_one_option_unsubs
 .. automethod:: tda.streaming::StreamClient.add_level_one_option_handler
 .. autoclass:: tda.streaming::StreamClient.LevelOneOptionFields
   :members:
@@ -351,6 +370,7 @@ Futures Quotes
 Level one quotes for futures.
 
 .. automethod:: tda.streaming::StreamClient.level_one_futures_subs
+.. automethod:: tda.streaming::StreamClient.level_one_futures_unsubs
 .. automethod:: tda.streaming::StreamClient.add_level_one_futures_handler
 .. autoclass:: tda.streaming::StreamClient.LevelOneFuturesFields
   :members:
@@ -364,6 +384,7 @@ Forex Quotes
 Level one quotes for foreign exchange pairs.
 
 .. automethod:: tda.streaming::StreamClient.level_one_forex_subs
+.. automethod:: tda.streaming::StreamClient.level_one_forex_unsubs
 .. automethod:: tda.streaming::StreamClient.add_level_one_forex_handler
 .. autoclass:: tda.streaming::StreamClient.LevelOneForexFields
   :members:
@@ -377,6 +398,7 @@ Futures Options Quotes
 Level one quotes for futures options.
 
 .. automethod:: tda.streaming::StreamClient.level_one_futures_options_subs
+.. automethod:: tda.streaming::StreamClient.level_one_futures_options_unsubs
 .. automethod:: tda.streaming::StreamClient.add_level_one_futures_options_handler
 .. autoclass:: tda.streaming::StreamClient.LevelOneFuturesOptionsFields
   :members:
@@ -446,9 +468,11 @@ book, but if you find any behavior that suggests otherwise please
 `let us know <https://github.com/alexgolec/tda-api/issues>`__.
 
 .. automethod:: tda.streaming::StreamClient.listed_book_subs
+.. automethod:: tda.streaming::StreamClient.listed_book_unsubs
 .. automethod:: tda.streaming::StreamClient.add_listed_book_handler
 
 .. automethod:: tda.streaming::StreamClient.nasdaq_book_subs
+.. automethod:: tda.streaming::StreamClient.nasdaq_book_unsubs
 .. automethod:: tda.streaming::StreamClient.add_nasdaq_book_handler
 
 
@@ -463,6 +487,7 @@ leading hypothesis is that it is bethe order book for the
 exchanges, although this is an admittedly an uneducated guess.
 
 .. automethod:: tda.streaming::StreamClient.options_book_subs
+.. automethod:: tda.streaming::StreamClient.options_book_unsubs
 .. automethod:: tda.streaming::StreamClient.add_options_book_handler
 
 
@@ -488,6 +513,7 @@ Equity Trades
 -------------
 
 .. automethod:: tda.streaming::StreamClient.timesale_equity_subs
+.. automethod:: tda.streaming::StreamClient.timesale_equity_unsubs
 .. automethod:: tda.streaming::StreamClient.add_timesale_equity_handler
 
 --------------------------
@@ -500,9 +526,11 @@ that the stream is open, but to date we haven't seen any data be passed throug.
 We currently believe this is an issue on TDA's side. 
 
 .. automethod:: tda.streaming::StreamClient.timesale_futures_subs
+.. automethod:: tda.streaming::StreamClient.timesale_futures_unsubs
 .. automethod:: tda.streaming::StreamClient.add_timesale_futures_handler
 
 .. automethod:: tda.streaming::StreamClient.timesale_options_subs
+.. automethod:: tda.streaming::StreamClient.timesale_options_unsubs
 .. automethod:: tda.streaming::StreamClient.add_timesale_options_handler
 
 
@@ -538,6 +566,7 @@ the meantime, ``tda-api`` provides the following methods for attempting to
 access this stream.
 
 .. automethod:: tda.streaming::StreamClient.news_headline_subs
+.. automethod:: tda.streaming::StreamClient.news_headline_unsubs
 .. automethod:: tda.streaming::StreamClient.add_news_headline_handler
 .. autoclass:: tda.streaming::StreamClient.NewsHeadlineFields
   :members:
@@ -555,6 +584,7 @@ object <https://developer.tdameritrade.com/content/streaming-data#_Toc504640581>
 to the user.
 
 .. automethod:: tda.streaming::StreamClient.account_activity_sub
+.. automethod:: tda.streaming::StreamClient.account_activity_unsub
 .. automethod:: tda.streaming::StreamClient.add_account_activity_handler
 .. autoclass:: tda.streaming::StreamClient.AccountActivityFields
   :members:
@@ -577,6 +607,15 @@ engineering and crowdsourced experience. Take them with a grain of salt.
 
 If you have specific questions, please join our `Discord server 
 <https://discord.gg/nfrd9gh>`__ to discuss with the community.
+
+You can enable the websocket client debug to watch the incoming/outgoing messages on the stream by setting these
+lines anywhere in the beginning of your program
+
+.. code-block:: python
+
+    logger = logging.getLogger("websockets.protocol")
+    logger.setLevel(logging.DEBUG)
+    logger.addHandler(logging.StreamHandler())
 
 
 -------------------------------------------------------------------------------
