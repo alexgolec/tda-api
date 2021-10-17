@@ -248,11 +248,30 @@ please follow the instructions in :ref:`contributing` to send in a patch.
 Price History
 +++++++++++++
 
-Fetching price history is somewhat complicated due to the fact that only certain 
-combinations of parameters are valid. To avoid accidentally making it impossible
-to send valid requests, this method performs no validation on its parameters. If
-you are receiving empty requests or other weird return values, see the official
-documentation for more details.
+TDA provides price history for equities and ETFs. It does not provide price 
+history for options, futures, or any other instruments. 
+
+In the raw API, fetching price history is somewhat complicated: the API offers a 
+single endpoint :meth:`Client.get_price_history` that accepts a complex variety 
+of inputs, but fails to document them in any meaningful way.
+
+Thankfully, we've reverse engineered this endpoint and built some helpful 
+utilities for fetching prices by minute, day, week, etc. Each method can be 
+called with or without date bounds. When called without date bounds, it returns 
+all data available. Each method offers a different lookback period, so make sure 
+to read the documentation below to learn how much data is available. 
+
+
+.. automethod:: tda.client.Client.get_price_history_every_minute
+.. automethod:: tda.client.Client.get_price_history_every_five_minutes
+.. automethod:: tda.client.Client.get_price_history_every_ten_minutes
+.. automethod:: tda.client.Client.get_price_history_every_fifteen_minutes
+.. automethod:: tda.client.Client.get_price_history_every_thirty_minutes
+.. automethod:: tda.client.Client.get_price_history_every_day
+.. automethod:: tda.client.Client.get_price_history_every_week
+
+For the sake of completeness, here is the documentation for the raw price 
+history endpoint, in all its complexity.
 
 .. automethod:: tda.client.Client.get_price_history
 .. autoclass:: tda.client.Client.PriceHistory
