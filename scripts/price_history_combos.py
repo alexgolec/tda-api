@@ -1,3 +1,10 @@
+'''
+Script to brute-force the outputs of parameters to the get_price_history method. 
+Written as part of producing the price history helper methods and checked in for 
+posterity and in case we need to rerun this analysis.
+'''
+
+
 import argparse
 import datetime
 import json
@@ -23,6 +30,7 @@ client = tda.auth.client_from_token_file(args.token, args.api_key)
 
 
 def report_candles(candles, call):
+    'Computes the length of the candles and the frequency of its updates.'
     if len(candles) <= 2:
         return None, None
 
@@ -42,6 +50,7 @@ def report_candles(candles, call):
 
 
 def get_price_history(*args, **kwargs):
+    'Performs price history fetching with retry'
     while True:
         r = client.get_price_history(*args, **kwargs)
         if r.status_code == 429:
@@ -51,6 +60,8 @@ def get_price_history(*args, **kwargs):
 
 
 def find_earliest_data(period_type, period, freq_type, freq):
+    '''Performs a binary search to find the earliest data returned by the API for 
+    a given combination of input enums'''
     # First find the earliest day which return meaningful data
     def params_from_ts(dt):
         end = dt
@@ -117,6 +128,7 @@ def find_earliest_data(period_type, period, freq_type, freq):
 
 report = {}
 
+# Brute force all combinations of enums
 for period_type in Client.PriceHistory.PeriodType:
     for period in Client.PriceHistory.Period:
         for freq_type in Client.PriceHistory.FrequencyType:
@@ -135,6 +147,8 @@ for period_type in Client.PriceHistory.PeriodType:
                     report[args] = r.status_code
                 print(args, r.status_code)
 
+
+# Emit a formatted report of the results
 for args in sorted(report.keys(), key=lambda k: str(k)):
     period_type, period, freq_type, freq = args
 
