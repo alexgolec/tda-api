@@ -20,6 +20,8 @@ jobs:
           toxenv: py38
         - version: 3.9
           toxenv: py39
+        - version: 3.10
+          toxenv: py310
     runs-on: ${{ matrix.platform }}
 
     steps:
