@@ -13,6 +13,7 @@ StreamClient = streaming.StreamClient
 
 ACCOUNT_ID = 1000
 TOKEN_TIMESTAMP = '2020-05-22T02:12:48+0000'
+UNIX_TIMESTAMP = 1590116673258
 
 
 class StreamClientTest(asynctest.TestCase):
@@ -52,7 +53,7 @@ class StreamClientTest(asynctest.TestCase):
                     'service': service,
                     'requestid': str(request_id),
                     'command': command,
-                    'timestamp': 1590116673258,
+                    'timestamp': UNIX_TIMESTAMP,
                     'content': {
                         'code': 0,
                         'msg': msg
@@ -66,7 +67,7 @@ class StreamClientTest(asynctest.TestCase):
             'data': [{
                 'service': service,
                 'command': command,
-                'timestamp': 1590186642440
+                'timestamp': UNIX_TIMESTAMP
             }]
         }
 
@@ -544,10 +545,14 @@ class StreamClientTest(asynctest.TestCase):
         await self.client.handle_message()
         await self.client.account_activity_unsubs()
 
-        self.assert_handler_called_once_with(handler, {'service': 'ACCT_ACTIVITY', 'command': 'SUBS', 'timestamp': 1590186642440})
-        self.assert_handler_called_once_with(async_handler, {'service': 'ACCT_ACTIVITY', 'command': 'SUBS', 'timestamp': 1590186642440})
-        send_awaited = [call('{"requests": [{"service": "ACCT_ACTIVITY", "requestid": "1", "command": "SUBS", "account": "1001", "source": "streamerInfo-appId", "parameters": {"keys": "streamerSubscriptionKeys-keys-key", "fields": "0,1,2,3"}}]}'),
-                       call('{"requests": [{"service": "ACCT_ACTIVITY", "requestid": "2", "command": "UNSUBS", "account": "1001", "source": "streamerInfo-appId", "parameters": {"keys": "streamerSubscriptionKeys-keys-key", "fields": "0,1,2,3"}}]}')]
+        self.assert_handler_called_once_with(handler, {'service': 'ACCT_ACTIVITY', 'command': 'SUBS', 'timestamp': UNIX_TIMESTAMP})
+        self.assert_handler_called_once_with(async_handler, {'service': 'ACCT_ACTIVITY', 'command': 'SUBS', 'timestamp': UNIX_TIMESTAMP})
+        send_awaited = [
+            call('{"requests": [{"service": "ACCT_ACTIVITY", "requestid": "1", "command": "SUBS", '
+                 '"account": "1001", "source": "streamerInfo-appId", "parameters": {"keys": "streamerSubscriptionKeys-keys-key", "fields": "0,1,2,3"}}]}'),
+            call('{"requests": [{"service": "ACCT_ACTIVITY", "requestid": "2", "command": "UNSUBS", '
+                 '"account": "1001", "source": "streamerInfo-appId", "parameters": {"keys": "streamerSubscriptionKeys-keys-key"}}]}')
+        ]
         socket.send.assert_has_awaits(send_awaited, any_order=False)
 
     @no_duplicates
@@ -696,10 +701,14 @@ class StreamClientTest(asynctest.TestCase):
         await self.client.handle_message()
         await self.client.chart_equity_unsubs(['GOOG', 'MSFT'])
 
-        self.assert_handler_called_once_with(handler, {'service': 'CHART_EQUITY', 'command': 'SUBS', 'timestamp': 1590186642440})
-        self.assert_handler_called_once_with(async_handler, {'service': 'CHART_EQUITY', 'command': 'SUBS', 'timestamp': 1590186642440})
-        send_awaited = [call('{"requests": [{"service": "CHART_EQUITY", "requestid": "1", "command": "SUBS", "account": "1001", "source": "streamerInfo-appId", "parameters": {"keys": "GOOG,MSFT", "fields": "0,1,2,3,4,5,6,7,8"}}]}'),
-                      call('{"requests": [{"service": "CHART_EQUITY", "requestid": "2", "command": "UNSUBS", "account": "1001", "source": "streamerInfo-appId", "parameters": {"keys": "GOOG,MSFT", "fields": "0,1,2,3,4,5,6,7,8"}}]}')]
+        self.assert_handler_called_once_with(handler, {'service': 'CHART_EQUITY', 'command': 'SUBS', 'timestamp': UNIX_TIMESTAMP})
+        self.assert_handler_called_once_with(async_handler, {'service': 'CHART_EQUITY', 'command': 'SUBS', 'timestamp': UNIX_TIMESTAMP})
+        send_awaited = [
+            call('{"requests": [{"service": "CHART_EQUITY", "requestid": "1", "command": "SUBS", '
+                 '"account": "1001", "source": "streamerInfo-appId", "parameters": {"keys": "GOOG,MSFT", "fields": "0,1,2,3,4,5,6,7,8"}}]}'),
+            call('{"requests": [{"service": "CHART_EQUITY", "requestid": "2", "command": "UNSUBS", '
+                 '"account": "1001", "source": "streamerInfo-appId", "parameters": {"keys": "GOOG,MSFT"}}]}')
+        ]
         socket.send.assert_has_awaits(send_awaited, any_order=False)
 
     @no_duplicates
@@ -900,10 +909,14 @@ class StreamClientTest(asynctest.TestCase):
         await self.client.handle_message()
         await self.client.chart_futures_unsubs(['/ES', '/CL'])
 
-        self.assert_handler_called_once_with(handler, {'service': 'CHART_FUTURES', 'command': 'SUBS', 'timestamp': 1590186642440})
-        self.assert_handler_called_once_with(async_handler, {'service': 'CHART_FUTURES', 'command': 'SUBS', 'timestamp': 1590186642440})
-        send_awaited = [call('{"requests": [{"service": "CHART_FUTURES", "requestid": "1", "command": "SUBS", "account": "1001", "source": "streamerInfo-appId", "parameters": {"keys": "/ES,/CL", "fields": "0,1,2,3,4,5,6"}}]}'),
-                       call('{"requests": [{"service": "CHART_FUTURES", "requestid": "2", "command": "UNSUBS", "account": "1001", "source": "streamerInfo-appId", "parameters": {"keys": "/ES,/CL", "fields": "0,1,2,3,4,5,6"}}]}')]
+        self.assert_handler_called_once_with(handler, {'service': 'CHART_FUTURES', 'command': 'SUBS', 'timestamp': UNIX_TIMESTAMP})
+        self.assert_handler_called_once_with(async_handler, {'service': 'CHART_FUTURES', 'command': 'SUBS', 'timestamp': UNIX_TIMESTAMP})
+        send_awaited = [
+            call('{"requests": [{"service": "CHART_FUTURES", "requestid": "1", "command": "SUBS", '
+                 '"account": "1001", "source": "streamerInfo-appId", "parameters": {"keys": "/ES,/CL", "fields": "0,1,2,3,4,5,6"}}]}'),
+            call('{"requests": [{"service": "CHART_FUTURES", "requestid": "2", "command": "UNSUBS", '
+                 '"account": "1001", "source": "streamerInfo-appId", "parameters": {"keys": "/ES,/CL"}}]}')
+        ]
         socket.send.assert_has_awaits(send_awaited, any_order=False)
 
     @no_duplicates
@@ -1075,10 +1088,15 @@ class StreamClientTest(asynctest.TestCase):
         await self.client.handle_message()
         await self.client.level_one_equity_unsubs(['GOOG', 'MSFT'])
 
-        self.assert_handler_called_once_with(handler, {'service': 'QUOTE', 'command': 'SUBS', 'timestamp': 1590186642440})
-        self.assert_handler_called_once_with(async_handler, {'service': 'QUOTE', 'command': 'SUBS', 'timestamp': 1590186642440})
-        send_awaited = [call('{"requests": [{"service": "QUOTE", "requestid": "1", "command": "SUBS", "account": "1001", "source": "streamerInfo-appId", "parameters": {"keys": "GOOG,MSFT", "fields": "0,1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22,23,24,25,26,27,28,29,30,31,32,33,34,35,36,37,38,39,40,41,42,43,44,45,46,47,48,49,50,51,52"}}]}'),
-                        call('{"requests": [{"service": "QUOTE", "requestid": "2", "command": "UNSUBS", "account": "1001", "source": "streamerInfo-appId", "parameters": {"keys": "GOOG,MSFT", "fields": "0,1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22,23,24,25,26,27,28,29,30,31,32,33,34,35,36,37,38,39,40,41,42,43,44,45,46,47,48,49,50,51,52"}}]}')]
+        self.assert_handler_called_once_with(handler, {'service': 'QUOTE', 'command': 'SUBS', 'timestamp': UNIX_TIMESTAMP})
+        self.assert_handler_called_once_with(async_handler, {'service': 'QUOTE', 'command': 'SUBS', 'timestamp': UNIX_TIMESTAMP})
+        send_awaited = [
+            call('{"requests": [{"service": "QUOTE", "requestid": "1", "command": "SUBS", '
+                 '"account": "1001", "source": "streamerInfo-appId", "parameters": {"keys": "GOOG,MSFT", '
+                 '"fields": "0,1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22,23,24,25,26,27,28,29,30,31,32,33,34,35,36,37,38,39,40,41,42,43,44,45,46,47,48,49,50,51,52"}}]}'),
+            call('{"requests": [{"service": "QUOTE", "requestid": "2", "command": "UNSUBS", '
+                 '"account": "1001", "source": "streamerInfo-appId", "parameters": {"keys": "GOOG,MSFT"}}]}')
+        ]
 
         socket.send.assert_has_awaits(send_awaited, any_order=False)
 
@@ -1174,7 +1192,7 @@ class StreamClientTest(asynctest.TestCase):
             'data': [{
                 'service': 'QUOTE',
                 'command': 'SUBS',
-                'timestamp': 1590186642440,
+                'timestamp': UNIX_TIMESTAMP,
                 'content': [{
                     'key': 'GOOG',
                     'delayed': False,
@@ -1307,7 +1325,7 @@ class StreamClientTest(asynctest.TestCase):
         expected_item = {
             'service': 'QUOTE',
             'command': 'SUBS',
-            'timestamp': 1590186642440,
+            'timestamp': UNIX_TIMESTAMP,
             'content': [{
                 'key': 'GOOG',
                 'delayed': False,
@@ -1481,10 +1499,15 @@ class StreamClientTest(asynctest.TestCase):
         await self.client.level_one_option_unsubs(
             ['GOOG_052920C620', 'MSFT_052920C145'])
 
-        self.assert_handler_called_once_with(handler, {'service': 'OPTION', 'command': 'SUBS', 'timestamp': 1590186642440})
-        self.assert_handler_called_once_with(async_handler, {'service': 'OPTION', 'command': 'SUBS', 'timestamp': 1590186642440})
-        send_awaited = [call('{"requests": [{"service": "OPTION", "requestid": "1", "command": "SUBS", "account": "1001", "source": "streamerInfo-appId", "parameters": {"keys": "GOOG_052920C620,MSFT_052920C145", "fields": "0,1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22,23,24,25,26,27,28,29,30,31,32,33,34,35,36,37,38,39,40,41"}}]}'),
-                       call('{"requests": [{"service": "OPTION", "requestid": "2", "command": "UNSUBS", "account": "1001", "source": "streamerInfo-appId", "parameters": {"keys": "GOOG_052920C620,MSFT_052920C145", "fields": "0,1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22,23,24,25,26,27,28,29,30,31,32,33,34,35,36,37,38,39,40,41"}}]}')]
+        self.assert_handler_called_once_with(handler, {'service': 'OPTION', 'command': 'SUBS', 'timestamp': UNIX_TIMESTAMP})
+        self.assert_handler_called_once_with(async_handler, {'service': 'OPTION', 'command': 'SUBS', 'timestamp': UNIX_TIMESTAMP})
+        send_awaited = [
+            call('{"requests": [{"service": "OPTION", "requestid": "1", "command": "SUBS", '
+                 '"account": "1001", "source": "streamerInfo-appId", "parameters": {"keys": "GOOG_052920C620,MSFT_052920C145", '
+                 '"fields": "0,1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22,23,24,25,26,27,28,29,30,31,32,33,34,35,36,37,38,39,40,41"}}]}'),
+            call('{"requests": [{"service": "OPTION", "requestid": "2", "command": "UNSUBS", '
+                 '"account": "1001", "source": "streamerInfo-appId", "parameters": {"keys": "GOOG_052920C620,MSFT_052920C145"}}]}')
+        ]
 
         socket.send.assert_has_awaits(send_awaited, any_order=False)
 
@@ -1820,10 +1843,15 @@ class StreamClientTest(asynctest.TestCase):
         await self.client.handle_message()
         await self.client.level_one_futures_unsubs(['/ES', '/CL'])
 
-        self.assert_handler_called_once_with(handler, {'service': 'LEVELONE_FUTURES', 'command': 'SUBS', 'timestamp': 1590186642440})
-        self.assert_handler_called_once_with(async_handler, {'service': 'LEVELONE_FUTURES', 'command': 'SUBS', 'timestamp': 1590186642440})
-        send_awaited = [call('{"requests": [{"service": "LEVELONE_FUTURES", "requestid": "1", "command": "SUBS", "account": "1001", "source": "streamerInfo-appId", "parameters": {"keys": "/ES,/CL", "fields": "0,1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22,23,24,25,26,27,28,29,30,31,32,33,34,35"}}]}'),
-                       call('{"requests": [{"service": "LEVELONE_FUTURES", "requestid": "2", "command": "UNSUBS", "account": "1001", "source": "streamerInfo-appId", "parameters": {"keys": "/ES,/CL", "fields": "0,1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22,23,24,25,26,27,28,29,30,31,32,33,34,35"}}]}')]
+        self.assert_handler_called_once_with(handler, {'service': 'LEVELONE_FUTURES', 'command': 'SUBS', 'timestamp': UNIX_TIMESTAMP})
+        self.assert_handler_called_once_with(async_handler, {'service': 'LEVELONE_FUTURES', 'command': 'SUBS', 'timestamp': UNIX_TIMESTAMP})
+        send_awaited = [
+            call('{"requests": [{"service": "LEVELONE_FUTURES", "requestid": "1", "command": "SUBS", '
+                 '"account": "1001", "source": "streamerInfo-appId", "parameters": {"keys": "/ES,/CL", '
+                 '"fields": "0,1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22,23,24,25,26,27,28,29,30,31,32,33,34,35"}}]}'),
+            call('{"requests": [{"service": "LEVELONE_FUTURES", "requestid": "2", "command": "UNSUBS", '
+                 '"account": "1001", "source": "streamerInfo-appId", "parameters": {"keys": "/ES,/CL"}}]}')
+        ]
         socket.send.assert_has_awaits(send_awaited, any_order=False)
 
     @no_duplicates
@@ -2152,10 +2180,15 @@ class StreamClientTest(asynctest.TestCase):
         await self.client.handle_message()
         await self.client.level_one_forex_unsubs(['EUR/USD', 'EUR/GBP'])
 
-        self.assert_handler_called_once_with(handler, {'service': 'LEVELONE_FOREX', 'command': 'SUBS', 'timestamp': 1590186642440})
-        self.assert_handler_called_once_with(async_handler, {'service': 'LEVELONE_FOREX', 'command': 'SUBS', 'timestamp': 1590186642440})
-        send_awaited = [call('{"requests": [{"service": "LEVELONE_FOREX", "requestid": "1", "command": "SUBS", "account": "1001", "source": "streamerInfo-appId", "parameters": {"keys": "EUR/USD,EUR/GBP", "fields": "0,1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,18,19,20,21,22,23,24,25,26,27,28,29"}}]}'),
-                       call('{"requests": [{"service": "LEVELONE_FOREX", "requestid": "2", "command": "UNSUBS", "account": "1001", "source": "streamerInfo-appId", "parameters": {"keys": "EUR/USD,EUR/GBP", "fields": "0,1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,18,19,20,21,22,23,24,25,26,27,28,29"}}]}')]
+        self.assert_handler_called_once_with(handler, {'service': 'LEVELONE_FOREX', 'command': 'SUBS', 'timestamp': UNIX_TIMESTAMP})
+        self.assert_handler_called_once_with(async_handler, {'service': 'LEVELONE_FOREX', 'command': 'SUBS', 'timestamp': UNIX_TIMESTAMP})
+        send_awaited = [
+            call('{"requests": [{"service": "LEVELONE_FOREX", "requestid": "1", "command": "SUBS", '
+                 '"account": "1001", "source": "streamerInfo-appId", "parameters": {"keys": "EUR/USD,EUR/GBP", '
+                 '"fields": "0,1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,18,19,20,21,22,23,24,25,26,27,28,29"}}]}'),
+            call('{"requests": [{"service": "LEVELONE_FOREX", "requestid": "2", "command": "UNSUBS", '
+                 '"account": "1001", "source": "streamerInfo-appId", "parameters": {"keys": "EUR/USD,EUR/GBP"}}]}')
+        ]
         socket.send.assert_has_awaits(send_awaited, any_order=False)
 
     @no_duplicates
@@ -2457,10 +2490,15 @@ class StreamClientTest(asynctest.TestCase):
         await self.client.level_one_futures_options_unsubs(
             ['NQU20_C6500', 'NQU20_P6500'])
 
-        self.assert_handler_called_once_with(handler, {'service': 'LEVELONE_FUTURES_OPTIONS', 'command': 'SUBS', 'timestamp': 1590186642440})
-        self.assert_handler_called_once_with(async_handler, {'service': 'LEVELONE_FUTURES_OPTIONS', 'command': 'SUBS', 'timestamp': 1590186642440})
-        send_awaited = [call('{"requests": [{"service": "LEVELONE_FUTURES_OPTIONS", "requestid": "1", "command": "SUBS", "account": "1001", "source": "streamerInfo-appId", "parameters": {"keys": "NQU20_C6500,NQU20_P6500", "fields": "0,1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22,23,24,25,26,27,28,29,30,31,32,33,34,35"}}]}'),
-                    call('{"requests": [{"service": "LEVELONE_FUTURES_OPTIONS", "requestid": "2", "command": "UNSUBS", "account": "1001", "source": "streamerInfo-appId", "parameters": {"keys": "NQU20_C6500,NQU20_P6500", "fields": "0,1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22,23,24,25,26,27,28,29,30,31,32,33,34,35"}}]}')]
+        self.assert_handler_called_once_with(handler, {'service': 'LEVELONE_FUTURES_OPTIONS', 'command': 'SUBS', 'timestamp': UNIX_TIMESTAMP})
+        self.assert_handler_called_once_with(async_handler, {'service': 'LEVELONE_FUTURES_OPTIONS', 'command': 'SUBS', 'timestamp': UNIX_TIMESTAMP})
+        send_awaited = [
+            call('{"requests": [{"service": "LEVELONE_FUTURES_OPTIONS", "requestid": "1", "command": "SUBS", '
+                 '"account": "1001", "source": "streamerInfo-appId", "parameters": {"keys": "NQU20_C6500,NQU20_P6500", '
+                 '"fields": "0,1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22,23,24,25,26,27,28,29,30,31,32,33,34,35"}}]}'),
+            call('{"requests": [{"service": "LEVELONE_FUTURES_OPTIONS", "requestid": "2", "command": "UNSUBS", '
+                 '"account": "1001", "source": "streamerInfo-appId", "parameters": {"keys": "NQU20_C6500,NQU20_P6500"}}]}')
+        ]
         socket.send.assert_has_awaits(send_awaited, any_order=False)
 
     @no_duplicates
@@ -2800,10 +2838,14 @@ class StreamClientTest(asynctest.TestCase):
         await self.client.handle_message()
         await self.client.timesale_equity_unsubs(['GOOG', 'MSFT'])
 
-        self.assert_handler_called_once_with(handler, {'service': 'TIMESALE_EQUITY', 'command': 'SUBS', 'timestamp': 1590186642440})
-        self.assert_handler_called_once_with(async_handler, {'service': 'TIMESALE_EQUITY', 'command': 'SUBS', 'timestamp': 1590186642440})
-        send_awaited = [call('{"requests": [{"service": "TIMESALE_EQUITY", "requestid": "1", "command": "SUBS", "account": "1001", "source": "streamerInfo-appId", "parameters": {"keys": "GOOG,MSFT", "fields": "0,1,2,3,4"}}]}'),
-                        call('{"requests": [{"service": "TIMESALE_EQUITY", "requestid": "2", "command": "UNSUBS", "account": "1001", "source": "streamerInfo-appId", "parameters": {"keys": "GOOG,MSFT", "fields": "0,1,2,3,4"}}]}')]
+        self.assert_handler_called_once_with(handler, {'service': 'TIMESALE_EQUITY', 'command': 'SUBS', 'timestamp': UNIX_TIMESTAMP})
+        self.assert_handler_called_once_with(async_handler, {'service': 'TIMESALE_EQUITY', 'command': 'SUBS', 'timestamp': UNIX_TIMESTAMP})
+        send_awaited = [
+            call('{"requests": [{"service": "TIMESALE_EQUITY", "requestid": "1", "command": "SUBS", '
+                 '"account": "1001", "source": "streamerInfo-appId", "parameters": {"keys": "GOOG,MSFT", "fields": "0,1,2,3,4"}}]}'),
+            call('{"requests": [{"service": "TIMESALE_EQUITY", "requestid": "2", "command": "UNSUBS", '
+                 '"account": "1001", "source": "streamerInfo-appId", "parameters": {"keys": "GOOG,MSFT"}}]}')
+        ]
         socket.send.assert_has_awaits(send_awaited, any_order=False)
 
     @no_duplicates
@@ -2997,10 +3039,14 @@ class StreamClientTest(asynctest.TestCase):
         await self.client.handle_message()
         await self.client.timesale_futures_unsubs(['/ES', '/CL'])
 
-        self.assert_handler_called_once_with(handler, {'service': 'TIMESALE_FUTURES', 'command': 'SUBS', 'timestamp': 1590186642440})
-        self.assert_handler_called_once_with(async_handler, {'service': 'TIMESALE_FUTURES', 'command': 'SUBS', 'timestamp': 1590186642440})
-        send_awaited = [call('{"requests": [{"service": "TIMESALE_FUTURES", "requestid": "1", "command": "SUBS", "account": "1001", "source": "streamerInfo-appId", "parameters": {"keys": "/ES,/CL", "fields": "0,1,2,3,4"}}]}'),
-                    call('{"requests": [{"service": "TIMESALE_FUTURES", "requestid": "2", "command": "UNSUBS", "account": "1001", "source": "streamerInfo-appId", "parameters": {"keys": "/ES,/CL", "fields": "0,1,2,3,4"}}]}')]
+        self.assert_handler_called_once_with(handler, {'service': 'TIMESALE_FUTURES', 'command': 'SUBS', 'timestamp': UNIX_TIMESTAMP})
+        self.assert_handler_called_once_with(async_handler, {'service': 'TIMESALE_FUTURES', 'command': 'SUBS', 'timestamp': UNIX_TIMESTAMP})
+        send_awaited = [
+            call('{"requests": [{"service": "TIMESALE_FUTURES", "requestid": "1", "command": "SUBS", '
+                 '"account": "1001", "source": "streamerInfo-appId", "parameters": {"keys": "/ES,/CL", "fields": "0,1,2,3,4"}}]}'),
+            call('{"requests": [{"service": "TIMESALE_FUTURES", "requestid": "2", "command": "UNSUBS", '
+                 '"account": "1001", "source": "streamerInfo-appId", "parameters": {"keys": "/ES,/CL"}}]}')
+        ]
         socket.send.assert_has_awaits(send_awaited, any_order=False)
 
     @no_duplicates
@@ -3193,10 +3239,14 @@ class StreamClientTest(asynctest.TestCase):
         await self.client.handle_message()
         await self.client.timesale_options_unsubs(['GOOG_052920C620', 'MSFT_052920C145'])
 
-        self.assert_handler_called_once_with(handler, {'service': 'TIMESALE_OPTIONS', 'command': 'SUBS', 'timestamp': 1590186642440})
-        self.assert_handler_called_once_with(async_handler, {'service': 'TIMESALE_OPTIONS', 'command': 'SUBS', 'timestamp': 1590186642440})
-        send_awaited = [call('{"requests": [{"service": "TIMESALE_OPTIONS", "requestid": "1", "command": "SUBS", "account": "1001", "source": "streamerInfo-appId", "parameters": {"keys": "GOOG_052920C620,MSFT_052920C145", "fields": "0,1,2,3,4"}}]}'),
-                        call('{"requests": [{"service": "TIMESALE_OPTIONS", "requestid": "2", "command": "UNSUBS", "account": "1001", "source": "streamerInfo-appId", "parameters": {"keys": "GOOG_052920C620,MSFT_052920C145", "fields": "0,1,2,3,4"}}]}')]
+        self.assert_handler_called_once_with(handler, {'service': 'TIMESALE_OPTIONS', 'command': 'SUBS', 'timestamp': UNIX_TIMESTAMP})
+        self.assert_handler_called_once_with(async_handler, {'service': 'TIMESALE_OPTIONS', 'command': 'SUBS', 'timestamp': UNIX_TIMESTAMP})
+        send_awaited = [
+            call('{"requests": [{"service": "TIMESALE_OPTIONS", "requestid": "1", "command": "SUBS", '
+                 '"account": "1001", "source": "streamerInfo-appId", "parameters": {"keys": "GOOG_052920C620,MSFT_052920C145", "fields": "0,1,2,3,4"}}]}'),
+            call('{"requests": [{"service": "TIMESALE_OPTIONS", "requestid": "2", "command": "UNSUBS", '
+                 '"account": "1001", "source": "streamerInfo-appId", "parameters": {"keys": "GOOG_052920C620,MSFT_052920C145"}}]}')
+        ]
         socket.send.assert_has_awaits(send_awaited, any_order=False)
 
     @no_duplicates
@@ -3379,7 +3429,7 @@ class StreamClientTest(asynctest.TestCase):
     async def test_listed_book_unsubs_success_all_fields(self, ws_connect):
         socket = await self.login_and_get_socket(ws_connect)
 
-        stream_item = {'data': [{'service': 'LISTED_BOOK', 'command': 'SUBS', 'timestamp': 1590186642440, 'content': {}}]}
+        stream_item = {'data': [{'service': 'LISTED_BOOK', 'command': 'SUBS', 'timestamp': UNIX_TIMESTAMP, 'content': {}}]}
 
         socket.recv.side_effect = [
             json.dumps(self.success_response(1, 'LISTED_BOOK', 'SUBS')),
@@ -3395,10 +3445,14 @@ class StreamClientTest(asynctest.TestCase):
         await self.client.handle_message()
         await self.client.listed_book_unsubs(['GOOG', 'MSFT'])
 
-        self.assert_handler_called_once_with(handler, {'service': 'LISTED_BOOK', 'command': 'SUBS', 'timestamp': 1590186642440,'content': {}})
-        self.assert_handler_called_once_with(async_handler, {'service': 'LISTED_BOOK', 'command': 'SUBS', 'timestamp': 1590186642440,'content': {}})
-        send_awaited = [call('{"requests": [{"service": "LISTED_BOOK", "requestid": "1", "command": "SUBS", "account": "1001", "source": "streamerInfo-appId", "parameters": {"keys": "GOOG,MSFT", "fields": "0,1,2,3"}}]}'),
-                        call('{"requests": [{"service": "LISTED_BOOK", "requestid": "2", "command": "UNSUBS", "account": "1001", "source": "streamerInfo-appId", "parameters": {"keys": "GOOG,MSFT", "fields": "0,1,2,3"}}]}')]
+        self.assert_handler_called_once_with(handler, {'service': 'LISTED_BOOK', 'command': 'SUBS', 'timestamp': UNIX_TIMESTAMP,'content': {}})
+        self.assert_handler_called_once_with(async_handler, {'service': 'LISTED_BOOK', 'command': 'SUBS', 'timestamp': UNIX_TIMESTAMP,'content': {}})
+        send_awaited = [
+            call('{"requests": [{"service": "LISTED_BOOK", "requestid": "1", "command": "SUBS", '
+                 '"account": "1001", "source": "streamerInfo-appId", "parameters": {"keys": "GOOG,MSFT", "fields": "0,1,2,3"}}]}'),
+            call('{"requests": [{"service": "LISTED_BOOK", "requestid": "2", "command": "UNSUBS", '
+                 '"account": "1001", "source": "streamerInfo-appId", "parameters": {"keys": "GOOG,MSFT"}}]}')
+        ]
         socket.send.assert_has_awaits(send_awaited, any_order=False)
 
     @no_duplicates
@@ -3457,7 +3511,7 @@ class StreamClientTest(asynctest.TestCase):
     async def test_nasdaq_book_unsubs_success_all_fields(self, ws_connect):
         socket = await self.login_and_get_socket(ws_connect)
 
-        stream_item = {"data": [{"service": "NASDAQ_BOOK", "command": "SUBS", "timestamp": 1590186642440, 'content': {}}]}
+        stream_item = {"data": [{"service": "NASDAQ_BOOK", "command": "SUBS", "timestamp": UNIX_TIMESTAMP, 'content': {}}]}
 
         socket.recv.side_effect = [
             json.dumps(self.success_response(1, 'NASDAQ_BOOK', 'SUBS')),
@@ -3473,10 +3527,14 @@ class StreamClientTest(asynctest.TestCase):
         await self.client.handle_message()
         await self.client.nasdaq_book_unsubs(['GOOG', 'MSFT'])
 
-        self.assert_handler_called_once_with(handler, {"service": "NASDAQ_BOOK", "command": "SUBS", "timestamp": 1590186642440, 'content': {}})
-        self.assert_handler_called_once_with(async_handler, {"service": "NASDAQ_BOOK", "command": "SUBS", "timestamp": 1590186642440, 'content': {}})
-        send_awaited = [call('{"requests": [{"service": "NASDAQ_BOOK", "requestid": "1", "command": "SUBS", "account": "1001", "source": "streamerInfo-appId", "parameters": {"keys": "GOOG,MSFT", "fields": "0,1,2,3"}}]}'),
-                       call('{"requests": [{"service": "NASDAQ_BOOK", "requestid": "2", "command": "UNSUBS", "account": "1001", "source": "streamerInfo-appId", "parameters": {"keys": "GOOG,MSFT", "fields": "0,1,2,3"}}]}')]
+        self.assert_handler_called_once_with(handler, {"service": "NASDAQ_BOOK", "command": "SUBS", "timestamp": UNIX_TIMESTAMP, 'content': {}})
+        self.assert_handler_called_once_with(async_handler, {"service": "NASDAQ_BOOK", "command": "SUBS", "timestamp": UNIX_TIMESTAMP, 'content': {}})
+        send_awaited = [
+            call('{"requests": [{"service": "NASDAQ_BOOK", "requestid": "1", "command": "SUBS", '
+                 '"account": "1001", "source": "streamerInfo-appId", "parameters": {"keys": "GOOG,MSFT", "fields": "0,1,2,3"}}]}'),
+            call('{"requests": [{"service": "NASDAQ_BOOK", "requestid": "2", "command": "UNSUBS", '
+                 '"account": "1001", "source": "streamerInfo-appId", "parameters": {"keys": "GOOG,MSFT"}}]}')
+        ]
         socket.send.assert_has_awaits(send_awaited, any_order=False)
 
     @no_duplicates
@@ -3536,7 +3594,7 @@ class StreamClientTest(asynctest.TestCase):
     async def test_options_book_unsubs_success_all_fields(self, ws_connect):
         socket = await self.login_and_get_socket(ws_connect)
 
-        stream_item = {"data": [{"service": "OPTIONS_BOOK", "command": "SUBS", "timestamp": 1590186642440, 'content': {}}]}
+        stream_item = {"data": [{"service": "OPTIONS_BOOK", "command": "SUBS", "timestamp": UNIX_TIMESTAMP, 'content': {}}]}
 
         socket.recv.side_effect = [
             json.dumps(self.success_response(1, 'OPTIONS_BOOK', 'SUBS')),
@@ -3554,10 +3612,14 @@ class StreamClientTest(asynctest.TestCase):
         await self.client.options_book_unsubs(
             ['GOOG_052920C620', 'MSFT_052920C145'])
 
-        self.assert_handler_called_once_with(handler, {"service": "OPTIONS_BOOK", "command": "SUBS", "timestamp": 1590186642440, 'content': {}})
-        self.assert_handler_called_once_with(async_handler, {"service": "OPTIONS_BOOK", "command": "SUBS", "timestamp": 1590186642440, 'content': {}})
-        send_awaited = [call('{"requests": [{"service": "OPTIONS_BOOK", "requestid": "1", "command": "SUBS", "account": "1001", "source": "streamerInfo-appId", "parameters": {"keys": "GOOG_052920C620,MSFT_052920C145", "fields": "0,1,2,3"}}]}'),
-                       call('{"requests": [{"service": "OPTIONS_BOOK", "requestid": "2", "command": "UNSUBS", "account": "1001", "source": "streamerInfo-appId", "parameters": {"keys": "GOOG_052920C620,MSFT_052920C145", "fields": "0,1,2,3"}}]}')]
+        self.assert_handler_called_once_with(handler, {"service": "OPTIONS_BOOK", "command": "SUBS", "timestamp": UNIX_TIMESTAMP, 'content': {}})
+        self.assert_handler_called_once_with(async_handler, {"service": "OPTIONS_BOOK", "command": "SUBS", "timestamp": UNIX_TIMESTAMP, 'content': {}})
+        send_awaited = [
+            call('{"requests": [{"service": "OPTIONS_BOOK", "requestid": "1", "command": "SUBS", '
+                 '"account": "1001", "source": "streamerInfo-appId", "parameters": {"keys": "GOOG_052920C620,MSFT_052920C145", "fields": "0,1,2,3"}}]}'),
+            call('{"requests": [{"service": "OPTIONS_BOOK", "requestid": "2", "command": "UNSUBS", '
+                 '"account": "1001", "source": "streamerInfo-appId", "parameters": {"keys": "GOOG_052920C620,MSFT_052920C145"}}]}')
+        ]
         socket.send.assert_has_awaits(send_awaited, any_order=False)
 
     @no_duplicates
@@ -4069,7 +4131,7 @@ class StreamClientTest(asynctest.TestCase):
     async def test_news_headline_unsubs_success(self, ws_connect):
         socket = await self.login_and_get_socket(ws_connect)
 
-        stream_item = {"data": [{"service": "NEWS_HEADLINE", "command": "SUBS", "timestamp": 1590186642440, 'content': {}}]}
+        stream_item = {"data": [{"service": "NEWS_HEADLINE", "command": "SUBS", "timestamp": UNIX_TIMESTAMP, 'content': {}}]}
 
         socket.recv.side_effect = [
             json.dumps(self.success_response(1, 'NEWS_HEADLINE', 'SUBS')),
@@ -4085,10 +4147,15 @@ class StreamClientTest(asynctest.TestCase):
         await self.client.handle_message()
         await self.client.news_headline_unsubs(['GOOG', 'MSFT'])
 
-        self.assert_handler_called_once_with(handler, {"service": "NEWS_HEADLINE", "command": "SUBS", "timestamp": 1590186642440, 'content': {}})
-        self.assert_handler_called_once_with(async_handler, {"service": "NEWS_HEADLINE", "command": "SUBS", "timestamp": 1590186642440, 'content': {}})
-        send_awaited = [call('{"requests": [{"service": "NEWS_HEADLINE", "requestid": "1", "command": "SUBS", "account": "1001", "source": "streamerInfo-appId", "parameters": {"keys": "GOOG,MSFT", "fields": "0,1,2,3,4,5,6,7,8,9,10"}}]}'),
-                       call('{"requests": [{"service": "NEWS_HEADLINE", "requestid": "2", "command": "UNSUBS", "account": "1001", "source": "streamerInfo-appId", "parameters": {"keys": "GOOG,MSFT", "fields": "0,1,2,3,4,5,6,7,8,9,10"}}]}')]
+        self.assert_handler_called_once_with(handler, {"service": "NEWS_HEADLINE", "command": "SUBS", "timestamp": UNIX_TIMESTAMP, 'content': {}})
+        self.assert_handler_called_once_with(async_handler, {"service": "NEWS_HEADLINE", "command": "SUBS", "timestamp": UNIX_TIMESTAMP, 'content': {}})
+        send_awaited = [
+            call('{"requests": [{"service": "NEWS_HEADLINE", "requestid": "1", "command": "SUBS", '
+                 '"account": "1001", "source": "streamerInfo-appId", "parameters": {"keys": "GOOG,MSFT", '
+                 '"fields": "0,1,2,3,4,5,6,7,8,9,10"}}]}'),
+            call('{"requests": [{"service": "NEWS_HEADLINE", "requestid": "2", "command": "UNSUBS", '
+                 '"account": "1001", "source": "streamerInfo-appId", "parameters": {"keys": "GOOG,MSFT"}}]}')
+        ]
         socket.send.assert_has_awaits(send_awaited, any_order=False)
 
     @no_duplicates
@@ -4443,3 +4510,145 @@ class StreamClientTest(asynctest.TestCase):
     async def test_subscribe_without_login(self, ws_connect):
         with self.assertRaisesRegex(ValueError, '.*Socket not open.*'):
             await self.client.chart_equity_subs(['GOOG,MSFT'])
+
+    @no_duplicates
+    @asynctest.patch('tda.streaming.ws_client.connect', new_callable=asynctest.CoroutineMock)
+    async def test_unsubscribe_without_login(self, ws_connect):
+        with self.assertRaisesRegex(ValueError, '.*Socket not open.*'):
+            await self.client.chart_equity_unsubs(['GOOG,MSFT'])
+
+    @no_duplicates
+    @asynctest.patch('tda.streaming.ws_client.connect', new_callable=asynctest.CoroutineMock)
+    async def test_service_op_return_no_fields_for_unsubs(self, ws_connect):
+        socket = await self.login_and_get_socket(ws_connect)
+
+        socket.recv.side_effect = [json.dumps(self.success_response(
+            1, 'CHART_EQUITY', 'UNSUBS'))]
+
+        await self.client.chart_equity_unsubs(['GOOG', 'MSFT'])
+        socket.recv.assert_awaited_once()
+        request = self.request_from_socket_mock(socket)
+
+        self.assertFalse('fields' in request['parameters'])
+
+    @no_duplicates
+    @asynctest.patch('tda.streaming.ws_client.connect', new_callable=asynctest.CoroutineMock)
+    async def test_service_op_return_fields_subs(self, ws_connect):
+        socket = await self.login_and_get_socket(ws_connect)
+
+        socket.recv.side_effect = [json.dumps(self.success_response(
+            1, 'QUOTE', 'SUBS'))]
+
+        await self.client.level_one_equity_subs(['GOOG', 'MSFT'], fields=[
+            StreamClient.LevelOneEquityFields.CLOSE_PRICE,
+            StreamClient.LevelOneEquityFields.ASK_PRICE
+        ])
+        socket.recv.assert_awaited_once()
+        request = self.request_from_socket_mock(socket)
+
+        self.assertEqual(request, {
+            'account': '1001',
+            'service': 'QUOTE',
+            'command': 'SUBS',
+            'requestid': '1',
+            'source': 'streamerInfo-appId',
+            'parameters': {
+                'keys': 'GOOG,MSFT',
+                'fields': '0,2,15'
+            }
+        })
+
+    @no_duplicates
+    @asynctest.patch('tda.streaming.ws_client.connect', new_callable=asynctest.CoroutineMock)
+    async def test_service_op_no_fields_for_unsubs(self, ws_connect):
+        socket = await self.login_and_get_socket(ws_connect)
+
+        socket.recv.side_effect = [json.dumps(self.success_response(
+            1, 'QUOTE', 'UNSUBS'))]
+
+        await self.client._service_op(
+            ['GOOG','MSFT'],
+            'QUOTE',
+            'UNSUBS'
+        )
+        socket.recv.assert_awaited_once()
+        request = self.request_from_socket_mock(socket)
+
+        self.assertFalse('fields' in request['parameters'])
+
+    @no_duplicates
+    @asynctest.patch('tda.streaming.ws_client.connect', new_callable=asynctest.CoroutineMock)
+    async def test_service_op_no_fields_for_sub_without_field_type(self, ws_connect):
+        """
+        _service_op is a classes method and subs cmds with empty field_type calls are defined. There's no service's
+        sub commands without field_type defined but this tests for fields=None behavior if field_type=None
+        """
+        socket = await self.login_and_get_socket(ws_connect)
+
+        socket.recv.side_effect = [json.dumps(self.success_response(
+            1, 'QUOTE', 'SUBS'))]
+
+        await self.client._service_op(
+            symbols=['GOOG','MSFT'],
+            service='QUOTE',
+            command='SUBS'
+        )
+        socket.recv.assert_awaited_once()
+        request = self.request_from_socket_mock(socket)
+
+        self.assertFalse('fields' in request['parameters'])
+
+    @no_duplicates
+    @asynctest.patch('tda.streaming.ws_client.connect', new_callable=asynctest.CoroutineMock)
+    async def test_service_op_all_fields_for_non_unsubs(self, ws_connect):
+        socket = await self.login_and_get_socket(ws_connect)
+
+        socket.recv.side_effect = [json.dumps(self.success_response(
+            1, 'CHART_EQUITY', 'SUBS'))]
+
+        await self.client._service_op(
+            symbols=['GOOG','MSFT'],
+            service='CHART_EQUITY',
+            command='SUBS',
+            field_type=StreamClient.ChartEquityFields
+        )
+        socket.recv.assert_awaited_once()
+        request = self.request_from_socket_mock(socket)
+
+        self.assertEqual(request, {
+            'account': '1001',
+            'service': 'CHART_EQUITY',
+            'command': 'SUBS',
+            'requestid': '1',
+            'source': 'streamerInfo-appId',
+            'parameters': {
+                'keys': 'GOOG,MSFT',
+                'fields': '0,1,2,3,4,5,6,7,8'
+            }
+        })
+
+        socket.reset_mock()
+
+        socket.recv.side_effect = [json.dumps(self.success_response(
+            2, 'CHART_EQUITY', 'ADD'))]
+
+        await self.client._service_op(
+            symbols=['GOOG','MSFT'],
+            service='CHART_EQUITY',
+            command='ADD',
+            field_type=StreamClient.ChartEquityFields
+        )
+        socket.recv.assert_awaited_once()
+        request = self.request_from_socket_mock(socket)
+
+        self.assertEqual(request, {
+            'account': '1001',
+            'service': 'CHART_EQUITY',
+            'command': 'ADD',
+            'requestid': '2',
+            'source': 'streamerInfo-appId',
+            'parameters': {
+                'keys': 'GOOG,MSFT',
+                'fields': '0,1,2,3,4,5,6,7,8'
+            }
+        })

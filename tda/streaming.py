@@ -307,17 +307,25 @@ class StreamClient(EnumEnforcer):
 
                 break
 
-    async def _service_op(self, symbols, service, command, field_type,
+    async def _service_op(self, symbols, service, command, field_type=None,
                           *, fields=None):
-        if fields is None:
+        # td fields parameter is optional and does not apply in the context of un-subscribing.
+        if fields is None and field_type is not None and command != 'UNSUBS':
             fields = field_type.all_fields()
-        fields = sorted(self.convert_enum_iterable(fields, field_type))
+
+        if command != 'UNSUBS' and field_type is not None:
+            fields = sorted(self.convert_enum_iterable(fields, field_type))
+
+        parameters = {
+            'keys': ','.join(symbols)
+        }
+
+        if not (command == 'UNSUBS' or field_type is None):
+            parameters['fields'] = ','.join(str(f) for f in fields)
 
         request, request_id = self._make_request(
             service=service, command=command,
-            parameters={
-                'keys': ','.join(symbols),
-                'fields': ','.join(str(f) for f in fields)})
+            parameters=parameters)
 
         async with self._lock:
             await self._send({'requests': [request]})
@@ -522,9 +530,7 @@ class StreamClient(EnumEnforcer):
         Un-Subscribe to account activity for the account id associated with this
         streaming client. See :class:`AccountActivityFields` for more info.
         '''
-        await self._service_op(
-            [self._stream_key], 'ACCT_ACTIVITY', 'UNSUBS',
-            self.AccountActivityFields)
+        await self._service_op([self._stream_key], 'ACCT_ACTIVITY', 'UNSUBS')
 
     def add_account_activity_handler(self, handler):
         '''
@@ -598,8 +604,7 @@ class StreamClient(EnumEnforcer):
         times.
 
         :param symbols: Equity symbols to subscribe to.'''
-        await self._service_op(
-            symbols, 'CHART_EQUITY', 'UNSUBS', self.ChartEquityFields)
+        await self._service_op(symbols, 'CHART_EQUITY', 'UNSUBS')
 
     async def chart_equity_add(self, symbols):
         '''
@@ -682,8 +687,7 @@ class StreamClient(EnumEnforcer):
 
         :param symbols: Futures symbols to subscribe to.
         '''
-        await self._service_op(
-            symbols, 'CHART_FUTURES', 'UNSUBS', self.ChartFuturesFields)
+        await self._service_op(symbols, 'CHART_FUTURES', 'UNSUBS')
 
     async def chart_futures_add(self, symbols):
         '''
@@ -933,8 +937,7 @@ class StreamClient(EnumEnforcer):
         :param symbols: Equity symbols to receive quotes for
         '''
 
-        await self._service_op(
-            symbols, 'QUOTE', 'UNSUBS', self.LevelOneEquityFields)
+        await self._service_op(symbols, 'QUOTE', 'UNSUBS')
 
     def add_level_one_equity_handler(self, handler):
         '''
@@ -1090,8 +1093,7 @@ class StreamClient(EnumEnforcer):
 
         :param symbols: Option symbols to receive quotes for
         '''
-        await self._service_op(
-            symbols, 'OPTION', 'UNSUBS', self.LevelOneOptionFields)
+        await self._service_op(symbols, 'OPTION', 'UNSUBS')
 
     def add_level_one_option_handler(self, handler):
         '''
@@ -1262,8 +1264,7 @@ class StreamClient(EnumEnforcer):
         :param symbols: Futures symbols to receive quotes for
         '''
 
-        await self._service_op(
-            symbols, 'LEVELONE_FUTURES', 'UNSUBS', self.LevelOneFuturesFields)
+        await self._service_op(symbols, 'LEVELONE_FUTURES', 'UNSUBS')
 
     def add_level_one_futures_handler(self, handler):
         '''
@@ -1407,8 +1408,7 @@ class StreamClient(EnumEnforcer):
         :param symbols: Forex symbols to receive quotes for
         '''
 
-        await self._service_op(
-            symbols, 'LEVELONE_FOREX', 'UNSUBS', self.LevelOneForexFields)
+        await self._service_op(symbols, 'LEVELONE_FOREX', 'UNSUBS')
 
     def add_level_one_forex_handler(self, handler):
         '''
@@ -1571,9 +1571,7 @@ class StreamClient(EnumEnforcer):
         :param symbols: Futures options symbols to receive quotes for
         '''
 
-        await self._service_op(
-            symbols, 'LEVELONE_FUTURES_OPTIONS', 'UNSUBS',
-            self.LevelOneFuturesOptionsFields)
+        await self._service_op(symbols, 'LEVELONE_FUTURES_OPTIONS', 'UNSUBS')
 
     def add_level_one_futures_options_handler(self, handler):
         '''
@@ -1633,8 +1631,7 @@ class StreamClient(EnumEnforcer):
         :param symbols: Equity symbols to subscribe to
         '''
 
-        await self._service_op(
-            symbols, 'TIMESALE_EQUITY', 'UNSUBS', self.TimesaleFields)
+        await self._service_op(symbols, 'TIMESALE_EQUITY', 'UNSUBS')
 
     def add_timesale_equity_handler(self, handler):
         '''
@@ -1669,9 +1666,7 @@ class StreamClient(EnumEnforcer):
         :param symbols: Futures symbols to subscribe to
         '''
 
-        await self._service_op(
-            symbols, 'TIMESALE_FUTURES', 'UNSUBS',
-            self.TimesaleFields)
+        await self._service_op(symbols, 'TIMESALE_FUTURES', 'UNSUBS')
 
     def add_timesale_futures_handler(self, handler):
         '''
@@ -1706,9 +1701,7 @@ class StreamClient(EnumEnforcer):
         :param symbols: Options symbols to subscribe to
         '''
 
-        await self._service_op(
-            symbols, 'TIMESALE_OPTIONS', 'UNSUBS',
-            self.TimesaleFields)
+        await self._service_op(symbols, 'TIMESALE_OPTIONS', 'UNSUBS')
 
     def add_timesale_options_handler(self, handler):
         '''
@@ -1797,9 +1790,7 @@ class StreamClient(EnumEnforcer):
         Un-Subscribe to the NYSE level two order book. Note this stream has no
         official documentation.
         '''
-        await self._service_op(
-            symbols, 'LISTED_BOOK', 'UNSUBS',
-            self.BookFields)
+        await self._service_op(symbols, 'LISTED_BOOK', 'UNSUBS')
 
     def add_listed_book_handler(self, handler):
         '''
@@ -1826,8 +1817,7 @@ class StreamClient(EnumEnforcer):
         Un-Subscribe to the NASDAQ level two order book. Note this stream has no
         official documentation.
         '''
-        await self._service_op(symbols, 'NASDAQ_BOOK', 'UNSUBS',
-                               self.BookFields)
+        await self._service_op(symbols, 'NASDAQ_BOOK', 'UNSUBS')
 
     def add_nasdaq_book_handler(self, handler):
         '''
@@ -1856,8 +1846,7 @@ class StreamClient(EnumEnforcer):
         official documentation, and it's not entirely clear what exchange it
         corresponds to. Use at your own risk.
         '''
-        await self._service_op(symbols, 'OPTIONS_BOOK', 'UNSUBS',
-                               self.BookFields)
+        await self._service_op(symbols, 'OPTIONS_BOOK', 'UNSUBS')
 
     def add_options_book_handler(self, handler):
         '''
@@ -1916,8 +1905,7 @@ class StreamClient(EnumEnforcer):
 
         Un-Subscribe to news headlines related to the given symbols.
         '''
-        await self._service_op(symbols, 'NEWS_HEADLINE', 'UNSUBS',
-                               self.NewsHeadlineFields)
+        await self._service_op(symbols, 'NEWS_HEADLINE', 'UNSUBS')
 
     def add_news_headline_handler(self, handler):
         '''
