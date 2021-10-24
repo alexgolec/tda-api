@@ -21,7 +21,7 @@ class StreamJsonDecoder(ABC):
     @abstractmethod
     def decode_json_string(self, raw):
         '''
-        Parse a JSON-formatted string into a proper object. Raises 
+        Parse a JSON-formatted string into a proper object. Raises
         ``JSONDecodeError`` on parse failure.
         '''
         raise NotImplementedError()
@@ -132,25 +132,23 @@ class StreamClient(EnumEnforcer):
         self.logger = get_logger()
         self.request_number = 0
 
-        # Initialize the JSON parser to be the naive parser which directly calls 
+        # Initialize the JSON parser to be the naive parser which directly calls
         # ``json.loads``
         self.json_decoder = NaiveJsonStreamDecoder()
         self._lock = asyncio.Lock()
-
 
     def set_json_decoder(self, json_decoder):
         '''
         Sets a custom JSON decoder.
 
-        :param json_decoder: Custom JSON decoder to use for to decode all 
+        :param json_decoder: Custom JSON decoder to use for to decode all
                              incoming JSON strings. See
                              :class:`StreamJsonDecoder` for details.
         '''
         if not isinstance(json_decoder, tda.contrib.util.StreamJsonDecoder):
             raise ValueError('Custom JSON parser must be a subclass of ' +
-                    'tda.contrib.util.StreamJsonDecoder')
+                             'tda.contrib.util.StreamJsonDecoder')
         self.json_decoder = json_decoder
-
 
     def req_num(self):
         self.request_number += 1
@@ -516,7 +514,7 @@ class StreamClient(EnumEnforcer):
             [self._stream_key], 'ACCT_ACTIVITY', 'SUBS',
             self.AccountActivityFields)
 
-    async def account_activity_unsub(self):
+    async def account_activity_unsubs(self):
         '''
         `Official documentation <https://developer.tdameritrade.com/content/
         streaming-data#_Toc504640580>`__
@@ -601,8 +599,7 @@ class StreamClient(EnumEnforcer):
 
         :param symbols: Equity symbols to subscribe to.'''
         await self._service_op(
-            symbols, 'CHART_EQUITY', 'UNSUBS', self.ChartEquityFields,
-            fields=self.ChartEquityFields.all_fields())
+            symbols, 'CHART_EQUITY', 'UNSUBS', self.ChartEquityFields)
 
     async def chart_equity_add(self, symbols):
         '''
@@ -686,8 +683,7 @@ class StreamClient(EnumEnforcer):
         :param symbols: Futures symbols to subscribe to.
         '''
         await self._service_op(
-            symbols, 'CHART_FUTURES', 'UNSUBS', self.ChartFuturesFields,
-            fields=self.ChartFuturesFields.all_fields())
+            symbols, 'CHART_FUTURES', 'UNSUBS', self.ChartFuturesFields)
 
     async def chart_futures_add(self, symbols):
         '''
@@ -927,7 +923,7 @@ class StreamClient(EnumEnforcer):
             symbols, 'QUOTE', 'SUBS', self.LevelOneEquityFields,
             fields=fields)
 
-    async def level_one_equity_unsubs(self, symbols, *, fields=None):
+    async def level_one_equity_unsubs(self, symbols):
         '''
         `Official documentation <https://developer.tdameritrade.com/content/
         streaming-data#_Toc504640599>`__
@@ -935,15 +931,10 @@ class StreamClient(EnumEnforcer):
         Un-Subscribe to level one equity quote data.
 
         :param symbols: Equity symbols to receive quotes for
-        :param fields: Iterable of :class:`LevelOneEquityFields` representing
-                       the fields to return in streaming entries. If unset, all
-                       fields will be requested.
         '''
-        if fields and self.LevelOneEquityFields.SYMBOL not in fields:
-            fields.append(self.LevelOneEquityFields.SYMBOL)
+
         await self._service_op(
-            symbols, 'QUOTE', 'UNSUBS', self.LevelOneEquityFields,
-            fields=fields)
+            symbols, 'QUOTE', 'UNSUBS', self.LevelOneEquityFields)
 
     def add_level_one_equity_handler(self, handler):
         '''
@@ -1090,7 +1081,7 @@ class StreamClient(EnumEnforcer):
             symbols, 'OPTION', 'SUBS', self.LevelOneOptionFields,
             fields=fields)
 
-    async def level_one_option_unsubs(self, symbols, *, fields=None):
+    async def level_one_option_unsubs(self, symbols):
         '''
         `Official documentation <https://developer.tdameritrade.com/content/
         streaming-data#_Toc504640602>`__
@@ -1098,15 +1089,9 @@ class StreamClient(EnumEnforcer):
         Un-Subscribe to level one option quote data.
 
         :param symbols: Option symbols to receive quotes for
-        :param fields: Iterable of :class:`LevelOneOptionFields` representing
-                       the fields to return in streaming entries. If unset, all
-                       fields will be requested.
         '''
-        if fields and self.LevelOneOptionFields.SYMBOL not in fields:
-            fields.append(self.LevelOneOptionFields.SYMBOL)
         await self._service_op(
-            symbols, 'OPTION', 'UNSUBS', self.LevelOneOptionFields,
-            fields=fields)
+            symbols, 'OPTION', 'UNSUBS', self.LevelOneOptionFields)
 
     def add_level_one_option_handler(self, handler):
         '''
@@ -1267,7 +1252,7 @@ class StreamClient(EnumEnforcer):
             symbols, 'LEVELONE_FUTURES', 'SUBS', self.LevelOneFuturesFields,
             fields=fields)
 
-    async def level_one_futures_unsubs(self, symbols, *, fields=None):
+    async def level_one_futures_unsubs(self, symbols):
         '''
         `Official documentation <https://developer.tdameritrade.com/content/
         streaming-data#_Toc504640604>`__
@@ -1275,15 +1260,10 @@ class StreamClient(EnumEnforcer):
         Un-Subscribe to level one futures quote data.
 
         :param symbols: Futures symbols to receive quotes for
-        :param fields: Iterable of :class:`LevelOneFuturesFields` representing
-                       the fields to return in streaming entries. If unset, all
-                       fields will be requested.
         '''
-        if fields and self.LevelOneFuturesFields.SYMBOL not in fields:
-            fields.append(self.LevelOneFuturesFields.SYMBOL)
+
         await self._service_op(
-            symbols, 'LEVELONE_FUTURES', 'UNSUBS', self.LevelOneFuturesFields,
-            fields=fields)
+            symbols, 'LEVELONE_FUTURES', 'UNSUBS', self.LevelOneFuturesFields)
 
     def add_level_one_futures_handler(self, handler):
         '''
@@ -1417,7 +1397,7 @@ class StreamClient(EnumEnforcer):
             symbols, 'LEVELONE_FOREX', 'SUBS', self.LevelOneForexFields,
             fields=fields)
 
-    async def level_one_forex_unsubs(self, symbols, *, fields=None):
+    async def level_one_forex_unsubs(self, symbols):
         '''
         `Official documentation <https://developer.tdameritrade.com/content/
         streaming-data#_Toc504640606>`__
@@ -1425,15 +1405,10 @@ class StreamClient(EnumEnforcer):
         Un-Subscribe to level one forex quote data.
 
         :param symbols: Forex symbols to receive quotes for
-        :param fields: Iterable of :class:`LevelOneForexFields` representing
-                       the fields to return in streaming entries. If unset, all
-                       fields will be requested.
         '''
-        if fields and self.LevelOneForexFields.SYMBOL not in fields:
-            fields.append(self.LevelOneForexFields.SYMBOL)
+
         await self._service_op(
-            symbols, 'LEVELONE_FOREX', 'UNSUBS', self.LevelOneForexFields,
-            fields=fields)
+            symbols, 'LEVELONE_FOREX', 'UNSUBS', self.LevelOneForexFields)
 
     def add_level_one_forex_handler(self, handler):
         '''
@@ -1586,7 +1561,7 @@ class StreamClient(EnumEnforcer):
             symbols, 'LEVELONE_FUTURES_OPTIONS', 'SUBS',
             self.LevelOneFuturesOptionsFields, fields=fields)
 
-    async def level_one_futures_options_unsubs(self, symbols, *, fields=None):
+    async def level_one_futures_options_unsubs(self, symbols):
         '''
         `Official documentation <https://developer.tdameritrade.com/content/
         streaming-data#_Toc504640610>`__
@@ -1594,15 +1569,11 @@ class StreamClient(EnumEnforcer):
         Un-Subscribe to level one futures options quote data.
 
         :param symbols: Futures options symbols to receive quotes for
-        :param fields: Iterable of :class:`LevelOneFuturesOptionsFields`
-                       representing the fields to return in streaming entries.
-                       If unset, all fields will be requested.
         '''
-        if fields and self.LevelOneFuturesOptionsFields.SYMBOL not in fields:
-            fields.append(self.LevelOneFuturesOptionsFields.SYMBOL)
+
         await self._service_op(
             symbols, 'LEVELONE_FUTURES_OPTIONS', 'UNSUBS',
-            self.LevelOneFuturesOptionsFields, fields=fields)
+            self.LevelOneFuturesOptionsFields)
 
     def add_level_one_futures_options_handler(self, handler):
         '''
@@ -1652,7 +1623,7 @@ class StreamClient(EnumEnforcer):
             symbols, 'TIMESALE_EQUITY', 'SUBS',
             self.TimesaleFields, fields=fields)
 
-    async def timesale_equity_unsubs(self, symbols, *, fields=None):
+    async def timesale_equity_unsubs(self, symbols):
         '''
         `Official documentation <https://developer.tdameritrade.com/content/
         streaming-data#_Toc504640628>`__
@@ -1661,11 +1632,9 @@ class StreamClient(EnumEnforcer):
 
         :param symbols: Equity symbols to subscribe to
         '''
-        if fields and self.TimesaleFields.SYMBOL not in fields:
-            fields.append(self.TimesaleFields.SYMBOL)
+
         await self._service_op(
-            symbols, 'TIMESALE_EQUITY', 'UNSUBS',
-            self.TimesaleFields, fields=fields)
+            symbols, 'TIMESALE_EQUITY', 'UNSUBS', self.TimesaleFields)
 
     def add_timesale_equity_handler(self, handler):
         '''
@@ -1690,7 +1659,7 @@ class StreamClient(EnumEnforcer):
             symbols, 'TIMESALE_FUTURES', 'SUBS',
             self.TimesaleFields, fields=fields)
 
-    async def timesale_futures_unsubs(self, symbols, *, fields=None):
+    async def timesale_futures_unsubs(self, symbols):
         '''
         `Official documentation <https://developer.tdameritrade.com/content/
         streaming-data#_Toc504640628>`__
@@ -1699,11 +1668,10 @@ class StreamClient(EnumEnforcer):
 
         :param symbols: Futures symbols to subscribe to
         '''
-        if fields and self.TimesaleFields.SYMBOL not in fields:
-            fields.append(self.TimesaleFields.SYMBOL)
+
         await self._service_op(
             symbols, 'TIMESALE_FUTURES', 'UNSUBS',
-            self.TimesaleFields, fields=fields)
+            self.TimesaleFields)
 
     def add_timesale_futures_handler(self, handler):
         '''
@@ -1728,7 +1696,7 @@ class StreamClient(EnumEnforcer):
             symbols, 'TIMESALE_OPTIONS', 'SUBS',
             self.TimesaleFields, fields=fields)
 
-    async def timesale_options_unsubs(self, symbols, *, fields=None):
+    async def timesale_options_unsubs(self, symbols):
         '''
         `Official documentation <https://developer.tdameritrade.com/content/
         streaming-data#_Toc504640628>`__
@@ -1737,11 +1705,10 @@ class StreamClient(EnumEnforcer):
 
         :param symbols: Options symbols to subscribe to
         '''
-        if fields and self.TimesaleFields.SYMBOL not in fields:
-            fields.append(self.TimesaleFields.SYMBOL)
+
         await self._service_op(
             symbols, 'TIMESALE_OPTIONS', 'UNSUBS',
-            self.TimesaleFields, fields=fields)
+            self.TimesaleFields)
 
     def add_timesale_options_handler(self, handler):
         '''
@@ -1832,7 +1799,7 @@ class StreamClient(EnumEnforcer):
         '''
         await self._service_op(
             symbols, 'LISTED_BOOK', 'UNSUBS',
-            self.BookFields, fields=self.BookFields.all_fields())
+            self.BookFields)
 
     def add_listed_book_handler(self, handler):
         '''
@@ -1860,8 +1827,7 @@ class StreamClient(EnumEnforcer):
         official documentation.
         '''
         await self._service_op(symbols, 'NASDAQ_BOOK', 'UNSUBS',
-                               self.BookFields,
-                               fields=self.BookFields.all_fields())
+                               self.BookFields)
 
     def add_nasdaq_book_handler(self, handler):
         '''
@@ -1891,8 +1857,7 @@ class StreamClient(EnumEnforcer):
         corresponds to. Use at your own risk.
         '''
         await self._service_op(symbols, 'OPTIONS_BOOK', 'UNSUBS',
-                               self.BookFields,
-                               fields=self.BookFields.all_fields())
+                               self.BookFields)
 
     def add_options_book_handler(self, handler):
         '''
@@ -1952,8 +1917,7 @@ class StreamClient(EnumEnforcer):
         Un-Subscribe to news headlines related to the given symbols.
         '''
         await self._service_op(symbols, 'NEWS_HEADLINE', 'UNSUBS',
-                               self.NewsHeadlineFields,
-                               fields=self.NewsHeadlineFields.all_fields())
+                               self.NewsHeadlineFields)
 
     def add_news_headline_handler(self, handler):
         '''
