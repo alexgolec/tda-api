@@ -4517,6 +4517,13 @@ class StreamClientTest(asynctest.TestCase):
         with self.assertRaisesRegex(ValueError, '.*Socket not open.*'):
             await self.client.chart_equity_unsubs(['GOOG,MSFT'])
 
+    ###########################################################################
+    # Private member _service_op
+    #
+    # Note: https://developer.tdameritrade.com/content/streaming-data#_Toc504640564
+    # parameters are optional and in the case of UNSUBS commands, fields should not be required
+    # since unsubscribing from a service will return no data on the service or symbol
+
     @no_duplicates
     @asynctest.patch('tda.streaming.ws_client.connect', new_callable=asynctest.CoroutineMock)
     async def test_service_op_return_no_fields_for_unsubs(self, ws_connect):
@@ -4580,8 +4587,7 @@ class StreamClientTest(asynctest.TestCase):
     @asynctest.patch('tda.streaming.ws_client.connect', new_callable=asynctest.CoroutineMock)
     async def test_service_op_no_fields_for_sub_without_field_type(self, ws_connect):
         """
-        _service_op is a classes method and subs cmds with empty field_type calls are defined. There's no service's
-        sub commands without field_type defined but this tests for fields=None behavior if field_type=None
+        There's no service's sub/add commands without field_type defined but this tests for fields=None behavior if field_type=None
         """
         socket = await self.login_and_get_socket(ws_connect)
 
