@@ -4588,17 +4588,25 @@ class StreamClientTest(asynctest.TestCase):
     async def test_service_op_no_fields_for_sub_without_field_type(self, ws_connect):
         """
         There's no service's sub/add commands without field_type defined but this tests for fields=None behavior if field_type=None
+        Warning: Sub commands seems to fail if there's no fields parameters,
+        check logs : https://github.com/alexgolec/tda-api/pull/256#issuecomment-950406363
+
+        The streaming client will properly throw UnexpectedResponse
         """
         socket = await self.login_and_get_socket(ws_connect)
 
-        socket.recv.side_effect = [json.dumps(self.success_response(
-            1, 'QUOTE', 'SUBS'))]
+        resp = self.success_response(1, 'QUOTE', 'SUBS', msg="SUBS command failed")
+        resp['response'][0]['content']['code'] = 22
+        socket.recv.side_effect = [
+            json.dumps(resp)
+        ]
 
-        await self.client._service_op(
-            symbols=['GOOG','MSFT'],
-            service='QUOTE',
-            command='SUBS'
-        )
+        with self.assertRaises(tda.streaming.UnexpectedResponseCode) as e:
+            await self.client._service_op(
+                symbols=['GOOG','MSFT'],
+                service='QUOTE',
+                command='SUBS'
+            )
         socket.recv.assert_awaited_once()
         request = self.request_from_socket_mock(socket)
 
