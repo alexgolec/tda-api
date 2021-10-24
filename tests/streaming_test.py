@@ -545,8 +545,10 @@ class StreamClientTest(asynctest.TestCase):
         await self.client.handle_message()
         await self.client.account_activity_unsubs()
 
-        self.assert_handler_called_once_with(handler, {'service': 'ACCT_ACTIVITY', 'command': 'SUBS', 'timestamp': UNIX_TIMESTAMP})
-        self.assert_handler_called_once_with(async_handler, {'service': 'ACCT_ACTIVITY', 'command': 'SUBS', 'timestamp': UNIX_TIMESTAMP})
+        self.assert_handler_called_once_with(handler, {'service': 'ACCT_ACTIVITY', 'command': 'SUBS',
+                                                       'timestamp': UNIX_TIMESTAMP})
+        self.assert_handler_called_once_with(async_handler, {'service': 'ACCT_ACTIVITY', 'command': 'SUBS',
+                                                             'timestamp': UNIX_TIMESTAMP})
         send_awaited = [
             call('{"requests": [{"service": "ACCT_ACTIVITY", "requestid": "1", "command": "SUBS", '
                  '"account": "1001", "source": "streamerInfo-appId", "parameters": {"keys": "streamerSubscriptionKeys-keys-key", "fields": "0,1,2,3"}}]}'),
@@ -701,8 +703,10 @@ class StreamClientTest(asynctest.TestCase):
         await self.client.handle_message()
         await self.client.chart_equity_unsubs(['GOOG', 'MSFT'])
 
-        self.assert_handler_called_once_with(handler, {'service': 'CHART_EQUITY', 'command': 'SUBS', 'timestamp': UNIX_TIMESTAMP})
-        self.assert_handler_called_once_with(async_handler, {'service': 'CHART_EQUITY', 'command': 'SUBS', 'timestamp': UNIX_TIMESTAMP})
+        self.assert_handler_called_once_with(handler, {'service': 'CHART_EQUITY', 'command': 'SUBS',
+                                                       'timestamp': UNIX_TIMESTAMP})
+        self.assert_handler_called_once_with(async_handler, {'service': 'CHART_EQUITY', 'command': 'SUBS',
+                                                             'timestamp': UNIX_TIMESTAMP})
         send_awaited = [
             call('{"requests": [{"service": "CHART_EQUITY", "requestid": "1", "command": "SUBS", '
                  '"account": "1001", "source": "streamerInfo-appId", "parameters": {"keys": "GOOG,MSFT", "fields": "0,1,2,3,4,5,6,7,8"}}]}'),
@@ -909,8 +913,10 @@ class StreamClientTest(asynctest.TestCase):
         await self.client.handle_message()
         await self.client.chart_futures_unsubs(['/ES', '/CL'])
 
-        self.assert_handler_called_once_with(handler, {'service': 'CHART_FUTURES', 'command': 'SUBS', 'timestamp': UNIX_TIMESTAMP})
-        self.assert_handler_called_once_with(async_handler, {'service': 'CHART_FUTURES', 'command': 'SUBS', 'timestamp': UNIX_TIMESTAMP})
+        self.assert_handler_called_once_with(handler, {'service': 'CHART_FUTURES', 'command': 'SUBS',
+                                                       'timestamp': UNIX_TIMESTAMP})
+        self.assert_handler_called_once_with(async_handler, {'service': 'CHART_FUTURES', 'command': 'SUBS',
+                                                             'timestamp': UNIX_TIMESTAMP})
         send_awaited = [
             call('{"requests": [{"service": "CHART_FUTURES", "requestid": "1", "command": "SUBS", '
                  '"account": "1001", "source": "streamerInfo-appId", "parameters": {"keys": "/ES,/CL", "fields": "0,1,2,3,4,5,6"}}]}'),
@@ -1088,8 +1094,10 @@ class StreamClientTest(asynctest.TestCase):
         await self.client.handle_message()
         await self.client.level_one_equity_unsubs(['GOOG', 'MSFT'])
 
-        self.assert_handler_called_once_with(handler, {'service': 'QUOTE', 'command': 'SUBS', 'timestamp': UNIX_TIMESTAMP})
-        self.assert_handler_called_once_with(async_handler, {'service': 'QUOTE', 'command': 'SUBS', 'timestamp': UNIX_TIMESTAMP})
+        self.assert_handler_called_once_with(handler,
+                                             {'service': 'QUOTE', 'command': 'SUBS', 'timestamp': UNIX_TIMESTAMP})
+        self.assert_handler_called_once_with(async_handler,
+                                             {'service': 'QUOTE', 'command': 'SUBS', 'timestamp': UNIX_TIMESTAMP})
         send_awaited = [
             call('{"requests": [{"service": "QUOTE", "requestid": "1", "command": "SUBS", '
                  '"account": "1001", "source": "streamerInfo-appId", "parameters": {"keys": "GOOG,MSFT", '
@@ -1499,8 +1507,10 @@ class StreamClientTest(asynctest.TestCase):
         await self.client.level_one_option_unsubs(
             ['GOOG_052920C620', 'MSFT_052920C145'])
 
-        self.assert_handler_called_once_with(handler, {'service': 'OPTION', 'command': 'SUBS', 'timestamp': UNIX_TIMESTAMP})
-        self.assert_handler_called_once_with(async_handler, {'service': 'OPTION', 'command': 'SUBS', 'timestamp': UNIX_TIMESTAMP})
+        self.assert_handler_called_once_with(handler,
+                                             {'service': 'OPTION', 'command': 'SUBS', 'timestamp': UNIX_TIMESTAMP})
+        self.assert_handler_called_once_with(async_handler,
+                                             {'service': 'OPTION', 'command': 'SUBS', 'timestamp': UNIX_TIMESTAMP})
         send_awaited = [
             call('{"requests": [{"service": "OPTION", "requestid": "1", "command": "SUBS", '
                  '"account": "1001", "source": "streamerInfo-appId", "parameters": {"keys": "GOOG_052920C620,MSFT_052920C145", '
@@ -1843,8 +1853,10 @@ class StreamClientTest(asynctest.TestCase):
         await self.client.handle_message()
         await self.client.level_one_futures_unsubs(['/ES', '/CL'])
 
-        self.assert_handler_called_once_with(handler, {'service': 'LEVELONE_FUTURES', 'command': 'SUBS', 'timestamp': UNIX_TIMESTAMP})
-        self.assert_handler_called_once_with(async_handler, {'service': 'LEVELONE_FUTURES', 'command': 'SUBS', 'timestamp': UNIX_TIMESTAMP})
+        self.assert_handler_called_once_with(handler, {'service': 'LEVELONE_FUTURES', 'command': 'SUBS',
+                                                       'timestamp': UNIX_TIMESTAMP})
+        self.assert_handler_called_once_with(async_handler, {'service': 'LEVELONE_FUTURES', 'command': 'SUBS',
+                                                             'timestamp': UNIX_TIMESTAMP})
         send_awaited = [
             call('{"requests": [{"service": "LEVELONE_FUTURES", "requestid": "1", "command": "SUBS", '
                  '"account": "1001", "source": "streamerInfo-appId", "parameters": {"keys": "/ES,/CL", '
@@ -2180,8 +2192,10 @@ class StreamClientTest(asynctest.TestCase):
         await self.client.handle_message()
         await self.client.level_one_forex_unsubs(['EUR/USD', 'EUR/GBP'])
 
-        self.assert_handler_called_once_with(handler, {'service': 'LEVELONE_FOREX', 'command': 'SUBS', 'timestamp': UNIX_TIMESTAMP})
-        self.assert_handler_called_once_with(async_handler, {'service': 'LEVELONE_FOREX', 'command': 'SUBS', 'timestamp': UNIX_TIMESTAMP})
+        self.assert_handler_called_once_with(handler, {'service': 'LEVELONE_FOREX', 'command': 'SUBS',
+                                                       'timestamp': UNIX_TIMESTAMP})
+        self.assert_handler_called_once_with(async_handler, {'service': 'LEVELONE_FOREX', 'command': 'SUBS',
+                                                             'timestamp': UNIX_TIMESTAMP})
         send_awaited = [
             call('{"requests": [{"service": "LEVELONE_FOREX", "requestid": "1", "command": "SUBS", '
                  '"account": "1001", "source": "streamerInfo-appId", "parameters": {"keys": "EUR/USD,EUR/GBP", '
@@ -2490,8 +2504,10 @@ class StreamClientTest(asynctest.TestCase):
         await self.client.level_one_futures_options_unsubs(
             ['NQU20_C6500', 'NQU20_P6500'])
 
-        self.assert_handler_called_once_with(handler, {'service': 'LEVELONE_FUTURES_OPTIONS', 'command': 'SUBS', 'timestamp': UNIX_TIMESTAMP})
-        self.assert_handler_called_once_with(async_handler, {'service': 'LEVELONE_FUTURES_OPTIONS', 'command': 'SUBS', 'timestamp': UNIX_TIMESTAMP})
+        self.assert_handler_called_once_with(handler, {'service': 'LEVELONE_FUTURES_OPTIONS', 'command': 'SUBS',
+                                                       'timestamp': UNIX_TIMESTAMP})
+        self.assert_handler_called_once_with(async_handler, {'service': 'LEVELONE_FUTURES_OPTIONS', 'command': 'SUBS',
+                                                             'timestamp': UNIX_TIMESTAMP})
         send_awaited = [
             call('{"requests": [{"service": "LEVELONE_FUTURES_OPTIONS", "requestid": "1", "command": "SUBS", '
                  '"account": "1001", "source": "streamerInfo-appId", "parameters": {"keys": "NQU20_C6500,NQU20_P6500", '
@@ -2838,8 +2854,10 @@ class StreamClientTest(asynctest.TestCase):
         await self.client.handle_message()
         await self.client.timesale_equity_unsubs(['GOOG', 'MSFT'])
 
-        self.assert_handler_called_once_with(handler, {'service': 'TIMESALE_EQUITY', 'command': 'SUBS', 'timestamp': UNIX_TIMESTAMP})
-        self.assert_handler_called_once_with(async_handler, {'service': 'TIMESALE_EQUITY', 'command': 'SUBS', 'timestamp': UNIX_TIMESTAMP})
+        self.assert_handler_called_once_with(handler, {'service': 'TIMESALE_EQUITY', 'command': 'SUBS',
+                                                       'timestamp': UNIX_TIMESTAMP})
+        self.assert_handler_called_once_with(async_handler, {'service': 'TIMESALE_EQUITY', 'command': 'SUBS',
+                                                             'timestamp': UNIX_TIMESTAMP})
         send_awaited = [
             call('{"requests": [{"service": "TIMESALE_EQUITY", "requestid": "1", "command": "SUBS", '
                  '"account": "1001", "source": "streamerInfo-appId", "parameters": {"keys": "GOOG,MSFT", "fields": "0,1,2,3,4"}}]}'),
@@ -3039,8 +3057,10 @@ class StreamClientTest(asynctest.TestCase):
         await self.client.handle_message()
         await self.client.timesale_futures_unsubs(['/ES', '/CL'])
 
-        self.assert_handler_called_once_with(handler, {'service': 'TIMESALE_FUTURES', 'command': 'SUBS', 'timestamp': UNIX_TIMESTAMP})
-        self.assert_handler_called_once_with(async_handler, {'service': 'TIMESALE_FUTURES', 'command': 'SUBS', 'timestamp': UNIX_TIMESTAMP})
+        self.assert_handler_called_once_with(handler, {'service': 'TIMESALE_FUTURES', 'command': 'SUBS',
+                                                       'timestamp': UNIX_TIMESTAMP})
+        self.assert_handler_called_once_with(async_handler, {'service': 'TIMESALE_FUTURES', 'command': 'SUBS',
+                                                             'timestamp': UNIX_TIMESTAMP})
         send_awaited = [
             call('{"requests": [{"service": "TIMESALE_FUTURES", "requestid": "1", "command": "SUBS", '
                  '"account": "1001", "source": "streamerInfo-appId", "parameters": {"keys": "/ES,/CL", "fields": "0,1,2,3,4"}}]}'),
@@ -3239,8 +3259,10 @@ class StreamClientTest(asynctest.TestCase):
         await self.client.handle_message()
         await self.client.timesale_options_unsubs(['GOOG_052920C620', 'MSFT_052920C145'])
 
-        self.assert_handler_called_once_with(handler, {'service': 'TIMESALE_OPTIONS', 'command': 'SUBS', 'timestamp': UNIX_TIMESTAMP})
-        self.assert_handler_called_once_with(async_handler, {'service': 'TIMESALE_OPTIONS', 'command': 'SUBS', 'timestamp': UNIX_TIMESTAMP})
+        self.assert_handler_called_once_with(handler, {'service': 'TIMESALE_OPTIONS', 'command': 'SUBS',
+                                                       'timestamp': UNIX_TIMESTAMP})
+        self.assert_handler_called_once_with(async_handler, {'service': 'TIMESALE_OPTIONS', 'command': 'SUBS',
+                                                             'timestamp': UNIX_TIMESTAMP})
         send_awaited = [
             call('{"requests": [{"service": "TIMESALE_OPTIONS", "requestid": "1", "command": "SUBS", '
                  '"account": "1001", "source": "streamerInfo-appId", "parameters": {"keys": "GOOG_052920C620,MSFT_052920C145", "fields": "0,1,2,3,4"}}]}'),
@@ -3445,8 +3467,12 @@ class StreamClientTest(asynctest.TestCase):
         await self.client.handle_message()
         await self.client.listed_book_unsubs(['GOOG', 'MSFT'])
 
-        self.assert_handler_called_once_with(handler, {'service': 'LISTED_BOOK', 'command': 'SUBS', 'timestamp': UNIX_TIMESTAMP,'content': {}})
-        self.assert_handler_called_once_with(async_handler, {'service': 'LISTED_BOOK', 'command': 'SUBS', 'timestamp': UNIX_TIMESTAMP,'content': {}})
+        self.assert_handler_called_once_with(handler,
+                                             {'service': 'LISTED_BOOK', 'command': 'SUBS', 'timestamp': UNIX_TIMESTAMP,
+                                              'content': {}})
+        self.assert_handler_called_once_with(async_handler,
+                                             {'service': 'LISTED_BOOK', 'command': 'SUBS', 'timestamp': UNIX_TIMESTAMP,
+                                              'content': {}})
         send_awaited = [
             call('{"requests": [{"service": "LISTED_BOOK", "requestid": "1", "command": "SUBS", '
                  '"account": "1001", "source": "streamerInfo-appId", "parameters": {"keys": "GOOG,MSFT", "fields": "0,1,2,3"}}]}'),
@@ -3527,8 +3553,12 @@ class StreamClientTest(asynctest.TestCase):
         await self.client.handle_message()
         await self.client.nasdaq_book_unsubs(['GOOG', 'MSFT'])
 
-        self.assert_handler_called_once_with(handler, {"service": "NASDAQ_BOOK", "command": "SUBS", "timestamp": UNIX_TIMESTAMP, 'content': {}})
-        self.assert_handler_called_once_with(async_handler, {"service": "NASDAQ_BOOK", "command": "SUBS", "timestamp": UNIX_TIMESTAMP, 'content': {}})
+        self.assert_handler_called_once_with(handler,
+                                             {"service": "NASDAQ_BOOK", "command": "SUBS", "timestamp": UNIX_TIMESTAMP,
+                                              'content': {}})
+        self.assert_handler_called_once_with(async_handler,
+                                             {"service": "NASDAQ_BOOK", "command": "SUBS", "timestamp": UNIX_TIMESTAMP,
+                                              'content': {}})
         send_awaited = [
             call('{"requests": [{"service": "NASDAQ_BOOK", "requestid": "1", "command": "SUBS", '
                  '"account": "1001", "source": "streamerInfo-appId", "parameters": {"keys": "GOOG,MSFT", "fields": "0,1,2,3"}}]}'),
@@ -3612,8 +3642,12 @@ class StreamClientTest(asynctest.TestCase):
         await self.client.options_book_unsubs(
             ['GOOG_052920C620', 'MSFT_052920C145'])
 
-        self.assert_handler_called_once_with(handler, {"service": "OPTIONS_BOOK", "command": "SUBS", "timestamp": UNIX_TIMESTAMP, 'content': {}})
-        self.assert_handler_called_once_with(async_handler, {"service": "OPTIONS_BOOK", "command": "SUBS", "timestamp": UNIX_TIMESTAMP, 'content': {}})
+        self.assert_handler_called_once_with(handler,
+                                             {"service": "OPTIONS_BOOK", "command": "SUBS", "timestamp": UNIX_TIMESTAMP,
+                                              'content': {}})
+        self.assert_handler_called_once_with(async_handler,
+                                             {"service": "OPTIONS_BOOK", "command": "SUBS", "timestamp": UNIX_TIMESTAMP,
+                                              'content': {}})
         send_awaited = [
             call('{"requests": [{"service": "OPTIONS_BOOK", "requestid": "1", "command": "SUBS", '
                  '"account": "1001", "source": "streamerInfo-appId", "parameters": {"keys": "GOOG_052920C620,MSFT_052920C145", "fields": "0,1,2,3"}}]}'),
@@ -4147,8 +4181,10 @@ class StreamClientTest(asynctest.TestCase):
         await self.client.handle_message()
         await self.client.news_headline_unsubs(['GOOG', 'MSFT'])
 
-        self.assert_handler_called_once_with(handler, {"service": "NEWS_HEADLINE", "command": "SUBS", "timestamp": UNIX_TIMESTAMP, 'content': {}})
-        self.assert_handler_called_once_with(async_handler, {"service": "NEWS_HEADLINE", "command": "SUBS", "timestamp": UNIX_TIMESTAMP, 'content': {}})
+        self.assert_handler_called_once_with(handler, {"service": "NEWS_HEADLINE", "command": "SUBS",
+                                                       "timestamp": UNIX_TIMESTAMP, 'content': {}})
+        self.assert_handler_called_once_with(async_handler, {"service": "NEWS_HEADLINE", "command": "SUBS",
+                                                             "timestamp": UNIX_TIMESTAMP, 'content': {}})
         send_awaited = [
             call('{"requests": [{"service": "NEWS_HEADLINE", "requestid": "1", "command": "SUBS", '
                  '"account": "1001", "source": "streamerInfo-appId", "parameters": {"keys": "GOOG,MSFT", '
