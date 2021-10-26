@@ -114,9 +114,9 @@ subscription methods again seems to clear the old subscription and create a new
 one. Note this behavior is not officially documented, so this interpretation may 
 be incorrect.
 
-----------------------
+-------------------------
 Un-Subscribing to Streams
-----------------------
+-------------------------
 
 These functions have names that follow the pattern ``SERVICE_NAME_unsubs``. These
 functions send a request to disable the symbols of a streaming data for a particular data stream.
