@@ -309,18 +309,15 @@ class StreamClient(EnumEnforcer):
 
     async def _service_op(self, symbols, service, command, field_type=None,
                           *, fields=None):
-        # td fields parameter is optional and does not apply in the context of un-subscribing.
         parameters = {
             'keys': ','.join(symbols)
         }
 
-        if fields is None and field_type is not None and command != 'UNSUBS':
-            fields = field_type.all_fields()
+        if field_type is not None:
+            if fields is None:
+                fields = field_type.all_fields()
 
-        if command != 'UNSUBS' and field_type is not None:
             fields = sorted(self.convert_enum_iterable(fields, field_type))
-
-        if not (command == 'UNSUBS' or field_type is None):
             parameters['fields'] = ','.join(str(f) for f in fields)
 
         request, request_id = self._make_request(
