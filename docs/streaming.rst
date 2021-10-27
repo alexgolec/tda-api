@@ -584,7 +584,7 @@ object <https://developer.tdameritrade.com/content/streaming-data#_Toc504640581>
 to the user.
 
 .. automethod:: tda.streaming::StreamClient.account_activity_sub
-.. automethod:: tda.streaming::StreamClient.account_activity_unsub
+.. automethod:: tda.streaming::StreamClient.account_activity_unsubs
 .. automethod:: tda.streaming::StreamClient.add_account_activity_handler
 .. autoclass:: tda.streaming::StreamClient.AccountActivityFields
   :members:
