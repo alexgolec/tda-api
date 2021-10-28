@@ -13,6 +13,7 @@ StreamClient = streaming.StreamClient
 
 ACCOUNT_ID = 1000
 TOKEN_TIMESTAMP = '2020-05-22T02:12:48+0000'
+REQUEST_TIMESTAMP = 1590116673258
 
 
 class StreamClientTest(asynctest.TestCase):
@@ -45,17 +46,17 @@ class StreamClientTest(asynctest.TestCase):
         return json.loads(
             socket.send.call_args_list[0][0][0])['requests'][0]
 
-    def success_response(self, request_id, service, command):
+    def success_response(self, request_id, service, command, msg='success'):
         return {
             'response': [
                 {
                     'service': service,
                     'requestid': str(request_id),
                     'command': command,
-                    'timestamp': 1590116673258,
+                    'timestamp': REQUEST_TIMESTAMP,
                     'content': {
                         'code': 0,
-                        'msg': 'success'
+                        'msg': msg
                     }
                 }
             ]
@@ -66,7 +67,7 @@ class StreamClientTest(asynctest.TestCase):
             'data': [{
                 'service': service,
                 'command': command,
-                'timestamp': 1590186642440
+                'timestamp': REQUEST_TIMESTAMP
             }]
         }
 
@@ -526,6 +527,39 @@ class StreamClientTest(asynctest.TestCase):
 
     @no_duplicates
     @asynctest.patch('tda.streaming.ws_client.connect', new_callable=asynctest.CoroutineMock)
+    async def test_account_activity_unsubs_success(self, ws_connect):
+        socket = await self.login_and_get_socket(ws_connect)
+
+        stream_item = self.streaming_entry('ACCT_ACTIVITY', 'SUBS')
+
+        socket.recv.side_effect = [
+            json.dumps(self.success_response(1, 'ACCT_ACTIVITY', 'SUBS')),
+            json.dumps(stream_item),
+            json.dumps(self.success_response(2, 'ACCT_ACTIVITY', 'UNSUBS'))
+        ]
+        handler = Mock()
+        async_handler = asynctest.CoroutineMock()
+        self.client.add_account_activity_handler(handler)
+        self.client.add_account_activity_handler(async_handler)
+
+        await self.client.account_activity_sub()
+        await self.client.handle_message()
+        await self.client.account_activity_unsubs()
+
+        self.assert_handler_called_once_with(handler, {'service': 'ACCT_ACTIVITY', 'command': 'SUBS',
+                                                       'timestamp': REQUEST_TIMESTAMP})
+        self.assert_handler_called_once_with(async_handler, {'service': 'ACCT_ACTIVITY', 'command': 'SUBS',
+                                                             'timestamp': REQUEST_TIMESTAMP})
+        send_awaited = [
+            call('{"requests": [{"service": "ACCT_ACTIVITY", "requestid": "1", "command": "SUBS", '
+                 '"account": "1001", "source": "streamerInfo-appId", "parameters": {"keys": "streamerSubscriptionKeys-keys-key", "fields": "0,1,2,3"}}]}'),
+            call('{"requests": [{"service": "ACCT_ACTIVITY", "requestid": "2", "command": "UNSUBS", '
+                 '"account": "1001", "source": "streamerInfo-appId", "parameters": {"keys": "streamerSubscriptionKeys-keys-key"}}]}')
+        ]
+        socket.send.assert_has_awaits(send_awaited, any_order=False)
+
+    @no_duplicates
+    @asynctest.patch('tda.streaming.ws_client.connect', new_callable=asynctest.CoroutineMock)
     async def test_account_activity_subs_failure(self, ws_connect):
         socket = await self.login_and_get_socket(ws_connect)
 
@@ -535,6 +569,18 @@ class StreamClientTest(asynctest.TestCase):
 
         with self.assertRaises(tda.streaming.UnexpectedResponseCode):
             await self.client.account_activity_sub()
+
+    @no_duplicates
+    @asynctest.patch('tda.streaming.ws_client.connect', new_callable=asynctest.CoroutineMock)
+    async def test_account_activity_unsubs_failure(self, ws_connect):
+        socket = await self.login_and_get_socket(ws_connect)
+
+        response = self.success_response(1, 'ACCT_ACTIVITY', 'UNSUBS')
+        response['response'][0]['content']['code'] = 21
+        socket.recv.side_effect = [json.dumps(response)]
+
+        with self.assertRaises(tda.streaming.UnexpectedResponseCode):
+            await self.client.account_activity_unsubs()
 
     @no_duplicates
     @asynctest.patch('tda.streaming.ws_client.connect', new_callable=asynctest.CoroutineMock)
@@ -639,6 +685,39 @@ class StreamClientTest(asynctest.TestCase):
 
     @no_duplicates
     @asynctest.patch('tda.streaming.ws_client.connect', new_callable=asynctest.CoroutineMock)
+    async def test_chart_equity_unsubs_success(self, ws_connect):
+        socket = await self.login_and_get_socket(ws_connect)
+
+        stream_item = self.streaming_entry('CHART_EQUITY', 'SUBS')
+
+        socket.recv.side_effect = [
+            json.dumps(self.success_response(1, 'CHART_EQUITY', 'SUBS')),
+            json.dumps(stream_item),
+            json.dumps(self.success_response(2, 'CHART_EQUITY', 'UNSUBS', 'UNSUBS command succeeded'))
+        ]
+        handler = Mock()
+        async_handler = asynctest.CoroutineMock()
+        self.client.add_chart_equity_handler(handler)
+        self.client.add_chart_equity_handler(async_handler)
+
+        await self.client.chart_equity_subs(['GOOG', 'MSFT'])
+        await self.client.handle_message()
+        await self.client.chart_equity_unsubs(['GOOG', 'MSFT'])
+
+        self.assert_handler_called_once_with(handler, {'service': 'CHART_EQUITY', 'command': 'SUBS',
+                                                       'timestamp': REQUEST_TIMESTAMP})
+        self.assert_handler_called_once_with(async_handler, {'service': 'CHART_EQUITY', 'command': 'SUBS',
+                                                             'timestamp': REQUEST_TIMESTAMP})
+        send_awaited = [
+            call('{"requests": [{"service": "CHART_EQUITY", "requestid": "1", "command": "SUBS", '
+                 '"account": "1001", "source": "streamerInfo-appId", "parameters": {"keys": "GOOG,MSFT", "fields": "0,1,2,3,4,5,6,7,8"}}]}'),
+            call('{"requests": [{"service": "CHART_EQUITY", "requestid": "2", "command": "UNSUBS", '
+                 '"account": "1001", "source": "streamerInfo-appId", "parameters": {"keys": "GOOG,MSFT"}}]}')
+        ]
+        socket.send.assert_has_awaits(send_awaited, any_order=False)
+
+    @no_duplicates
+    @asynctest.patch('tda.streaming.ws_client.connect', new_callable=asynctest.CoroutineMock)
     async def test_chart_equity_subs_failure(self, ws_connect):
         socket = await self.login_and_get_socket(ws_connect)
 
@@ -648,6 +727,18 @@ class StreamClientTest(asynctest.TestCase):
 
         with self.assertRaises(tda.streaming.UnexpectedResponseCode):
             await self.client.chart_equity_subs(['GOOG', 'MSFT'])
+
+    @no_duplicates
+    @asynctest.patch('tda.streaming.ws_client.connect', new_callable=asynctest.CoroutineMock)
+    async def test_chart_equity_unsubs_failure(self, ws_connect):
+        socket = await self.login_and_get_socket(ws_connect)
+
+        response = self.success_response(1, 'CHART_EQUITY', 'UNSUBS')
+        response['response'][0]['content']['code'] = 21
+        socket.recv.side_effect = [json.dumps(response)]
+
+        with self.assertRaises(tda.streaming.UnexpectedResponseCode):
+            await self.client.chart_equity_unsubs(['GOOG', 'MSFT'])
 
     @no_duplicates
     @asynctest.patch('tda.streaming.ws_client.connect', new_callable=asynctest.CoroutineMock)
@@ -804,6 +895,39 @@ class StreamClientTest(asynctest.TestCase):
 
     @no_duplicates
     @asynctest.patch('tda.streaming.ws_client.connect', new_callable=asynctest.CoroutineMock)
+    async def test_chart_futures_unsubs_success(self, ws_connect):
+        socket = await self.login_and_get_socket(ws_connect)
+
+        stream_item = self.streaming_entry('CHART_FUTURES', 'SUBS')
+
+        socket.recv.side_effect = [
+            json.dumps(self.success_response(1, 'CHART_FUTURES', 'SUBS')),
+            json.dumps(stream_item),
+            json.dumps(self.success_response(2, 'CHART_FUTURES', 'UNSUBS', 'UNSUBS command succeeded'))
+        ]
+        handler = Mock()
+        async_handler = asynctest.CoroutineMock()
+        self.client.add_chart_futures_handler(handler)
+        self.client.add_chart_futures_handler(async_handler)
+
+        await self.client.chart_futures_subs(['/ES', '/CL'])
+        await self.client.handle_message()
+        await self.client.chart_futures_unsubs(['/ES', '/CL'])
+
+        self.assert_handler_called_once_with(handler, {'service': 'CHART_FUTURES', 'command': 'SUBS',
+                                                       'timestamp': REQUEST_TIMESTAMP})
+        self.assert_handler_called_once_with(async_handler, {'service': 'CHART_FUTURES', 'command': 'SUBS',
+                                                             'timestamp': REQUEST_TIMESTAMP})
+        send_awaited = [
+            call('{"requests": [{"service": "CHART_FUTURES", "requestid": "1", "command": "SUBS", '
+                 '"account": "1001", "source": "streamerInfo-appId", "parameters": {"keys": "/ES,/CL", "fields": "0,1,2,3,4,5,6"}}]}'),
+            call('{"requests": [{"service": "CHART_FUTURES", "requestid": "2", "command": "UNSUBS", '
+                 '"account": "1001", "source": "streamerInfo-appId", "parameters": {"keys": "/ES,/CL"}}]}')
+        ]
+        socket.send.assert_has_awaits(send_awaited, any_order=False)
+
+    @no_duplicates
+    @asynctest.patch('tda.streaming.ws_client.connect', new_callable=asynctest.CoroutineMock)
     async def test_chart_futures_subs_failure(self, ws_connect):
         socket = await self.login_and_get_socket(ws_connect)
 
@@ -813,6 +937,18 @@ class StreamClientTest(asynctest.TestCase):
 
         with self.assertRaises(tda.streaming.UnexpectedResponseCode):
             await self.client.chart_futures_subs(['/ES', '/CL'])
+
+    @no_duplicates
+    @asynctest.patch('tda.streaming.ws_client.connect', new_callable=asynctest.CoroutineMock)
+    async def test_chart_futures_unsubs_failure(self, ws_connect):
+        socket = await self.login_and_get_socket(ws_connect)
+
+        response = self.success_response(1, 'CHART_FUTURES', 'UNSUBS')
+        response['response'][0]['content']['code'] = 21
+        socket.recv.side_effect = [json.dumps(response)]
+
+        with self.assertRaises(tda.streaming.UnexpectedResponseCode):
+            await self.client.chart_futures_unsubs(['/ES', '/CL'])
 
     @no_duplicates
     @asynctest.patch('tda.streaming.ws_client.connect', new_callable=asynctest.CoroutineMock)
@@ -940,6 +1076,42 @@ class StreamClientTest(asynctest.TestCase):
 
     @no_duplicates
     @asynctest.patch('tda.streaming.ws_client.connect', new_callable=asynctest.CoroutineMock)
+    async def test_level_one_equity_unsubs_success(self, ws_connect):
+        socket = await self.login_and_get_socket(ws_connect)
+
+        stream_item = self.streaming_entry('QUOTE', 'SUBS')
+
+        socket.recv.side_effect = [
+            json.dumps(self.success_response(1, 'QUOTE', 'SUBS')),
+            json.dumps(stream_item),
+            json.dumps(self.success_response(2, 'QUOTE', 'UNSUBS'))
+        ]
+        handler = Mock()
+        async_handler = asynctest.CoroutineMock()
+        self.client.add_level_one_equity_handler(async_handler)
+        self.client.add_level_one_equity_handler(handler)
+
+        await self.client.level_one_equity_subs(['GOOG', 'MSFT'])
+        await self.client.handle_message()
+        await self.client.level_one_equity_unsubs(['GOOG', 'MSFT'])
+
+        self.assert_handler_called_once_with(handler,
+                                             {'service': 'QUOTE', 'command': 'SUBS', 'timestamp': REQUEST_TIMESTAMP})
+        self.assert_handler_called_once_with(async_handler,
+                                             {'service': 'QUOTE', 'command': 'SUBS', 'timestamp': REQUEST_TIMESTAMP})
+        send_awaited = [
+            call('{"requests": [{"service": "QUOTE", "requestid": "1", "command": "SUBS", '
+                 '"account": "1001", "source": "streamerInfo-appId", "parameters": {"keys": "GOOG,MSFT", '
+                 '"fields": "0,1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22,23,24,25,26,27,28,29,30,31,32,33,34,35,36,37,38,39,40,41,42,43,44,45,46,47,48,49,50,51,52"}}]}'),
+            call('{"requests": [{"service": "QUOTE", "requestid": "2", "command": "UNSUBS", '
+                 '"account": "1001", "source": "streamerInfo-appId", "parameters": {"keys": "GOOG,MSFT"}}]}')
+        ]
+
+        socket.send.assert_has_awaits(send_awaited, any_order=False)
+
+
+    @no_duplicates
+    @asynctest.patch('tda.streaming.ws_client.connect', new_callable=asynctest.CoroutineMock)
     async def test_level_one_equity_subs_success_some_fields(self, ws_connect):
         socket = await self.login_and_get_socket(ws_connect)
 
@@ -1010,6 +1182,18 @@ class StreamClientTest(asynctest.TestCase):
 
     @no_duplicates
     @asynctest.patch('tda.streaming.ws_client.connect', new_callable=asynctest.CoroutineMock)
+    async def test_level_one_equity_unsubs_failure(self, ws_connect):
+        socket = await self.login_and_get_socket(ws_connect)
+
+        response = self.success_response(1, 'QUOTE', 'UNSUBS')
+        response['response'][0]['content']['code'] = 21
+        socket.recv.side_effect = [json.dumps(response)]
+
+        with self.assertRaises(tda.streaming.UnexpectedResponseCode):
+            await self.client.level_one_equity_unsubs(['GOOG', 'MSFT'])
+
+    @no_duplicates
+    @asynctest.patch('tda.streaming.ws_client.connect', new_callable=asynctest.CoroutineMock)
     async def test_level_one_quote_handler(self, ws_connect):
         socket = await self.login_and_get_socket(ws_connect)
 
@@ -1017,7 +1201,7 @@ class StreamClientTest(asynctest.TestCase):
             'data': [{
                 'service': 'QUOTE',
                 'command': 'SUBS',
-                'timestamp': 1590186642440,
+                'timestamp': REQUEST_TIMESTAMP,
                 'content': [{
                     'key': 'GOOG',
                     'delayed': False,
@@ -1150,7 +1334,7 @@ class StreamClientTest(asynctest.TestCase):
         expected_item = {
             'service': 'QUOTE',
             'command': 'SUBS',
-            'timestamp': 1590186642440,
+            'timestamp': REQUEST_TIMESTAMP,
             'content': [{
                 'key': 'GOOG',
                 'delayed': False,
@@ -1303,6 +1487,43 @@ class StreamClientTest(asynctest.TestCase):
 
     @no_duplicates
     @asynctest.patch('tda.streaming.ws_client.connect', new_callable=asynctest.CoroutineMock)
+    async def test_level_one_option_unsubs_success_all_fields(self, ws_connect):
+        socket = await self.login_and_get_socket(ws_connect)
+
+        stream_item = self.streaming_entry('OPTION', 'SUBS')
+
+        socket.recv.side_effect = [
+            json.dumps(self.success_response(1, 'OPTION', 'SUBS')),
+            json.dumps(stream_item),
+            json.dumps(self.success_response(2, 'OPTION', 'UNSUBS'))
+        ]
+        handler = Mock()
+        async_handler = asynctest.CoroutineMock()
+        self.client.add_level_one_option_handler(handler)
+        self.client.add_level_one_option_handler(async_handler)
+
+        await self.client.level_one_option_subs(
+            ['GOOG_052920C620', 'MSFT_052920C145'])
+        await self.client.handle_message()
+        await self.client.level_one_option_unsubs(
+            ['GOOG_052920C620', 'MSFT_052920C145'])
+
+        self.assert_handler_called_once_with(handler,
+                                             {'service': 'OPTION', 'command': 'SUBS', 'timestamp': REQUEST_TIMESTAMP})
+        self.assert_handler_called_once_with(async_handler,
+                                             {'service': 'OPTION', 'command': 'SUBS', 'timestamp': REQUEST_TIMESTAMP})
+        send_awaited = [
+            call('{"requests": [{"service": "OPTION", "requestid": "1", "command": "SUBS", '
+                 '"account": "1001", "source": "streamerInfo-appId", "parameters": {"keys": "GOOG_052920C620,MSFT_052920C145", '
+                 '"fields": "0,1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22,23,24,25,26,27,28,29,30,31,32,33,34,35,36,37,38,39,40,41"}}]}'),
+            call('{"requests": [{"service": "OPTION", "requestid": "2", "command": "UNSUBS", '
+                 '"account": "1001", "source": "streamerInfo-appId", "parameters": {"keys": "GOOG_052920C620,MSFT_052920C145"}}]}')
+        ]
+
+        socket.send.assert_has_awaits(send_awaited, any_order=False)
+
+    @no_duplicates
+    @asynctest.patch('tda.streaming.ws_client.connect', new_callable=asynctest.CoroutineMock)
     async def test_level_one_option_subs_success_some_fields(self, ws_connect):
         socket = await self.login_and_get_socket(ws_connect)
 
@@ -1372,6 +1593,19 @@ class StreamClientTest(asynctest.TestCase):
 
         with self.assertRaises(tda.streaming.UnexpectedResponseCode):
             await self.client.level_one_option_subs(
+                ['GOOG_052920C620', 'MSFT_052920C145'])
+
+    @no_duplicates
+    @asynctest.patch('tda.streaming.ws_client.connect', new_callable=asynctest.CoroutineMock)
+    async def test_level_one_option_unsubs_failure(self, ws_connect):
+        socket = await self.login_and_get_socket(ws_connect)
+
+        response = self.success_response(1, 'OPTION', 'UNSUBS')
+        response['response'][0]['content']['code'] = 21
+        socket.recv.side_effect = [json.dumps(response)]
+
+        with self.assertRaises(tda.streaming.UnexpectedResponseCode):
+            await self.client.level_one_option_unsubs(
                 ['GOOG_052920C620', 'MSFT_052920C145'])
 
     @no_duplicates
@@ -1601,6 +1835,40 @@ class StreamClientTest(asynctest.TestCase):
 
     @no_duplicates
     @asynctest.patch('tda.streaming.ws_client.connect', new_callable=asynctest.CoroutineMock)
+    async def test_level_one_futures_unsubs_success_all_fields(self, ws_connect):
+        socket = await self.login_and_get_socket(ws_connect)
+
+        stream_item = self.streaming_entry('LEVELONE_FUTURES', 'SUBS')
+
+        socket.recv.side_effect = [
+            json.dumps(self.success_response(1, 'LEVELONE_FUTURES', 'SUBS')),
+            json.dumps(stream_item),
+            json.dumps(self.success_response(2, 'LEVELONE_FUTURES', 'UNSUBS'))
+        ]
+        handler = Mock()
+        async_handler = asynctest.CoroutineMock()
+        self.client.add_level_one_futures_handler(handler)
+        self.client.add_level_one_futures_handler(async_handler)
+
+        await self.client.level_one_futures_subs(['/ES', '/CL'])
+        await self.client.handle_message()
+        await self.client.level_one_futures_unsubs(['/ES', '/CL'])
+
+        self.assert_handler_called_once_with(handler, {'service': 'LEVELONE_FUTURES', 'command': 'SUBS',
+                                                       'timestamp': REQUEST_TIMESTAMP})
+        self.assert_handler_called_once_with(async_handler, {'service': 'LEVELONE_FUTURES', 'command': 'SUBS',
+                                                             'timestamp': REQUEST_TIMESTAMP})
+        send_awaited = [
+            call('{"requests": [{"service": "LEVELONE_FUTURES", "requestid": "1", "command": "SUBS", '
+                 '"account": "1001", "source": "streamerInfo-appId", "parameters": {"keys": "/ES,/CL", '
+                 '"fields": "0,1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22,23,24,25,26,27,28,29,30,31,32,33,34,35"}}]}'),
+            call('{"requests": [{"service": "LEVELONE_FUTURES", "requestid": "2", "command": "UNSUBS", '
+                 '"account": "1001", "source": "streamerInfo-appId", "parameters": {"keys": "/ES,/CL"}}]}')
+        ]
+        socket.send.assert_has_awaits(send_awaited, any_order=False)
+
+    @no_duplicates
+    @asynctest.patch('tda.streaming.ws_client.connect', new_callable=asynctest.CoroutineMock)
     async def test_level_one_futures_subs_success_some_fields(self, ws_connect):
         socket = await self.login_and_get_socket(ws_connect)
 
@@ -1668,6 +1936,18 @@ class StreamClientTest(asynctest.TestCase):
 
         with self.assertRaises(tda.streaming.UnexpectedResponseCode):
             await self.client.level_one_futures_subs(['/ES', '/CL'])
+
+    @no_duplicates
+    @asynctest.patch('tda.streaming.ws_client.connect', new_callable=asynctest.CoroutineMock)
+    async def test_level_one_futures_unsubs_failure(self, ws_connect):
+        socket = await self.login_and_get_socket(ws_connect)
+
+        response = self.success_response(1, 'LEVELONE_FUTURES', 'UNSUBS')
+        response['response'][0]['content']['code'] = 21
+        socket.recv.side_effect = [json.dumps(response)]
+
+        with self.assertRaises(tda.streaming.UnexpectedResponseCode):
+            await self.client.level_one_futures_unsubs(['/ES', '/CL'])
 
     @no_duplicates
     @asynctest.patch('tda.streaming.ws_client.connect', new_callable=asynctest.CoroutineMock)
@@ -1894,6 +2174,40 @@ class StreamClientTest(asynctest.TestCase):
 
     @no_duplicates
     @asynctest.patch('tda.streaming.ws_client.connect', new_callable=asynctest.CoroutineMock)
+    async def test_level_one_forex_unsubs_success_all_fields(self, ws_connect):
+        socket = await self.login_and_get_socket(ws_connect)
+
+        stream_item = self.streaming_entry('LEVELONE_FOREX', 'SUBS')
+
+        socket.recv.side_effect = [
+            json.dumps(self.success_response(1, 'LEVELONE_FOREX', 'SUBS')),
+            json.dumps(stream_item),
+            json.dumps(self.success_response(2, 'LEVELONE_FOREX', 'UNSUBS'))
+        ]
+        handler = Mock()
+        async_handler = asynctest.CoroutineMock()
+        self.client.add_level_one_forex_handler(handler)
+        self.client.add_level_one_forex_handler(async_handler)
+
+        await self.client.level_one_forex_subs(['EUR/USD', 'EUR/GBP'])
+        await self.client.handle_message()
+        await self.client.level_one_forex_unsubs(['EUR/USD', 'EUR/GBP'])
+
+        self.assert_handler_called_once_with(handler, {'service': 'LEVELONE_FOREX', 'command': 'SUBS',
+                                                       'timestamp': REQUEST_TIMESTAMP})
+        self.assert_handler_called_once_with(async_handler, {'service': 'LEVELONE_FOREX', 'command': 'SUBS',
+                                                             'timestamp': REQUEST_TIMESTAMP})
+        send_awaited = [
+            call('{"requests": [{"service": "LEVELONE_FOREX", "requestid": "1", "command": "SUBS", '
+                 '"account": "1001", "source": "streamerInfo-appId", "parameters": {"keys": "EUR/USD,EUR/GBP", '
+                 '"fields": "0,1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,18,19,20,21,22,23,24,25,26,27,28,29"}}]}'),
+            call('{"requests": [{"service": "LEVELONE_FOREX", "requestid": "2", "command": "UNSUBS", '
+                 '"account": "1001", "source": "streamerInfo-appId", "parameters": {"keys": "EUR/USD,EUR/GBP"}}]}')
+        ]
+        socket.send.assert_has_awaits(send_awaited, any_order=False)
+
+    @no_duplicates
+    @asynctest.patch('tda.streaming.ws_client.connect', new_callable=asynctest.CoroutineMock)
     async def test_level_one_forex_subs_success_some_fields(self, ws_connect):
         socket = await self.login_and_get_socket(ws_connect)
 
@@ -1961,6 +2275,18 @@ class StreamClientTest(asynctest.TestCase):
 
         with self.assertRaises(tda.streaming.UnexpectedResponseCode):
             await self.client.level_one_forex_subs(['EUR/USD', 'EUR/GBP'])
+
+    @no_duplicates
+    @asynctest.patch('tda.streaming.ws_client.connect', new_callable=asynctest.CoroutineMock)
+    async def test_level_one_forex_unsubs_failure(self, ws_connect):
+        socket = await self.login_and_get_socket(ws_connect)
+
+        response = self.success_response(1, 'LEVELONE_FOREX', 'UNSUBS')
+        response['response'][0]['content']['code'] = 21
+        socket.recv.side_effect = [json.dumps(response)]
+
+        with self.assertRaises(tda.streaming.UnexpectedResponseCode):
+            await self.client.level_one_forex_unsubs(['EUR/USD', 'EUR/GBP'])
 
     @no_duplicates
     @asynctest.patch('tda.streaming.ws_client.connect', new_callable=asynctest.CoroutineMock)
@@ -2157,6 +2483,43 @@ class StreamClientTest(asynctest.TestCase):
 
     @no_duplicates
     @asynctest.patch('tda.streaming.ws_client.connect', new_callable=asynctest.CoroutineMock)
+    async def test_level_one_futures_options_unsubs_success_all_fields(
+            self, ws_connect):
+        socket = await self.login_and_get_socket(ws_connect)
+
+        stream_item = self.streaming_entry('LEVELONE_FUTURES_OPTIONS', 'SUBS')
+
+        socket.recv.side_effect = [
+            json.dumps(self.success_response(1, 'LEVELONE_FUTURES_OPTIONS', 'SUBS')),
+            json.dumps(stream_item),
+            json.dumps(self.success_response(2, 'LEVELONE_FUTURES_OPTIONS', 'UNSUBS'))
+        ]
+        handler = Mock()
+        async_handler = asynctest.CoroutineMock()
+        self.client.add_level_one_futures_options_handler(handler)
+        self.client.add_level_one_futures_options_handler(async_handler)
+
+        await self.client.level_one_futures_options_subs(
+            ['NQU20_C6500', 'NQU20_P6500'])
+        await self.client.handle_message()
+        await self.client.level_one_futures_options_unsubs(
+            ['NQU20_C6500', 'NQU20_P6500'])
+
+        self.assert_handler_called_once_with(handler, {'service': 'LEVELONE_FUTURES_OPTIONS', 'command': 'SUBS',
+                                                       'timestamp': REQUEST_TIMESTAMP})
+        self.assert_handler_called_once_with(async_handler, {'service': 'LEVELONE_FUTURES_OPTIONS', 'command': 'SUBS',
+                                                             'timestamp': REQUEST_TIMESTAMP})
+        send_awaited = [
+            call('{"requests": [{"service": "LEVELONE_FUTURES_OPTIONS", "requestid": "1", "command": "SUBS", '
+                 '"account": "1001", "source": "streamerInfo-appId", "parameters": {"keys": "NQU20_C6500,NQU20_P6500", '
+                 '"fields": "0,1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22,23,24,25,26,27,28,29,30,31,32,33,34,35"}}]}'),
+            call('{"requests": [{"service": "LEVELONE_FUTURES_OPTIONS", "requestid": "2", "command": "UNSUBS", '
+                 '"account": "1001", "source": "streamerInfo-appId", "parameters": {"keys": "NQU20_C6500,NQU20_P6500"}}]}')
+        ]
+        socket.send.assert_has_awaits(send_awaited, any_order=False)
+
+    @no_duplicates
+    @asynctest.patch('tda.streaming.ws_client.connect', new_callable=asynctest.CoroutineMock)
     async def test_level_one_futures_options_subs_success_some_fields(
             self, ws_connect):
         socket = await self.login_and_get_socket(ws_connect)
@@ -2227,6 +2590,19 @@ class StreamClientTest(asynctest.TestCase):
 
         with self.assertRaises(tda.streaming.UnexpectedResponseCode):
             await self.client.level_one_futures_options_subs(
+                ['NQU20_C6500', 'NQU20_P6500'])
+
+    @no_duplicates
+    @asynctest.patch('tda.streaming.ws_client.connect', new_callable=asynctest.CoroutineMock)
+    async def test_level_one_futures_options_unsubs_failure(self, ws_connect):
+        socket = await self.login_and_get_socket(ws_connect)
+
+        response = self.success_response(1, 'LEVELONE_FUTURES_OPTIONS', 'UNSUBS')
+        response['response'][0]['content']['code'] = 21
+        socket.recv.side_effect = [json.dumps(response)]
+
+        with self.assertRaises(tda.streaming.UnexpectedResponseCode):
+            await self.client.level_one_futures_options_unsubs(
                 ['NQU20_C6500', 'NQU20_P6500'])
 
     @no_duplicates
@@ -2460,6 +2836,39 @@ class StreamClientTest(asynctest.TestCase):
 
     @no_duplicates
     @asynctest.patch('tda.streaming.ws_client.connect', new_callable=asynctest.CoroutineMock)
+    async def test_timesale_equity_unsubs_success_all_fields(self, ws_connect):
+        socket = await self.login_and_get_socket(ws_connect)
+
+        stream_item = self.streaming_entry('TIMESALE_EQUITY', 'SUBS')
+
+        socket.recv.side_effect = [
+            json.dumps(self.success_response(1, 'TIMESALE_EQUITY', 'SUBS')),
+            json.dumps(stream_item),
+            json.dumps(self.success_response(2, 'TIMESALE_EQUITY', 'UNSUBS')),
+        ]
+        handler = Mock()
+        async_handler = asynctest.CoroutineMock()
+        self.client.add_timesale_equity_handler(handler)
+        self.client.add_timesale_equity_handler(async_handler)
+
+        await self.client.timesale_equity_subs(['GOOG', 'MSFT'])
+        await self.client.handle_message()
+        await self.client.timesale_equity_unsubs(['GOOG', 'MSFT'])
+
+        self.assert_handler_called_once_with(handler, {'service': 'TIMESALE_EQUITY', 'command': 'SUBS',
+                                                       'timestamp': REQUEST_TIMESTAMP})
+        self.assert_handler_called_once_with(async_handler, {'service': 'TIMESALE_EQUITY', 'command': 'SUBS',
+                                                             'timestamp': REQUEST_TIMESTAMP})
+        send_awaited = [
+            call('{"requests": [{"service": "TIMESALE_EQUITY", "requestid": "1", "command": "SUBS", '
+                 '"account": "1001", "source": "streamerInfo-appId", "parameters": {"keys": "GOOG,MSFT", "fields": "0,1,2,3,4"}}]}'),
+            call('{"requests": [{"service": "TIMESALE_EQUITY", "requestid": "2", "command": "UNSUBS", '
+                 '"account": "1001", "source": "streamerInfo-appId", "parameters": {"keys": "GOOG,MSFT"}}]}')
+        ]
+        socket.send.assert_has_awaits(send_awaited, any_order=False)
+
+    @no_duplicates
+    @asynctest.patch('tda.streaming.ws_client.connect', new_callable=asynctest.CoroutineMock)
     async def test_timesale_equity_subs_success_some_fields(self, ws_connect):
         socket = await self.login_and_get_socket(ws_connect)
 
@@ -2525,6 +2934,18 @@ class StreamClientTest(asynctest.TestCase):
 
         with self.assertRaises(tda.streaming.UnexpectedResponseCode):
             await self.client.timesale_equity_subs(['GOOG', 'MSFT'])
+
+    @no_duplicates
+    @asynctest.patch('tda.streaming.ws_client.connect', new_callable=asynctest.CoroutineMock)
+    async def test_timesale_equity_unsubs_failure(self, ws_connect):
+        socket = await self.login_and_get_socket(ws_connect)
+
+        response = self.success_response(1, 'TIMESALE_EQUITY', 'UNSUBS')
+        response['response'][0]['content']['code'] = 21
+        socket.recv.side_effect = [json.dumps(response)]
+
+        with self.assertRaises(tda.streaming.UnexpectedResponseCode):
+            await self.client.timesale_equity_unsubs(['GOOG', 'MSFT'])
 
     @no_duplicates
     @asynctest.patch('tda.streaming.ws_client.connect', new_callable=asynctest.CoroutineMock)
@@ -2618,6 +3039,39 @@ class StreamClientTest(asynctest.TestCase):
 
     @no_duplicates
     @asynctest.patch('tda.streaming.ws_client.connect', new_callable=asynctest.CoroutineMock)
+    async def test_timesale_futures_unsubs_success_all_fields(self, ws_connect):
+        socket = await self.login_and_get_socket(ws_connect)
+
+        stream_item = self.streaming_entry('TIMESALE_FUTURES', 'SUBS')
+
+        socket.recv.side_effect = [
+            json.dumps(self.success_response(1, 'TIMESALE_FUTURES', 'SUBS')),
+            json.dumps(stream_item),
+            json.dumps(self.success_response(2, 'TIMESALE_FUTURES', 'UNSUBS'))
+        ]
+        handler = Mock()
+        async_handler = asynctest.CoroutineMock()
+        self.client.add_timesale_futures_handler(handler)
+        self.client.add_timesale_futures_handler(async_handler)
+
+        await self.client.timesale_futures_subs(['/ES', '/CL'])
+        await self.client.handle_message()
+        await self.client.timesale_futures_unsubs(['/ES', '/CL'])
+
+        self.assert_handler_called_once_with(handler, {'service': 'TIMESALE_FUTURES', 'command': 'SUBS',
+                                                       'timestamp': REQUEST_TIMESTAMP})
+        self.assert_handler_called_once_with(async_handler, {'service': 'TIMESALE_FUTURES', 'command': 'SUBS',
+                                                             'timestamp': REQUEST_TIMESTAMP})
+        send_awaited = [
+            call('{"requests": [{"service": "TIMESALE_FUTURES", "requestid": "1", "command": "SUBS", '
+                 '"account": "1001", "source": "streamerInfo-appId", "parameters": {"keys": "/ES,/CL", "fields": "0,1,2,3,4"}}]}'),
+            call('{"requests": [{"service": "TIMESALE_FUTURES", "requestid": "2", "command": "UNSUBS", '
+                 '"account": "1001", "source": "streamerInfo-appId", "parameters": {"keys": "/ES,/CL"}}]}')
+        ]
+        socket.send.assert_has_awaits(send_awaited, any_order=False)
+
+    @no_duplicates
+    @asynctest.patch('tda.streaming.ws_client.connect', new_callable=asynctest.CoroutineMock)
     async def test_timesale_futures_subs_success_some_fields(self, ws_connect):
         socket = await self.login_and_get_socket(ws_connect)
 
@@ -2683,6 +3137,18 @@ class StreamClientTest(asynctest.TestCase):
 
         with self.assertRaises(tda.streaming.UnexpectedResponseCode):
             await self.client.timesale_futures_subs(['/ES', '/CL'])
+
+    @no_duplicates
+    @asynctest.patch('tda.streaming.ws_client.connect', new_callable=asynctest.CoroutineMock)
+    async def test_timesale_futures_unsubs_failure(self, ws_connect):
+        socket = await self.login_and_get_socket(ws_connect)
+
+        response = self.success_response(1, 'TIMESALE_FUTURES', 'UNSUBS')
+        response['response'][0]['content']['code'] = 21
+        socket.recv.side_effect = [json.dumps(response)]
+
+        with self.assertRaises(tda.streaming.UnexpectedResponseCode):
+            await self.client.timesale_futures_unsubs(['/ES', '/CL'])
 
     @no_duplicates
     @asynctest.patch('tda.streaming.ws_client.connect', new_callable=asynctest.CoroutineMock)
@@ -2775,6 +3241,39 @@ class StreamClientTest(asynctest.TestCase):
 
     @no_duplicates
     @asynctest.patch('tda.streaming.ws_client.connect', new_callable=asynctest.CoroutineMock)
+    async def test_timesale_options_unsubs_success_all_fields(self, ws_connect):
+        socket = await self.login_and_get_socket(ws_connect)
+
+        stream_item = self.streaming_entry('TIMESALE_OPTIONS', 'SUBS')
+
+        socket.recv.side_effect = [
+            json.dumps(self.success_response(1, 'TIMESALE_OPTIONS', 'SUBS')),
+            json.dumps(stream_item),
+            json.dumps(self.success_response(2, 'TIMESALE_OPTIONS', 'UNSUBS'))
+        ]
+        handler = Mock()
+        async_handler = asynctest.CoroutineMock()
+        self.client.add_timesale_options_handler(handler)
+        self.client.add_timesale_options_handler(async_handler)
+
+        await self.client.timesale_options_subs(['GOOG_052920C620', 'MSFT_052920C145'])
+        await self.client.handle_message()
+        await self.client.timesale_options_unsubs(['GOOG_052920C620', 'MSFT_052920C145'])
+
+        self.assert_handler_called_once_with(handler, {'service': 'TIMESALE_OPTIONS', 'command': 'SUBS',
+                                                       'timestamp': REQUEST_TIMESTAMP})
+        self.assert_handler_called_once_with(async_handler, {'service': 'TIMESALE_OPTIONS', 'command': 'SUBS',
+                                                             'timestamp': REQUEST_TIMESTAMP})
+        send_awaited = [
+            call('{"requests": [{"service": "TIMESALE_OPTIONS", "requestid": "1", "command": "SUBS", '
+                 '"account": "1001", "source": "streamerInfo-appId", "parameters": {"keys": "GOOG_052920C620,MSFT_052920C145", "fields": "0,1,2,3,4"}}]}'),
+            call('{"requests": [{"service": "TIMESALE_OPTIONS", "requestid": "2", "command": "UNSUBS", '
+                 '"account": "1001", "source": "streamerInfo-appId", "parameters": {"keys": "GOOG_052920C620,MSFT_052920C145"}}]}')
+        ]
+        socket.send.assert_has_awaits(send_awaited, any_order=False)
+
+    @no_duplicates
+    @asynctest.patch('tda.streaming.ws_client.connect', new_callable=asynctest.CoroutineMock)
     async def test_timesale_options_subs_success_some_fields(self, ws_connect):
         socket = await self.login_and_get_socket(ws_connect)
 
@@ -2841,6 +3340,19 @@ class StreamClientTest(asynctest.TestCase):
 
         with self.assertRaises(tda.streaming.UnexpectedResponseCode):
             await self.client.timesale_options_subs(
+                ['GOOG_052920C620', 'MSFT_052920C145'])
+
+    @no_duplicates
+    @asynctest.patch('tda.streaming.ws_client.connect', new_callable=asynctest.CoroutineMock)
+    async def test_timesale_options_unsubs_failure(self, ws_connect):
+        socket = await self.login_and_get_socket(ws_connect)
+
+        response = self.success_response(1, 'TIMESALE_OPTIONS', 'UNSUBS')
+        response['response'][0]['content']['code'] = 21
+        socket.recv.side_effect = [json.dumps(response)]
+
+        with self.assertRaises(tda.streaming.UnexpectedResponseCode):
+            await self.client.timesale_options_unsubs(
                 ['GOOG_052920C620', 'MSFT_052920C145'])
 
     @no_duplicates
@@ -2937,6 +3449,41 @@ class StreamClientTest(asynctest.TestCase):
 
     @no_duplicates
     @asynctest.patch('tda.streaming.ws_client.connect', new_callable=asynctest.CoroutineMock)
+    async def test_listed_book_unsubs_success_all_fields(self, ws_connect):
+        socket = await self.login_and_get_socket(ws_connect)
+
+        stream_item = {'data': [{'service': 'LISTED_BOOK', 'command': 'SUBS', 'timestamp': REQUEST_TIMESTAMP, 'content': {}}]}
+
+        socket.recv.side_effect = [
+            json.dumps(self.success_response(1, 'LISTED_BOOK', 'SUBS')),
+            json.dumps(stream_item),
+            json.dumps(self.success_response(2, 'LISTED_BOOK', 'UNSUBS'))
+        ]
+        handler = Mock()
+        async_handler = asynctest.CoroutineMock()
+        self.client.add_listed_book_handler(handler)
+        self.client.add_listed_book_handler(async_handler)
+
+        await self.client.listed_book_subs(['GOOG', 'MSFT'])
+        await self.client.handle_message()
+        await self.client.listed_book_unsubs(['GOOG', 'MSFT'])
+
+        self.assert_handler_called_once_with(handler,
+                                             {'service': 'LISTED_BOOK', 'command': 'SUBS', 'timestamp': REQUEST_TIMESTAMP,
+                                              'content': {}})
+        self.assert_handler_called_once_with(async_handler,
+                                             {'service': 'LISTED_BOOK', 'command': 'SUBS', 'timestamp': REQUEST_TIMESTAMP,
+                                              'content': {}})
+        send_awaited = [
+            call('{"requests": [{"service": "LISTED_BOOK", "requestid": "1", "command": "SUBS", '
+                 '"account": "1001", "source": "streamerInfo-appId", "parameters": {"keys": "GOOG,MSFT", "fields": "0,1,2,3"}}]}'),
+            call('{"requests": [{"service": "LISTED_BOOK", "requestid": "2", "command": "UNSUBS", '
+                 '"account": "1001", "source": "streamerInfo-appId", "parameters": {"keys": "GOOG,MSFT"}}]}')
+        ]
+        socket.send.assert_has_awaits(send_awaited, any_order=False)
+
+    @no_duplicates
+    @asynctest.patch('tda.streaming.ws_client.connect', new_callable=asynctest.CoroutineMock)
     async def test_listed_book_subs_failure(self, ws_connect):
         socket = await self.login_and_get_socket(ws_connect)
 
@@ -2946,6 +3493,18 @@ class StreamClientTest(asynctest.TestCase):
 
         with self.assertRaises(tda.streaming.UnexpectedResponseCode):
             await self.client.listed_book_subs(['GOOG', 'MSFT'])
+
+    @no_duplicates
+    @asynctest.patch('tda.streaming.ws_client.connect', new_callable=asynctest.CoroutineMock)
+    async def test_listed_book_unsubs_failure(self, ws_connect):
+        socket = await self.login_and_get_socket(ws_connect)
+
+        response = self.success_response(1, 'LISTED_BOOK', 'UNSUBS')
+        response['response'][0]['content']['code'] = 21
+        socket.recv.side_effect = [json.dumps(response)]
+
+        with self.assertRaises(tda.streaming.UnexpectedResponseCode):
+            await self.client.listed_book_unsubs(['GOOG', 'MSFT'])
 
     ##########################################################################
     # NASDAQ_BOOK
@@ -2976,6 +3535,41 @@ class StreamClientTest(asynctest.TestCase):
 
     @no_duplicates
     @asynctest.patch('tda.streaming.ws_client.connect', new_callable=asynctest.CoroutineMock)
+    async def test_nasdaq_book_unsubs_success_all_fields(self, ws_connect):
+        socket = await self.login_and_get_socket(ws_connect)
+
+        stream_item = {"data": [{"service": "NASDAQ_BOOK", "command": "SUBS", "timestamp": REQUEST_TIMESTAMP, 'content': {}}]}
+
+        socket.recv.side_effect = [
+            json.dumps(self.success_response(1, 'NASDAQ_BOOK', 'SUBS')),
+            json.dumps(stream_item),
+            json.dumps(self.success_response(2, 'NASDAQ_BOOK', 'UNSUBS'))
+        ]
+        handler = Mock()
+        async_handler = asynctest.CoroutineMock()
+        self.client.add_nasdaq_book_handler(handler)
+        self.client.add_nasdaq_book_handler(async_handler)
+
+        await self.client.nasdaq_book_subs(['GOOG', 'MSFT'])
+        await self.client.handle_message()
+        await self.client.nasdaq_book_unsubs(['GOOG', 'MSFT'])
+
+        self.assert_handler_called_once_with(handler,
+                                             {"service": "NASDAQ_BOOK", "command": "SUBS", "timestamp": REQUEST_TIMESTAMP,
+                                              'content': {}})
+        self.assert_handler_called_once_with(async_handler,
+                                             {"service": "NASDAQ_BOOK", "command": "SUBS", "timestamp": REQUEST_TIMESTAMP,
+                                              'content': {}})
+        send_awaited = [
+            call('{"requests": [{"service": "NASDAQ_BOOK", "requestid": "1", "command": "SUBS", '
+                 '"account": "1001", "source": "streamerInfo-appId", "parameters": {"keys": "GOOG,MSFT", "fields": "0,1,2,3"}}]}'),
+            call('{"requests": [{"service": "NASDAQ_BOOK", "requestid": "2", "command": "UNSUBS", '
+                 '"account": "1001", "source": "streamerInfo-appId", "parameters": {"keys": "GOOG,MSFT"}}]}')
+        ]
+        socket.send.assert_has_awaits(send_awaited, any_order=False)
+
+    @no_duplicates
+    @asynctest.patch('tda.streaming.ws_client.connect', new_callable=asynctest.CoroutineMock)
     async def test_nasdaq_book_subs_failure(self, ws_connect):
         socket = await self.login_and_get_socket(ws_connect)
 
@@ -2985,6 +3579,18 @@ class StreamClientTest(asynctest.TestCase):
 
         with self.assertRaises(tda.streaming.UnexpectedResponseCode):
             await self.client.nasdaq_book_subs(['GOOG', 'MSFT'])
+
+    @no_duplicates
+    @asynctest.patch('tda.streaming.ws_client.connect', new_callable=asynctest.CoroutineMock)
+    async def test_nasdaq_book_unsubs_failure(self, ws_connect):
+        socket = await self.login_and_get_socket(ws_connect)
+
+        response = self.success_response(1, 'NASDAQ_BOOK', 'UNSUBS')
+        response['response'][0]['content']['code'] = 21
+        socket.recv.side_effect = [json.dumps(response)]
+
+        with self.assertRaises(tda.streaming.UnexpectedResponseCode):
+            await self.client.nasdaq_book_unsubs(['GOOG', 'MSFT'])
 
     ##########################################################################
     # OPTIONS_BOOK
@@ -3016,6 +3622,43 @@ class StreamClientTest(asynctest.TestCase):
 
     @no_duplicates
     @asynctest.patch('tda.streaming.ws_client.connect', new_callable=asynctest.CoroutineMock)
+    async def test_options_book_unsubs_success_all_fields(self, ws_connect):
+        socket = await self.login_and_get_socket(ws_connect)
+
+        stream_item = {"data": [{"service": "OPTIONS_BOOK", "command": "SUBS", "timestamp": REQUEST_TIMESTAMP, 'content': {}}]}
+
+        socket.recv.side_effect = [
+            json.dumps(self.success_response(1, 'OPTIONS_BOOK', 'SUBS')),
+            json.dumps(stream_item),
+            json.dumps(self.success_response(2, 'OPTIONS_BOOK', 'UNSUBS'))
+        ]
+        handler = Mock()
+        async_handler = asynctest.CoroutineMock()
+        self.client.add_options_book_handler(handler)
+        self.client.add_options_book_handler(async_handler)
+
+        await self.client.options_book_subs(
+            ['GOOG_052920C620', 'MSFT_052920C145'])
+        await self.client.handle_message()
+        await self.client.options_book_unsubs(
+            ['GOOG_052920C620', 'MSFT_052920C145'])
+
+        self.assert_handler_called_once_with(handler,
+                                             {"service": "OPTIONS_BOOK", "command": "SUBS", "timestamp": REQUEST_TIMESTAMP,
+                                              'content': {}})
+        self.assert_handler_called_once_with(async_handler,
+                                             {"service": "OPTIONS_BOOK", "command": "SUBS", "timestamp": REQUEST_TIMESTAMP,
+                                              'content': {}})
+        send_awaited = [
+            call('{"requests": [{"service": "OPTIONS_BOOK", "requestid": "1", "command": "SUBS", '
+                 '"account": "1001", "source": "streamerInfo-appId", "parameters": {"keys": "GOOG_052920C620,MSFT_052920C145", "fields": "0,1,2,3"}}]}'),
+            call('{"requests": [{"service": "OPTIONS_BOOK", "requestid": "2", "command": "UNSUBS", '
+                 '"account": "1001", "source": "streamerInfo-appId", "parameters": {"keys": "GOOG_052920C620,MSFT_052920C145"}}]}')
+        ]
+        socket.send.assert_has_awaits(send_awaited, any_order=False)
+
+    @no_duplicates
+    @asynctest.patch('tda.streaming.ws_client.connect', new_callable=asynctest.CoroutineMock)
     async def test_options_book_subs_failure(self, ws_connect):
         socket = await self.login_and_get_socket(ws_connect)
 
@@ -3025,6 +3668,19 @@ class StreamClientTest(asynctest.TestCase):
 
         with self.assertRaises(tda.streaming.UnexpectedResponseCode):
             await self.client.options_book_subs(
+                ['GOOG_052920C620', 'MSFT_052920C145'])
+
+    @no_duplicates
+    @asynctest.patch('tda.streaming.ws_client.connect', new_callable=asynctest.CoroutineMock)
+    async def test_options_book_unsubs_failure(self, ws_connect):
+        socket = await self.login_and_get_socket(ws_connect)
+
+        response = self.success_response(1, 'OPTIONS_BOOK', 'UNSUBS')
+        response['response'][0]['content']['code'] = 21
+        socket.recv.side_effect = [json.dumps(response)]
+
+        with self.assertRaises(tda.streaming.UnexpectedResponseCode):
+            await self.client.options_book_unsubs(
                 ['GOOG_052920C620', 'MSFT_052920C145'])
 
     ##########################################################################
@@ -3507,6 +4163,40 @@ class StreamClientTest(asynctest.TestCase):
 
     @no_duplicates
     @asynctest.patch('tda.streaming.ws_client.connect', new_callable=asynctest.CoroutineMock)
+    async def test_news_headline_unsubs_success(self, ws_connect):
+        socket = await self.login_and_get_socket(ws_connect)
+
+        stream_item = {"data": [{"service": "NEWS_HEADLINE", "command": "SUBS", "timestamp": REQUEST_TIMESTAMP, 'content': {}}]}
+
+        socket.recv.side_effect = [
+            json.dumps(self.success_response(1, 'NEWS_HEADLINE', 'SUBS')),
+            json.dumps(stream_item),
+            json.dumps(self.success_response(2, 'NEWS_HEADLINE', 'UNSUBS'))
+        ]
+        handler = Mock()
+        async_handler = asynctest.CoroutineMock()
+        self.client.add_news_headline_handler(handler)
+        self.client.add_news_headline_handler(async_handler)
+
+        await self.client.news_headline_subs(['GOOG', 'MSFT'])
+        await self.client.handle_message()
+        await self.client.news_headline_unsubs(['GOOG', 'MSFT'])
+
+        self.assert_handler_called_once_with(handler, {"service": "NEWS_HEADLINE", "command": "SUBS",
+                                                       "timestamp": REQUEST_TIMESTAMP, 'content': {}})
+        self.assert_handler_called_once_with(async_handler, {"service": "NEWS_HEADLINE", "command": "SUBS",
+                                                             "timestamp": REQUEST_TIMESTAMP, 'content': {}})
+        send_awaited = [
+            call('{"requests": [{"service": "NEWS_HEADLINE", "requestid": "1", "command": "SUBS", '
+                 '"account": "1001", "source": "streamerInfo-appId", "parameters": {"keys": "GOOG,MSFT", '
+                 '"fields": "0,1,2,3,4,5,6,7,8,9,10"}}]}'),
+            call('{"requests": [{"service": "NEWS_HEADLINE", "requestid": "2", "command": "UNSUBS", '
+                 '"account": "1001", "source": "streamerInfo-appId", "parameters": {"keys": "GOOG,MSFT"}}]}')
+        ]
+        socket.send.assert_has_awaits(send_awaited, any_order=False)
+
+    @no_duplicates
+    @asynctest.patch('tda.streaming.ws_client.connect', new_callable=asynctest.CoroutineMock)
     async def test_news_headline_subs_failure(self, ws_connect):
         socket = await self.login_and_get_socket(ws_connect)
 
@@ -3516,6 +4206,18 @@ class StreamClientTest(asynctest.TestCase):
 
         with self.assertRaises(tda.streaming.UnexpectedResponseCode):
             await self.client.news_headline_subs(['GOOG', 'MSFT'])
+
+    @no_duplicates
+    @asynctest.patch('tda.streaming.ws_client.connect', new_callable=asynctest.CoroutineMock)
+    async def test_news_headline_unsubs_failure(self, ws_connect):
+        socket = await self.login_and_get_socket(ws_connect)
+
+        response = self.success_response(1, 'NEWS_HEADLINE', 'UNSUBS')
+        response['response'][0]['content']['code'] = 21
+        socket.recv.side_effect = [json.dumps(response)]
+
+        with self.assertRaises(tda.streaming.UnexpectedResponseCode):
+            await self.client.news_headline_unsubs(['GOOG', 'MSFT'])
 
     @no_duplicates
     # TODO: Replace this with real messages.
@@ -3845,3 +4547,184 @@ class StreamClientTest(asynctest.TestCase):
     async def test_subscribe_without_login(self, ws_connect):
         with self.assertRaisesRegex(ValueError, '.*Socket not open.*'):
             await self.client.chart_equity_subs(['GOOG,MSFT'])
+
+    @no_duplicates
+    @asynctest.patch('tda.streaming.ws_client.connect', new_callable=asynctest.CoroutineMock)
+    async def test_unsubscribe_without_login(self, ws_connect):
+        with self.assertRaisesRegex(ValueError, '.*Socket not open.*'):
+            await self.client.chart_equity_unsubs(['GOOG,MSFT'])
+
+    ###########################################################################
+    # Private member _service_op
+    #
+    # Note: https://developer.tdameritrade.com/content/streaming-data#_Toc504640564
+    # parameters are optional and in the case of UNSUBS commands,
+    # fields should not be required since unsubscribing from a service
+    # will return no data on the service or symbol
+
+    @no_duplicates
+    @asynctest.patch('tda.streaming.ws_client.connect', new_callable=asynctest.CoroutineMock)
+    async def test_service_op_sends_some_fields_with_field_type_and_fields(self, ws_connect):
+        socket = await self.login_and_get_socket(ws_connect)
+
+        socket.recv.side_effect = [json.dumps(self.success_response(
+            1, 'QUOTE', 'SUBS'))]
+
+        await self.client._service_op(
+            symbols=['GOOG', 'MSFT'],
+            service='QUOTE',
+            command='SUBS',
+            field_type=StreamClient.LevelOneEquityFields,
+            fields=[
+            StreamClient.LevelOneEquityFields.CLOSE_PRICE,
+            StreamClient.LevelOneEquityFields.ASK_PRICE
+        ])
+        socket.recv.assert_awaited_once()
+        request = self.request_from_socket_mock(socket)
+
+        self.assertEqual(request, {
+            'account': '1001',
+            'service': 'QUOTE',
+            'command': 'SUBS',
+            'requestid': '1',
+            'source': 'streamerInfo-appId',
+            'parameters': {
+                'keys': 'GOOG,MSFT',
+                'fields': '2,15'
+            }
+        })
+
+    @no_duplicates
+    @asynctest.patch('tda.streaming.ws_client.connect', new_callable=asynctest.CoroutineMock)
+    async def test_service_op_sends_no_fields_without_field_type(self, ws_connect):
+        socket = await self.login_and_get_socket(ws_connect)
+
+        socket.recv.side_effect = [json.dumps(self.success_response(
+            1, 'QUOTE', 'UNSUBS'))]
+
+        await self.client._service_op(
+            ['GOOG','MSFT'],
+            'QUOTE',
+            'UNSUBS'
+        )
+        socket.recv.assert_awaited_once()
+        request = self.request_from_socket_mock(socket)
+
+        self.assertFalse('fields' in request['parameters'])
+
+    @no_duplicates
+    @asynctest.patch('tda.streaming.ws_client.connect', new_callable=asynctest.CoroutineMock)
+    async def test_service_op_sends_no_fields_for_sub_without_field_type(self, ws_connect):
+        """
+        There's no service's sub/add commands without field_type defined but this tests for fields=None behavior if field_type=None
+        Warning: Sub commands seems to fail if there's no fields parameters,
+        check logs : https://github.com/alexgolec/tda-api/pull/256#issuecomment-950406363
+
+        The streaming client will properly throw UnexpectedResponse
+        """
+        socket = await self.login_and_get_socket(ws_connect)
+
+        resp = self.success_response(1, 'QUOTE', 'SUBS', msg="SUBS command failed")
+        resp['response'][0]['content']['code'] = 22
+        socket.recv.side_effect = [
+            json.dumps(resp)
+        ]
+
+        with self.assertRaises(tda.streaming.UnexpectedResponseCode) as e:
+            await self.client._service_op(
+                symbols=['GOOG','MSFT'],
+                service='QUOTE',
+                command='SUBS'
+            )
+        socket.recv.assert_awaited_once()
+        request = self.request_from_socket_mock(socket)
+
+        self.assertFalse('fields' in request['parameters'])
+
+    @no_duplicates
+    @asynctest.patch('tda.streaming.ws_client.connect', new_callable=asynctest.CoroutineMock)
+    async def test_service_op_sends_no_fields_for_sub_with_fields(self, ws_connect):
+        """
+        There's no service's sub/add commands without field_type defined but this tests for fields=None behavior if field_type=None
+        Warning: Sub commands seems to fail if there's no fields parameters,
+        check logs : https://github.com/alexgolec/tda-api/pull/256#issuecomment-950406363
+
+        The streaming client will properly throw UnexpectedResponse
+        """
+        socket = await self.login_and_get_socket(ws_connect)
+
+        resp = self.success_response(1, 'QUOTE', 'SUBS', msg="SUBS command failed")
+        resp['response'][0]['content']['code'] = 22
+        socket.recv.side_effect = [
+            json.dumps(resp)
+        ]
+
+        with self.assertRaises(tda.streaming.UnexpectedResponseCode) as e:
+            await self.client._service_op(
+                symbols=['GOOG','MSFT'],
+                service='QUOTE',
+                command='SUBS',
+                fields=[
+                    StreamClient.LevelOneEquityFields.CLOSE_PRICE,
+                    StreamClient.LevelOneEquityFields.ASK_PRICE
+                ]
+            )
+        socket.recv.assert_awaited_once()
+        request = self.request_from_socket_mock(socket)
+
+        self.assertFalse('fields' in request['parameters'])
+
+    @no_duplicates
+    @asynctest.patch('tda.streaming.ws_client.connect', new_callable=asynctest.CoroutineMock)
+    async def test_service_op_sends_all_fields_with_field_type(self, ws_connect):
+        socket = await self.login_and_get_socket(ws_connect)
+
+        socket.recv.side_effect = [json.dumps(self.success_response(
+            1, 'CHART_EQUITY', 'SUBS'))]
+
+        await self.client._service_op(
+            symbols=['GOOG','MSFT'],
+            service='CHART_EQUITY',
+            command='SUBS',
+            field_type=StreamClient.ChartEquityFields
+        )
+        socket.recv.assert_awaited_once()
+        request = self.request_from_socket_mock(socket)
+
+        self.assertEqual(request, {
+            'account': '1001',
+            'service': 'CHART_EQUITY',
+            'command': 'SUBS',
+            'requestid': '1',
+            'source': 'streamerInfo-appId',
+            'parameters': {
+                'keys': 'GOOG,MSFT',
+                'fields': '0,1,2,3,4,5,6,7,8'
+            }
+        })
+
+        socket.reset_mock()
+
+        socket.recv.side_effect = [json.dumps(self.success_response(
+            2, 'CHART_EQUITY', 'ADD'))]
+
+        await self.client._service_op(
+            symbols=['GOOG','MSFT'],
+            service='CHART_EQUITY',
+            command='ADD',
+            field_type=StreamClient.ChartEquityFields
+        )
+        socket.recv.assert_awaited_once()
+        request = self.request_from_socket_mock(socket)
+
+        self.assertEqual(request, {
+            'account': '1001',
+            'service': 'CHART_EQUITY',
+            'command': 'ADD',
+            'requestid': '2',
+            'source': 'streamerInfo-appId',
+            'parameters': {
+                'keys': 'GOOG,MSFT',
+                'fields': '0,1,2,3,4,5,6,7,8'
+            }
+        })
