@@ -192,7 +192,7 @@ class StreamClient(EnumEnforcer):
 
         return ret
 
-    async def _init_from_principals(self, principals):
+    async def _init_from_principals(self, principals, websocket_connect_args):
         # Initialize accounts and streamer keys.
         # Assume a 1-to-1 mapping of streamer keys to accounts.
         accounts = principals['accounts']
@@ -230,14 +230,19 @@ class StreamClient(EnumEnforcer):
         wss_url = 'wss://{}/ws'.format(
             principals['streamerInfo']['streamerSocketUrl'])
 
-        ws_connect_args = {
-                'extensions': [ClientPerMessageDeflateFactory()],
-        }
+        if 'extensions' not in websocket_connect_args:
+            websocket_connect_args['extensions'] = [
+                    ClientPerMessageDeflateFactory()
+            ]
+        else:
+            websocket_connect_args['extensions'].append(
+                    ClientPerMessageDeflateFactory())
 
         if self._ssl_context:
-            ws_connect_args['ssl'] = self._ssl_context
+            websocket_connect_args['ssl'] = self._ssl_context
 
-        self._socket = await ws_client.connect(wss_url, **ws_connect_args)
+        self._socket = await ws_client.connect(
+                wss_url, **websocket_connect_args)
 
         # Initialize miscellaneous parameters
         self._source = principals['streamerInfo']['appId']
@@ -374,7 +379,7 @@ class StreamClient(EnumEnforcer):
     ##########################################################################
     # LOGIN
 
-    async def login(self):
+    async def login(self, websocket_connect_args=None):
         '''
         `Official Documentation <https://developer.tdameritrade.com/content/
         streaming-data#_Toc504640574>`__
@@ -387,6 +392,13 @@ class StreamClient(EnumEnforcer):
          * Waits for response indicating login success
 
         All stream operations are available after this method completes.
+
+        :param websocket_connect_args: ``dict`` of additional arguments to pass
+                                       to the websocket ``connect`` call. Useful 
+                                       for setting timeouts and other connection 
+                                       parameters. See `the official 
+                                       documentation <https://websockets.readthedocs.io/en/stable/reference/client.html#websockets.client.connect>`__
+                                       for details.
         '''
 
         # Fetch required data and initialize the client
@@ -403,7 +415,8 @@ class StreamClient(EnumEnforcer):
         assert r.status_code == httpx.codes.OK, r.raise_for_status()
         r = r.json()
 
-        await self._init_from_principals(r)
+        await self._init_from_principals(
+                r, websocket_connect_args if websocket_connect_args else {})
 
         # Build and send the request object
         token_ts = datetime.datetime.strptime(
