@@ -387,7 +387,8 @@ class StreamClient(EnumEnforcer):
         :param websocket_connect_args: ``dict`` of additional arguments to pass
                                        to the websocket ``connect`` call. Useful 
                                        for setting timeouts and other connection 
-                                       parameters. See here `https://websockets.readthedocs.io/en/stable/reference/client.html#websockets.client.connect`__
+                                       parameters. See `the official 
+                                       documentation <https://websockets.readthedocs.io/en/stable/reference/client.html#websockets.client.connect>`__
                                        for details.
         '''
 
