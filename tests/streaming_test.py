@@ -412,6 +412,26 @@ class StreamClientTest(asynctest.TestCase):
 
     @no_duplicates
     @asynctest.patch('tda.streaming.ws_client.connect', new_callable=asynctest.CoroutineMock)
+    async def test_login_websocket_connect_args_preserves_extensions(self, ws_connect):
+        self.client = StreamClient(self.http_client, ssl_context='ssl_context')
+
+        self.http_client.get_user_principals.return_value = MockResponse(
+            account_principals(), 200)
+        socket = AsyncMagicMock()
+        ws_connect.return_value = socket
+
+        socket.recv.side_effect = [json.dumps(self.success_response(
+            0, 'ADMIN', 'LOGIN'))]
+
+        await self.client.login(websocket_connect_args={
+            'args': 'yes', 'extensions': ['nonsense']})
+
+        ws_connect.assert_awaited_once_with(
+                ANY, ssl='ssl_context', extensions=['nonsense', ANY], args='yes')
+
+
+    @no_duplicates
+    @asynctest.patch('tda.streaming.ws_client.connect', new_callable=asynctest.CoroutineMock)
     async def test_login_unexpected_request_id(self, ws_connect):
         principals = account_principals()
         principals['accounts'].clear()
