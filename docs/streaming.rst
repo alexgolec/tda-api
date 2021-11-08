@@ -532,7 +532,7 @@ Options Trades
 
 This stream is defined and will connect, however it appears that it does not
 provide data. Connecting to it results in heartbeat messages that indicate that 
-the stream is open, but to date we haven't seen any data be passed throug.
+the stream is open, but to date we haven't seen any data be passed through.
 We currently believe this is an issue on TDA's side. 
 
 .. automethod:: tda.streaming::StreamClient.timesale_options_subs
