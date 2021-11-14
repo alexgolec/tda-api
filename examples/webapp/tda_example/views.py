@@ -1,4 +1,5 @@
 from authlib.integrations.httpx_client import OAuth2Client
+from django.core.exceptions import PermissionDenied
 from django.http import HttpResponse, Http404
 from django.shortcuts import redirect, render
 from django.views.decorators.http import require_http_methods, require_GET
@@ -15,21 +16,29 @@ from .models import TDALoginData, TDAOauthState
 def token_oauth(request):
     '''
     Initialize the login state and send the user to the TDA login notification 
-    page. HTTP parameters are:
-     * dest: If set, this URL is encoded in the OAuth state alongside the XSRF
-             check state. The callback handler will decode this value and issue
-             a redirect on completion.
+    page. Note this method assumes that the user is logged in, and raises a 403
+    if not. HTTP parameters are:
+     * dest: URL to which to redirect after the login flow succeeds. Encoded in 
+             OAuth login state alongside the CSRF protection data. If unset, 
+             thte callback will redirect to the application root.
+
+    The state of the world after this method successfully completes is:
+     * A TDAOauthState object is created and stored in the DB containing the 
+       OAuth session state and, if specified, the redirect URL passed in
+       request.GET.
+     * The request session is updated to contain the ID of the TDAOauthState 
+       object, stored under key ``oauth_state``.
     '''
 
     if not request.user.is_authenticated:
-        raise Http404('Login required')
+        raise PermissionDenied('Login required')
 
     oauth = OAuth2Client(
             tda.auth.normalize_api_key(secrets.TDA_API_KEY),
             redirect_uri=secrets.TDA_CALLBACK_URL)
 
     if 'dest' in request.GET:
-        state_data = json.dumps({'next_url': request.GET['token_next']})
+        state_data = json.dumps({'next_url': request.GET['dest']})
         b64 = base64.urlsafe_b64encode(state_data.encode('utf-8'))
         additional_state = b64.decode('utf-8')
     else:
@@ -53,19 +62,19 @@ def callback(request):
     '''
 
     if not request.user.is_authenticated:
-        raise Http404('Login required')
+        raise PermissionDenied('Login required')
 
     # Fetch a token and register it to the DB.
     oauth = OAuth2Client(
             tda.auth.normalize_api_key(secrets.TDA_API_KEY),
             redirect_uri=secrets.TDA_CALLBACK_URL)
 
-    redirected_url = request.build_absolute_uri()
     oauth_state = TDAOauthState.objects.get(id=request.session['oauth_state'])
     login_data, _ = TDALoginData.objects.get_or_create(user=request.user)
 
     state = oauth_state.oauth_secret
 
+    redirected_url = request.build_absolute_uri()
     client = tda.auth.fetch_token_from_redirect(
             oauth, redirected_url, secrets.TDA_API_KEY,
             state, token_write_func=login_data.token_write_func())
@@ -76,4 +85,4 @@ def callback(request):
         additional_state = json.loads(base64.urlsafe_b64decode(state_split[1]))
         return redirect(additional_state['next_url'])
 
-    return HttpResponse('callback')
+    return redirect('/')
