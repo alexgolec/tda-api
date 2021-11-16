@@ -655,3 +655,41 @@ class TokenMetadataTest(unittest.TestCase):
 
         metadata = auth.TokenMetadata.from_loaded_token(token)
         self.assertEqual(metadata.creation_timestamp, None)
+
+
+class NormalizeAPIKeyTest(unittest.TestCase):
+
+    @no_duplicates
+    def test_correct_suffix(self):
+        # XXX: assertNoLogs is only available in 3.10+
+        with self.assertLogs('tda.auth') as log:
+            import logging
+            logging.getLogger('tda.auth').warning('dummy')
+
+            self.assertEqual('API_KEY@AMER.OAUTHAP', 
+                    auth._normalize_api_key('API_KEY@AMER.OAUTHAP'))
+
+            self.assertEqual(['WARNING:tda.auth:dummy'], log.output)
+
+
+    @no_duplicates
+    def test_no_suffix(self):
+        with self.assertLogs('tda.auth') as log:
+            self.assertEqual('API_KEY@AMER.OAUTHAP', 
+                    auth._normalize_api_key('API_KEY'))
+
+            self.assertEqual([
+                'INFO:tda.auth:Appending @AMER.OAUTHAP to API key'
+            ], log.output)
+
+
+    @no_duplicates
+    def test_invalid_suffix(self):
+        with self.assertLogs('tda.auth') as log:
+            self.assertEqual('API_KEY@AMER.OAUTHAP', 
+                    auth._normalize_api_key('API_KEY@AMER'))
+
+            self.assertEqual([
+                'WARNING:tda.auth:API key ends in nonstandard suffix "AMER". Ignoring',
+                'INFO:tda.auth:Appending @AMER.OAUTHAP to API key'
+            ], log.output)
