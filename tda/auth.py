@@ -49,12 +49,20 @@ def __token_loader(token_path):
     return load_token
 
 
-def __normalize_api_key(api_key):
+def _normalize_api_key(api_key):
     api_key_suffix = '@AMER.OAUTHAP'
 
     if not api_key.endswith(api_key_suffix):
+        key_split = api_key.split('@')
+        if len(key_split) != 1:
+            get_logger().warning(
+                    'API key ends in nonstandard suffix "{}". Ignoring'.format(
+                        '@'.join(key_split[1:])))
+            api_key = key_split[0]
+
         get_logger().info('Appending {} to API key'.format(api_key_suffix))
         api_key = api_key + api_key_suffix
+
     return api_key
 
 
@@ -277,7 +285,7 @@ def client_from_login_flow(webdriver, api_key, redirect_url, token_path,
     get_logger().info(('Creating new token with redirect URL \'{}\' ' +
                        'and token path \'{}\'').format(redirect_url, token_path))
 
-    api_key = __normalize_api_key(api_key)
+    api_key = _normalize_api_key(api_key)
 
     oauth = OAuth2Client(api_key, redirect_uri=redirect_url)
     authorization_url, state = oauth.create_authorization_url(
@@ -347,7 +355,7 @@ def client_from_manual_flow(api_key, redirect_url, token_path,
     get_logger().info(('Creating new token with redirect URL \'{}\' ' +
                        'and token path \'{}\'').format(redirect_url, token_path))
 
-    api_key = __normalize_api_key(api_key)
+    api_key = _normalize_api_key(api_key)
 
     oauth = OAuth2Client(api_key, redirect_uri=redirect_url)
     authorization_url, state = oauth.create_authorization_url(
@@ -479,7 +487,7 @@ def client_from_access_functions(api_key, token_read_func,
     _register_token_redactions(token)
 
     # Return a new session configured to refresh credentials
-    api_key = __normalize_api_key(api_key)
+    api_key = _normalize_api_key(api_key)
 
     wrapped_token_write_func = metadata.wrapped_token_write_func()
 
