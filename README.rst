@@ -109,7 +109,8 @@ not offer:
    trades made through the API appear in thinkorswim and vice versa. 
  * The API only supports trading in equities, mutual funds, ETFs, and options 
    (both simple contracts and complex composite positions). Futures and futures 
-   options trading is not supported, although data is provided. 
+   options trading is not supported. Some data is provided for futures, but not
+   for futures options.
  * Historical options pricing data is not available. 
 
 What else?
