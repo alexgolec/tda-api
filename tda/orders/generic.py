@@ -54,6 +54,7 @@ class OrderBuilder(EnumEnforcer):
 
         self._session = None
         self._duration = None
+        self._cancelTime = None
         self._orderType = None
         self._complexOrderStrategyType = None
         self._quantity = None
@@ -104,6 +105,28 @@ class OrderBuilder(EnumEnforcer):
         Clear the order duration.
         '''
         self._duration = None
+        return self
+
+    # CancelTime
+    def set_cancel_time(self, cancel_time):
+        '''
+        Set the date on which the order will be cancelled. Note this field 
+        requires a :class:`~tda.orders.common.Duration` of ``GOOD_TILL_CANCEL``.
+        Accepts a 
+        `date 
+        <https://docs.python.org/3/library/datetime.html#datetime.date>`__
+        or a `datetime
+        <https://docs.python.org/3/library/datetime.html#datetime.datetime>`__.
+        Note when passing a datetime the time component is ignored.
+        '''
+        self._cancelTime = cancel_time.strftime('%Y-%m-%d')
+        return self
+
+    def clear_cancel_time(self):
+        '''
+        Clear the cancel time.
+        '''
+        self._cancelTime = None
         return self
 
     # OrderType

@@ -281,6 +281,18 @@ methods to do so.
 .. automethod:: tda.orders.generic.OrderBuilder.clear_session
 
 
++++++++++++
+Cancel Time
++++++++++++
+
+When setting a :class:`~tda.orders.common.Duration` of ``GOOD_TILL_CANCEL``, 
+this field specifies the date on which the order will be behavior when using 
+other ``Duration`` types is undefined.
+
+.. automethod:: tda.orders.generic.OrderBuilder.set_cancel_time
+.. automethod:: tda.orders.generic.OrderBuilder.clear_cancel_time
+
+
 +++++
 Price
 +++++
