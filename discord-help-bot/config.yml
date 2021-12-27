@@ -1,0 +1,11 @@
+prompts:
+  third-party-application:
+    triggers: [
+      'third-party application',
+      'unauthorized access to your account',
+    ]
+    response: >
+      It looks like you might be asking for help about a common authentication issue. Please see our FAQ here:
+
+
+      https://tda-api.readthedocs.io/en/latest/auth.html#a-third-party-application-may-be-attempting-to-make-unauthorized-access-to-your-account

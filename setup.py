@@ -47,6 +47,7 @@ setuptools.setup(
             'pytest',
             'pytz',
             'sphinx_rtd_theme',
+            'sqlalchemy',
             'twine',
         ]
     },
