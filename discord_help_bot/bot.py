@@ -4,52 +4,12 @@ import json
 import logging
 import os
 
-from sqlalchemy import Column, DateTime, ForeignKey, Integer, String
-from sqlalchemy import literal, create_engine
-from sqlalchemy.orm import declarative_base, relationship, sessionmaker
-from sqlalchemy.sql import func
+from sqlalchemy.orm import sessionmaker
 
 import discord
 import yaml
 
-
-################################################################################
-# Object schema
-
-
-Base = declarative_base()
-
-class User(Base):
-    __tablename__ = 'User'
-
-    id = Column(Integer, primary_key=True)
-
-    addition_time = Column(DateTime(timezone=True), server_default=func.now())
-    discord_username = Column(String)
-    discord_id = Column(Integer, index=True, unique=True)
-    triggered_prompts = relationship('TriggeredPrompt')
-
-    def __repr__(self):
-        return (f'User(id={self.id}, addition_time={self.addition_time}, '+
-                f'discord_username={self.discord_username}, '+
-                f'discord_id={self.discord_id})')
-
-
-class TriggeredPrompt(Base):
-    __tablename__ = 'TriggeredPrompt'
-
-    user_id = Column(Integer, ForeignKey('User.id'), primary_key=True)
-    prompt_name = Column(String, primary_key=True)
-
-    trigger_time = Column(DateTime(timezone=True), server_default=func.now())
-    trigger_message = Column(String)
-    trigger_string = Column(String)
-
-
-def get_engine(db_file):
-    db_file = os.path.abspath(db_file)
-    db_path = f'sqlite:///{db_file}'
-    return create_engine(db_path, echo=False)
+from models import Base, User, TriggeredPrompt, get_engine
 
 
 ################################################################################
@@ -91,28 +51,18 @@ class HelperBot(discord.Client):
 
     def should_trigger_for_prompt(self, prompt_name, discord_user):
         user_id = discord_user.id
-        prompts_seen = (self.session
-                .query(User)
-                .filter_by(discord_id=user_id)
-                .join(
-                    TriggeredPrompt,
-                    TriggeredPrompt.user_id == User.id)
-                .filter_by(prompt_name=prompt_name)
-                .scalar())
+        prompts_seen = User.get_triggered_prompt_for_user(
+                self.session, prompt_name, user_id)
         return prompts_seen is None
 
 
     def record_prompt_seen(
             self, prompt_name, triggered_string, discord_message):
         # Get/create the user
-        user = (self.session
-                .query(User)
-                .filter_by(discord_id=discord_message.author.id)
-                .scalar())
+        user = User.get_user_with_id(self.session, discord_message.author.id)
         if not user:
-            user = User(
-                    discord_username=discord_message.author.name,
-                    discord_id=discord_message.author.id)
+            user = User.new_user(
+                    discord_message.author.name, discord_message.author.id)
             self.session.add(user)
             self.session.flush()
 
@@ -122,14 +72,12 @@ class HelperBot(discord.Client):
                 prompt_name=prompt_name,
                 trigger_message=discord_message.content,
                 trigger_string=triggered_string)
-        self.session.add(triggered_prompt)
+        self.session.add(TriggeredPrompt.record_prompt_for_user(
+            user, prompt_name, discord_message.content, triggered_string))
 
         self.session.commit()
 
-        users = (self.session
-                .query(User)
-                .filter_by(discord_id=discord_message.author.id)
-                .all())
+        return triggered_prompt
 
 
 ################################################################################
