@@ -7,7 +7,7 @@ fix:
 	autopep8 --in-place -r -a examples
 
 coverage:
-	python3 -m coverage run --source=tda -m nose
+	python3 -m coverage run --source=tda,discord_help_bot -m nose
 	python3 -m coverage html
 
 dist: clean
