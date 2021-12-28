@@ -50,6 +50,7 @@ class HelperBot(discord.Client):
 
 
     def should_trigger_for_prompt(self, prompt_name, discord_user):
+        'Indicates whether the user should see the given prompt'
         user_id = discord_user.id
         prompts_seen = User.get_triggered_prompt_for_user(
                 self.session, prompt_name, user_id)
@@ -58,6 +59,7 @@ class HelperBot(discord.Client):
 
     def record_prompt_seen(
             self, prompt_name, triggered_string, discord_message):
+        'Record that the author of this message was sent this prompt.'
         # Get/create the user
         user = User.get_user_with_id(self.session, discord_message.author.id)
         if not user:
