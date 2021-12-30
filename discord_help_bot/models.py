@@ -44,7 +44,7 @@ class User(Base):
 
 
     @classmethod
-    def get_user_with_id(cls, session, discord_user_id):
+    def get_user_with_discord_id(cls, session, discord_user_id):
         'Get user by ID'
         return (session
                 .query(User)
@@ -57,13 +57,11 @@ class User(Base):
         '''Get a triggered prompt for a given user, or returns None if the user 
         never triggered that prompt.'''
         return (session
-                .query(User)
-                .filter_by(discord_id=discord_user_id)
-                .join(
-                    TriggeredPrompt,
-                    TriggeredPrompt.user_id == User.id)
+                .query(TriggeredPrompt)
                 .filter_by(prompt_name=prompt_name)
-                .scalar())
+                .join(User)
+                .filter(User.discord_id == discord_user_id)
+                .all())
 
 
 class TriggeredPrompt(Base):
@@ -73,10 +71,13 @@ class TriggeredPrompt(Base):
     # Name of triggered prompt. See the config.yml file for details. Represented
     # as the keys of the config['prompts'] dictionary.
     prompt_name = Column(String, primary_key=True)
-
     # Time when the message was recorded as shown *on the SQL server side.* This 
     # time is only loosely tied to the actual send time of the message.
-    trigger_time = Column(DateTime(timezone=True), server_default=func.now())
+    trigger_time = Column(
+            DateTime(timezone=True),
+            server_default=func.now(),
+            primary_key=True)
+
     # Full text of the message which triggered this showing.
     trigger_message = Column(String)
     # Trigger string that was matched against the message.

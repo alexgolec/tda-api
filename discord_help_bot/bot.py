@@ -18,13 +18,11 @@ from models import Base, User, TriggeredPrompt, get_engine
 
 class HelperBot(discord.Client):
 
-    def __init__(self, config_path, db_path):
+    def __init__(self, config, db_engine):
         super().__init__()
 
-        with open(config_path, 'r') as f:
-            self.config = yaml.safe_load(f)
-
-        self.engine = get_engine(db_path)
+        self.config = config
+        self.engine = db_engine
         self.session = sessionmaker(bind=self.engine)()
 
 
@@ -32,12 +30,7 @@ class HelperBot(discord.Client):
         print(f'Logged in as {self.user} (ID: {self.user.id})')
 
     async def on_message(self, message):
-        print(message)
-
         if message.author.id == self.user.id:
-            return
-
-        if message.guild.name != 'tda-api':
             return
 
         for prompt_name, prompt in self.config['prompts'].items():
@@ -54,14 +47,15 @@ class HelperBot(discord.Client):
         user_id = discord_user.id
         prompts_seen = User.get_triggered_prompt_for_user(
                 self.session, prompt_name, user_id)
-        return prompts_seen is None
+        return len(prompts_seen) == 0
 
 
     def record_prompt_seen(
             self, prompt_name, triggered_string, discord_message):
         'Record that the author of this message was sent this prompt.'
         # Get/create the user
-        user = User.get_user_with_id(self.session, discord_message.author.id)
+        user = User.get_user_with_discord_id(
+                self.session, discord_message.author.id)
         if not user:
             user = User.new_user(
                     discord_message.author.name, discord_message.author.id)
@@ -87,15 +81,12 @@ class HelperBot(discord.Client):
 
 
 def run_bot_main(args):
-    client = HelperBot(args.config, args.sqlite_db_file)
+    with open(args.config, 'r') as f:
+        config = yaml.safe_load(f)
+    engine = get_engine(args.sqlite_db_file)
+
+    client = HelperBot(config, engine)
     client.run(args.token)
-
-
-def init_main(args):
-    def dump(sql, *multiparams, **params):
-        print(sql.compile(dialect=engine.dialect))
-
-    Base.metadata.create_all(get_engine(args.sqlite_db_file))
 
 
 def main():
@@ -119,7 +110,7 @@ def main():
     if args.command == 'run':
         run_bot_main(args)
     elif args.command == 'init':
-        init_main(args)
+        Base.metadata.create_all(get_engine(args.sqlite_db_file))
     else:
         assert False
 
