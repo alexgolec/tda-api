@@ -8,6 +8,10 @@ with open('tda/version.py', 'r') as f:
     version = [s.strip() for s in f.read().strip().split('=')][1]
     version = version[1:-1]
 
+from os import listdir
+print(os.listdir())
+print(os.listdir('discord_help_bot'))
+
 with open('discord_help_bot/requirements.txt', 'r') as f:
     discord_help_bot_requirements = f.read().split('\n')
 
