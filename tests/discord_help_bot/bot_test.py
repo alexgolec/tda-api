@@ -41,7 +41,7 @@ TEST_BOT_USER_NAME = 'test-bot'
 
 class HelperBotTest(asynctest.TestCase):
 
-    def setUp(self):
+    async def setUp(self):
         self.config = {
                 'prompts': {
                     'prompt-1-name': {
@@ -63,20 +63,28 @@ class HelperBotTest(asynctest.TestCase):
 
         self.tmp_db = tempfile.NamedTemporaryFile()
         self.engine = get_engine(self.tmp_db.name)
-        self.helper = HelperBot(self.config, self.engine)
         self.session = sessionmaker(bind=self.engine)()
-
         Base.metadata.create_all(self.engine)
 
+        self.helper = HelperBot(self.config, self.engine)
         self.user = DummyDiscordUser(TEST_BOT_USER_ID, TEST_BOT_USER_NAME)
         # XXX HACK: Reaching into the discord.py Client object because the user
         # field is an attribute that doesn't let itself be deleted or directly
         # modified.
         self.helper._connection.user = self.user
 
+        await self.helper.on_ready()
+
 
     def add_user(self, username, discord_id):
         User.new_user(username, discord_id)
+
+
+    async def test_ignore_messages_by_bot(self):
+        message = DummyDiscordMessage.create(
+                self.user, 'prompt 1 trigger phrase 1')
+        await self.helper.on_message(message)
+        message.sync_reply.assert_not_called()
 
 
     async def test_message_no_trigger(self):

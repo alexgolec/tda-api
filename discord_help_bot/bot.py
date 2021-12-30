@@ -3,6 +3,7 @@ import collections
 import json
 import logging
 import os
+import sys
 
 from sqlalchemy.orm import sessionmaker
 
@@ -80,7 +81,7 @@ class HelperBot(discord.Client):
 # Main functions
 
 
-def run_bot_main(args):
+def run_bot_main(args):  # pragma: no cover
     with open(args.config, 'r') as f:
         config = yaml.safe_load(f)
     engine = get_engine(args.sqlite_db_file)
@@ -89,7 +90,7 @@ def run_bot_main(args):
     client.run(args.token)
 
 
-def main():
+def main(argv):
     parser = argparse.ArgumentParser('FAQ-based helper bot for tda-api')
     subparsers = parser.add_subparsers(metavar='', dest='command')
 
@@ -105,7 +106,7 @@ def main():
     init_parser.add_argument('--sqlite_db_file', required=True, help=
             'Location of sqlite3 database file')
 
-    args = parser.parse_args()
+    args = parser.parse_args(argv)
 
     if args.command == 'run':
         run_bot_main(args)
@@ -114,5 +115,5 @@ def main():
     else:
         assert False
 
-if __name__ == '__main__':
-    main()
+if __name__ == '__main__':  # pragma: no cover
+    main(sys.argv[1:])
