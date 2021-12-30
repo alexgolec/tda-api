@@ -47,6 +47,7 @@ setuptools.setup(
             'nose',
             'pytest',
             'pytz',
+            'pyyaml',
             'sphinx_rtd_theme',
             'sqlalchemy',
             'twine',
