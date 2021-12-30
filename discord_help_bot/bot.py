@@ -116,4 +116,4 @@ def main(argv):
         assert False
 
 if __name__ == '__main__':  # pragma: no cover
-    main(sys.argv[1:])
+   main(sys.argv[1:])
