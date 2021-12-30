@@ -1,17 +1,19 @@
+import io
 import os
 import sys
 import tempfile
 import unittest
 
 import asynctest
+import yaml
 
-from unittest.mock import patch, MagicMock
+from unittest.mock import patch, MagicMock, ANY as _
 from sqlalchemy.orm import sessionmaker
 
 sys.path.append(os.path.join(os.getcwd(), 'discord_help_bot'))
 print(os.path.join(os.getcwd(), 'discord_help_bot'))
 
-from discord_help_bot.bot import HelperBot
+from discord_help_bot.bot import HelperBot, main as bot_main
 from discord_help_bot.models import Base, User, TriggeredPrompt, get_engine
 
 
@@ -74,10 +76,6 @@ class HelperBotTest(asynctest.TestCase):
         self.helper._connection.user = self.user
 
         await self.helper.on_ready()
-
-
-    def add_user(self, username, discord_id):
-        User.new_user(username, discord_id)
 
 
     async def test_ignore_messages_by_bot(self):
@@ -195,3 +193,88 @@ class HelperBotTest(asynctest.TestCase):
                 prompt.trigger_message,
                 'message containing prompt 2 trigger phrase 1')
         self.assertEqual(prompt.trigger_string, 'prompt 2 trigger phrase 1')
+
+
+    async def test_message_multiple_message_types(self):
+        # Prompt 1
+        message = DummyDiscordMessage.create(
+                DummyDiscordUser(1001, 'username'),
+                'message containing prompt 1 trigger phrase 1')
+
+        await self.helper.on_message(message)
+
+        message.sync_reply.assert_called_once_with('prompt 1 response')
+
+        user = User.get_user_with_discord_id(self.session, 1001)
+        self.assertEqual(user.discord_username, 'username')
+        self.assertEqual(user.discord_id, 1001)
+
+        prompts = User.get_triggered_prompt_for_user(
+                self.session, 'prompt-1-name',
+                1001)
+        self.assertEqual(1, len(prompts))
+        prompt = prompts[0]
+
+        self.assertEqual(prompt.user_id, user.id)
+        self.assertEqual(prompt.prompt_name, 'prompt-1-name')
+        self.assertEqual(
+                prompt.trigger_message,
+                'message containing prompt 1 trigger phrase 1')
+        self.assertEqual(prompt.trigger_string, 'prompt 1 trigger phrase 1')
+
+        # Prompt 2
+        message = DummyDiscordMessage.create(
+                DummyDiscordUser(1001, 'username'),
+                'message containing prompt 2 trigger phrase 1')
+
+        await self.helper.on_message(message)
+
+        message.sync_reply.assert_called_once_with('prompt 2 response')
+
+        prompts = User.get_triggered_prompt_for_user(
+                self.session, 'prompt-2-name',
+                1001)
+        self.assertEqual(1, len(prompts))
+        prompt = prompts[0]
+
+        self.assertEqual(prompt.user_id, user.id)
+        self.assertEqual(prompt.prompt_name, 'prompt-2-name')
+        self.assertEqual(
+                prompt.trigger_message,
+                'message containing prompt 2 trigger phrase 1')
+        self.assertEqual(prompt.trigger_string, 'prompt 2 trigger phrase 1')
+
+
+    @asynctest.patch('discord_help_bot.bot.HelperBot')
+    def test_main_run(self, mock_helper_bot):
+        tmp_db = tempfile.NamedTemporaryFile()
+
+        config_file = tempfile.NamedTemporaryFile()
+        config_file.write(yaml.safe_dump(self.config).encode('utf-8'))
+        config_file.flush()
+
+        args = [
+                'run',
+                '--token', 'discord-token',
+                '--config', config_file.name,
+                '--sqlite_db_file', tmp_db.name,
+        ]
+        bot_main(args)
+
+        mock_helper_bot.assert_called_once_with(self.config, _)
+
+
+    def test_main_init(self):
+        tmp_db = tempfile.NamedTemporaryFile()
+
+        config_file = tempfile.NamedTemporaryFile()
+        config_file.write(yaml.safe_dump(self.config).encode('utf-8'))
+        config_file.flush()
+
+        args = [
+                'init',
+                '--sqlite_db_file', tmp_db.name,
+        ]
+        bot_main(args)
+
+        self.assertGreater(os.path.getsize(tmp_db.name), 0)
