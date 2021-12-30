@@ -81,7 +81,7 @@ class HelperBot(discord.Client):
 # Main functions
 
 
-def run_bot_main(args):  # pragma: no cover
+def run_bot_main(args):
     with open(args.config, 'r') as f:
         config = yaml.safe_load(f)
     engine = get_engine(args.sqlite_db_file)
@@ -112,7 +112,7 @@ def main(argv):
         run_bot_main(args)
     elif args.command == 'init':
         Base.metadata.create_all(get_engine(args.sqlite_db_file))
-    else:
+    else:  # pragma: no cover
         assert False
 
 if __name__ == '__main__':  # pragma: no cover
