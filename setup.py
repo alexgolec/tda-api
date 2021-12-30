@@ -42,6 +42,7 @@ setuptools.setup(
             'asynctest',
             'colorama',
             'coverage',
+            'discord.py',
             'tox',
             'nose',
             'pytest',
