@@ -33,14 +33,18 @@ run this outside regular trading hours you may not see anything):
           token_path='/tmp/token.json')
   stream_client = StreamClient(client, account_id=1234567890)
 
+  output_file = open('/path/to/output/file/GOOG.txt', 'w')
+  def save_stream(message):
+    output_file.write(json.dumps(message, indent=4))
+    output_file.write('\n')
+
   async def read_stream():
       await stream_client.login()
       await stream_client.quality_of_service(StreamClient.QOSLevel.EXPRESS)
  
       # Always add handlers before subscribing because many streams start sending 
       # data immediately after success, and messages with no handlers are dropped.
-      stream_client.add_nasdaq_book_handler(
-              lambda msg: print(json.dumps(msg, indent=4)))
+      stream_client.add_nasdaq_book_handler(save_stream)
       await stream_client.nasdaq_book_subs(['GOOG'])
 
       while True:
