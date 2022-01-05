@@ -8,6 +8,13 @@ with open('tda/version.py', 'r') as f:
     version = [s.strip() for s in f.read().strip().split('=')][1]
     version = version[1:-1]
 
+from os import listdir
+print(listdir())
+print(listdir('discord_help_bot'))
+
+with open('discord_help_bot/requirements.txt', 'r') as f:
+    discord_help_bot_requirements = f.read().split('\n')
+
 setuptools.setup(
     name='tda-api',
     version=version,
@@ -48,7 +55,7 @@ setuptools.setup(
             'pytz',
             'sphinx_rtd_theme',
             'twine',
-        ]
+        ] + discord_help_bot_requirements
     },
     keywords='finance trading equities bonds options research',
     project_urls={
