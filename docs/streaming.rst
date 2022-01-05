@@ -33,13 +33,13 @@ run this outside regular trading hours you may not see anything):
           token_path='/tmp/token.json')
   stream_client = StreamClient(client, account_id=1234567890)
 
-  def print_message(message):
-    print(json.dumps(message, indent=4)
-
   async def read_stream():
       await stream_client.login()
       await stream_client.quality_of_service(StreamClient.QOSLevel.EXPRESS)
  
+      def print_message(message):
+        print(json.dumps(message, indent=4)
+
       # Always add handlers before subscribing because many streams start sending 
       # data immediately after success, and messages with no handlers are dropped.
       stream_client.add_nasdaq_book_handler(save_stream)
