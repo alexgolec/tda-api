@@ -250,6 +250,31 @@ it is *extremely* bad practice to send credentials like this over an unencrypted
 channel like that provided by ``http``.
 
 
+.. _missing_chromedriver:
+
+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+``WebDriverException: Message: 'chromedriver' executable needs to be in PATH``
+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
+When creating a ``tda-api`` token using a webrowser-based method like 
+:func:`~tda.auth.client_from_login_flow` or :func:`~tda.auth.easy_client`, the 
+library must control the browser using `selenium 
+<https://selenium-python.readthedocs.io/>`__. This is a Python library that 
+sends commands to the browser to perform operations like load pages, inject 
+synthetic clicks, enter text, and so on. The component which is used to send 
+these commands is called a *driver*. 
+
+Drivers are generally not part of the standard web browser installation, meaning 
+you must install them manually. If you're seeing this or a similar method, you 
+probably haven't installed the appropriate webdriver. These drivers are 
+available for most of the common web browsers, including `Chrome 
+<https://chromedriver.chromium.org/getting-started/>`__, `Firefox 
+<https://github.com/mozilla/geckodriver/releases>`__, and `Safari 
+<https://developer.apple.com/documentation/webkit/testing_with_webdriver_in_safari>`__.  
+Make sure you've installed the driver *before* attempting to create a token 
+using ``tda-api``.
+
+
 ++++++++++++++++++++++
 Token Parsing Failures
 ++++++++++++++++++++++
@@ -298,3 +323,4 @@ browser, you can easily copy that token file to another machine, such as your
 application in the cloud. However, make sure you don't use the same token on 
 two machines. It is recommended to delete the token created on the 
 browser-capable machine as soon as it is copied to its destination. 
+
