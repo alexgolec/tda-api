@@ -265,8 +265,8 @@ synthetic clicks, enter text, and so on. The component which is used to send
 these commands is called a *driver*. 
 
 Drivers are generally not part of the standard web browser installation, meaning 
-you must install them manually. If you're seeing this or a similar method, you 
-probably haven't installed the appropriate webdriver. These drivers are 
+you must install them manually. If you're seeing this or a similar message, you 
+probably haven't installed the appropriate webdriver. Drivers are 
 available for most of the common web browsers, including `Chrome 
 <https://chromedriver.chromium.org/getting-started/>`__, `Firefox 
 <https://github.com/mozilla/geckodriver/releases>`__, and `Safari 
