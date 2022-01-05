@@ -33,10 +33,8 @@ run this outside regular trading hours you may not see anything):
           token_path='/tmp/token.json')
   stream_client = StreamClient(client, account_id=1234567890)
 
-  output_file = open('/path/to/output/file/GOOG.txt', 'w')
-  def save_stream(message):
-    output_file.write(json.dumps(message, indent=4))
-    output_file.write('\n')
+  def print_message(message):
+    print(json.dumps(message, indent=4)
 
   async def read_stream():
       await stream_client.login()
