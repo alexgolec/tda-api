@@ -275,6 +275,28 @@ Make sure you've installed the driver *before* attempting to create a token
 using ``tda-api``.
 
 
+.. _invalid_grant:
+
+++++++++++++++++++++++++++++++++++++++++++++
+``OAuthError: invalid_grant: invalid_grant``
+++++++++++++++++++++++++++++++++++++++++++++
+
+``tda-api`` automatically refreshes your tokens: first, a new access token is 
+generated every 30 minutes as part of the regular OAuth authentication process.  
+Second, the refresh token (used to generate new access tokens) is itself 
+refreshed prior to expiring after 90 days. In particular, when the refresh token 
+is more than 85 days old, the library will interrupt any API call to perform the 
+refresh. This happens part of the regular operation of the library, and no 
+special action is needed to trigger it. 
+
+This usually works great, and most users don't need to worry about refreshing 
+tokens or logging in. However, note that the 85 day refresh token refresh is 
+only triggered *on API calls*. If your application is not running or does not 
+attempt to perform any API calls during this time, the refresh token will expire 
+and you will see this error. Once the token expires, you cannot revive it, and 
+you'll need to delete it and create a new one.
+
+
 ++++++++++++++++++++++
 Token Parsing Failures
 ++++++++++++++++++++++
