@@ -38,7 +38,7 @@ run this outside regular trading hours you may not see anything):
       await stream_client.quality_of_service(StreamClient.QOSLevel.EXPRESS)
  
       def print_message(message):
-        print(json.dumps(message, indent=4)
+        print(json.dumps(message, indent=4))
 
       # Always add handlers before subscribing because many streams start sending 
       # data immediately after success, and messages with no handlers are dropped.
