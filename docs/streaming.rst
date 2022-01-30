@@ -8,7 +8,7 @@
 Streaming Client
 ================
 
-A wapper around the
+A wrapper around the
 `TD Ameritrade Streaming API <https://developer.tdameritrade.com/content/
 streaming-data>`__. This API is a 
 websockets-based streaming API that provides to up-to-the-second data on market 
@@ -42,7 +42,7 @@ run this outside regular trading hours you may not see anything):
 
       # Always add handlers before subscribing because many streams start sending 
       # data immediately after success, and messages with no handlers are dropped.
-      stream_client.add_nasdaq_book_handler(save_stream)
+      stream_client.add_nasdaq_book_handler(print_message)
       await stream_client.nasdaq_book_subs(['GOOG'])
 
       while True:
