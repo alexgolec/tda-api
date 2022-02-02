@@ -818,15 +818,8 @@ class BaseClient(EnumEnforcer):
         return start_datetime, end_datetime
 
 
-    def __normalize_need_extended_hours_data(self, need_extended_hours_data):
-        if need_extended_hours_data is None:
-            need_extended_hours_data = True
-
-        return need_extended_hours_data
-
-
     def get_price_history_every_minute(
-            self, symbol, *, start_datetime=None, end_datetime=None, need_extended_hours_data=None):
+            self, symbol, *, start_datetime=None, end_datetime=None, need_extended_hours_data=True):
         '''
         Fetch price history for a stock or ETF symbol at a per-minute
         granularity. This endpoint currently appears to return up to 48 days of
@@ -835,8 +828,6 @@ class BaseClient(EnumEnforcer):
 
         start_datetime, end_datetime = self.__normalize_start_and_end_datetimes(
                 start_datetime, end_datetime)
-
-        need_extended_hours_data = self.__normalize_need_extended_hours_data(need_extended_hours_data)
 
         return self.get_price_history(
                 symbol,
@@ -850,7 +841,7 @@ class BaseClient(EnumEnforcer):
 
 
     def get_price_history_every_five_minutes(
-            self, symbol, *, start_datetime=None, end_datetime=None, need_extended_hours_data=None):
+            self, symbol, *, start_datetime=None, end_datetime=None, need_extended_hours_data=True):
         '''
         Fetch price history for a stock or ETF symbol at a per-five-minutes
         granularity. This endpoint currently appears to return approximately
@@ -859,8 +850,6 @@ class BaseClient(EnumEnforcer):
 
         start_datetime, end_datetime = self.__normalize_start_and_end_datetimes(
                 start_datetime, end_datetime)
-
-        need_extended_hours_data = self.__normalize_need_extended_hours_data(need_extended_hours_data)
 
         return self.get_price_history(
                 symbol,
@@ -874,7 +863,7 @@ class BaseClient(EnumEnforcer):
 
 
     def get_price_history_every_ten_minutes(
-            self, symbol, *, start_datetime=None, end_datetime=None, need_extended_hours_data=None):
+            self, symbol, *, start_datetime=None, end_datetime=None, need_extended_hours_data=True):
         '''
         Fetch price history for a stock or ETF symbol at a per-ten-minutes
         granularity. This endpoint currently appears to return approximately
@@ -883,8 +872,6 @@ class BaseClient(EnumEnforcer):
 
         start_datetime, end_datetime = self.__normalize_start_and_end_datetimes(
                 start_datetime, end_datetime)
-
-        need_extended_hours_data = self.__normalize_need_extended_hours_data(need_extended_hours_data)
 
         return self.get_price_history(
                 symbol,
@@ -898,7 +885,7 @@ class BaseClient(EnumEnforcer):
 
 
     def get_price_history_every_fifteen_minutes(
-            self, symbol, *, start_datetime=None, end_datetime=None, need_extended_hours_data=None):
+            self, symbol, *, start_datetime=None, end_datetime=None, need_extended_hours_data=True):
         '''
         Fetch price history for a stock or ETF symbol at a per-fifteen-minutes
         granularity. This endpoint currently appears to return approximately
@@ -907,8 +894,6 @@ class BaseClient(EnumEnforcer):
 
         start_datetime, end_datetime = self.__normalize_start_and_end_datetimes(
                 start_datetime, end_datetime)
-
-        need_extended_hours_data = self.__normalize_need_extended_hours_data(need_extended_hours_data)
 
         return self.get_price_history(
                 symbol,
@@ -922,7 +907,7 @@ class BaseClient(EnumEnforcer):
 
 
     def get_price_history_every_thirty_minutes(
-            self, symbol, *, start_datetime=None, end_datetime=None, need_extended_hours_data=None):
+            self, symbol, *, start_datetime=None, end_datetime=None, need_extended_hours_data=True):
         '''
         Fetch price history for a stock or ETF symbol at a per-thirty-minutes
         granularity. This endpoint currently appears to return approximately
@@ -931,8 +916,6 @@ class BaseClient(EnumEnforcer):
 
         start_datetime, end_datetime = self.__normalize_start_and_end_datetimes(
                 start_datetime, end_datetime)
-
-        need_extended_hours_data = self.__normalize_need_extended_hours_data(need_extended_hours_data)
 
         return self.get_price_history(
                 symbol,
@@ -946,7 +929,7 @@ class BaseClient(EnumEnforcer):
 
 
     def get_price_history_every_day(
-            self, symbol, *, start_datetime=None, end_datetime=None, need_extended_hours_data=None):
+            self, symbol, *, start_datetime=None, end_datetime=None, need_extended_hours_data=True):
         '''
         Fetch price history for a stock or ETF symbol at a daily granularity. 
         The exact period of time over which this endpoint returns data is 
@@ -956,8 +939,6 @@ class BaseClient(EnumEnforcer):
 
         start_datetime, end_datetime = self.__normalize_start_and_end_datetimes(
                 start_datetime, end_datetime)
-
-        need_extended_hours_data = self.__normalize_need_extended_hours_data(need_extended_hours_data)
 
         return self.get_price_history(
                 symbol,
@@ -971,7 +952,7 @@ class BaseClient(EnumEnforcer):
 
 
     def get_price_history_every_week(
-            self, symbol, *, start_datetime=None, end_datetime=None, need_extended_hours_data=None):
+            self, symbol, *, start_datetime=None, end_datetime=None, need_extended_hours_data=True):
         '''
         Fetch price history for a stock or ETF symbol at a weekly granularity.
         The exact period of time over which this endpoint returns data is 
@@ -981,8 +962,6 @@ class BaseClient(EnumEnforcer):
 
         start_datetime, end_datetime = self.__normalize_start_and_end_datetimes(
                 start_datetime, end_datetime)
-
-        need_extended_hours_data = self.__normalize_need_extended_hours_data(need_extended_hours_data)
 
         return self.get_price_history(
                 symbol,

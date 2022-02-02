@@ -1190,7 +1190,7 @@ class _TestClient:
 
 
     @patch('tda.client.base.datetime.datetime', mockdatetime)
-    def test_get_price_history_every_minute_without_extendedhours(self):
+    def test_get_price_history_every_minute_no_extendedhours(self):
         self.client.get_price_history_every_minute('AAPL')
         params = {
                 'apikey': API_KEY,
@@ -1292,7 +1292,7 @@ class _TestClient:
 
 
     @patch('tda.client.base.datetime.datetime', mockdatetime)
-    def test_get_price_history_every_five_minutes_without_extendedhours(self):
+    def test_get_price_history_every_five_minutes_no_extendedhours(self):
         self.client.get_price_history_every_five_minutes('AAPL')
         params = {
                 'apikey': API_KEY,
@@ -1394,7 +1394,7 @@ class _TestClient:
 
 
     @patch('tda.client.base.datetime.datetime', mockdatetime)
-    def test_get_price_history_every_ten_minutes_vanilla_without_extendedhours(self):
+    def test_get_price_history_every_ten_minutes_no_extendedhours(self):
         self.client.get_price_history_every_ten_minutes('AAPL')
         params = {
                 'apikey': API_KEY,
@@ -1496,7 +1496,7 @@ class _TestClient:
 
 
     @patch('tda.client.base.datetime.datetime', mockdatetime)
-    def test_get_price_history_every_fifteen_minutes_without_extendedhours(self):
+    def test_get_price_history_every_fifteen_minutes_no_extendedhours(self):
         self.client.get_price_history_every_fifteen_minutes('AAPL')
         params = {
                 'apikey': API_KEY,
@@ -1598,7 +1598,7 @@ class _TestClient:
 
 
     @patch('tda.client.base.datetime.datetime', mockdatetime)
-    def test_get_price_history_every_thirty_minutes_without_extendedhours(self):
+    def test_get_price_history_every_thirty_minutes_no_extendedhours(self):
         self.client.get_price_history_every_thirty_minutes('AAPL')
         params = {
                 'apikey': API_KEY,
@@ -1700,7 +1700,7 @@ class _TestClient:
 
 
     @patch('tda.client.base.datetime.datetime', mockdatetime)
-    def test_get_price_history_every_day_without_extendedhours(self):
+    def test_get_price_history_every_day_no_extendedhours(self):
         self.client.get_price_history_every_day('AAPL')
         params = {
                 'apikey': API_KEY,
@@ -1802,7 +1802,7 @@ class _TestClient:
 
 
     @patch('tda.client.base.datetime.datetime', mockdatetime)
-    def test_get_price_history_every_week_without_extendedhours(self):
+    def test_get_price_history_every_week_no_extendedhours(self):
         self.client.get_price_history_every_week('AAPL')
         params = {
                 'apikey': API_KEY,
