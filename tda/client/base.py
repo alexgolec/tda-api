@@ -819,7 +819,8 @@ class BaseClient(EnumEnforcer):
 
 
     def get_price_history_every_minute(
-            self, symbol, *, start_datetime=None, end_datetime=None):
+            self, symbol, *, start_datetime=None, end_datetime=None, 
+            need_extended_hours_data=None):
         '''
         Fetch price history for a stock or ETF symbol at a per-minute
         granularity. This endpoint currently appears to return up to 48 days of
@@ -836,11 +837,13 @@ class BaseClient(EnumEnforcer):
                 frequency_type=self.PriceHistory.FrequencyType.MINUTE,
                 frequency=self.PriceHistory.Frequency.EVERY_MINUTE,
                 start_datetime=start_datetime,
-                end_datetime=end_datetime)
+                end_datetime=end_datetime,
+                need_extended_hours_data=need_extended_hours_data)
 
 
     def get_price_history_every_five_minutes(
-            self, symbol, *, start_datetime=None, end_datetime=None):
+            self, symbol, *, start_datetime=None, end_datetime=None, 
+            need_extended_hours_data=None):
         '''
         Fetch price history for a stock or ETF symbol at a per-five-minutes
         granularity. This endpoint currently appears to return approximately
@@ -857,11 +860,13 @@ class BaseClient(EnumEnforcer):
                 frequency_type=self.PriceHistory.FrequencyType.MINUTE,
                 frequency=self.PriceHistory.Frequency.EVERY_FIVE_MINUTES,
                 start_datetime=start_datetime,
-                end_datetime=end_datetime)
+                end_datetime=end_datetime,
+                need_extended_hours_data=need_extended_hours_data)
 
 
     def get_price_history_every_ten_minutes(
-            self, symbol, *, start_datetime=None, end_datetime=None):
+            self, symbol, *, start_datetime=None, end_datetime=None, 
+            need_extended_hours_data=None):
         '''
         Fetch price history for a stock or ETF symbol at a per-ten-minutes
         granularity. This endpoint currently appears to return approximately
@@ -878,11 +883,13 @@ class BaseClient(EnumEnforcer):
                 frequency_type=self.PriceHistory.FrequencyType.MINUTE,
                 frequency=self.PriceHistory.Frequency.EVERY_TEN_MINUTES,
                 start_datetime=start_datetime,
-                end_datetime=end_datetime)
+                end_datetime=end_datetime,
+                need_extended_hours_data=need_extended_hours_data)
 
 
     def get_price_history_every_fifteen_minutes(
-            self, symbol, *, start_datetime=None, end_datetime=None):
+            self, symbol, *, start_datetime=None, end_datetime=None, 
+            need_extended_hours_data=None):
         '''
         Fetch price history for a stock or ETF symbol at a per-fifteen-minutes
         granularity. This endpoint currently appears to return approximately
@@ -899,11 +906,13 @@ class BaseClient(EnumEnforcer):
                 frequency_type=self.PriceHistory.FrequencyType.MINUTE,
                 frequency=self.PriceHistory.Frequency.EVERY_FIFTEEN_MINUTES,
                 start_datetime=start_datetime,
-                end_datetime=end_datetime)
+                end_datetime=end_datetime,
+                need_extended_hours_data=need_extended_hours_data)
 
 
     def get_price_history_every_thirty_minutes(
-            self, symbol, *, start_datetime=None, end_datetime=None):
+            self, symbol, *, start_datetime=None, end_datetime=None, 
+            need_extended_hours_data=None):
         '''
         Fetch price history for a stock or ETF symbol at a per-thirty-minutes
         granularity. This endpoint currently appears to return approximately
@@ -920,11 +929,13 @@ class BaseClient(EnumEnforcer):
                 frequency_type=self.PriceHistory.FrequencyType.MINUTE,
                 frequency=self.PriceHistory.Frequency.EVERY_THIRTY_MINUTES,
                 start_datetime=start_datetime,
-                end_datetime=end_datetime)
+                end_datetime=end_datetime,
+                need_extended_hours_data=need_extended_hours_data)
 
 
     def get_price_history_every_day(
-            self, symbol, *, start_datetime=None, end_datetime=None):
+            self, symbol, *, start_datetime=None, end_datetime=None, 
+            need_extended_hours_data=None):
         '''
         Fetch price history for a stock or ETF symbol at a daily granularity. 
         The exact period of time over which this endpoint returns data is 
@@ -942,11 +953,13 @@ class BaseClient(EnumEnforcer):
                 frequency_type=self.PriceHistory.FrequencyType.DAILY,
                 frequency=self.PriceHistory.Frequency.EVERY_MINUTE,
                 start_datetime=start_datetime,
-                end_datetime=end_datetime)
+                end_datetime=end_datetime,
+                need_extended_hours_data=need_extended_hours_data)
 
 
     def get_price_history_every_week(
-            self, symbol, *, start_datetime=None, end_datetime=None):
+            self, symbol, *, start_datetime=None, end_datetime=None, 
+            need_extended_hours_data=None):
         '''
         Fetch price history for a stock or ETF symbol at a weekly granularity.
         The exact period of time over which this endpoint returns data is 
@@ -964,7 +977,8 @@ class BaseClient(EnumEnforcer):
                 frequency_type=self.PriceHistory.FrequencyType.WEEKLY,
                 frequency=self.PriceHistory.Frequency.EVERY_MINUTE,
                 start_datetime=start_datetime,
-                end_datetime=end_datetime)
+                end_datetime=end_datetime,
+                need_extended_hours_data=need_extended_hours_data)
 
 
     ##########################################################################
