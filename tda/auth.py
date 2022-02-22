@@ -14,6 +14,7 @@ import warnings
 
 from tda.client import AsyncClient, Client
 from tda.debug import register_redactions
+from tda.utils import LazyLog
 
 
 TOKEN_ENDPOINT = 'https://api.tdameritrade.com/v1/oauth2/token'
@@ -25,7 +26,7 @@ def get_logger():
 
 def __update_token(token_path):
     def update_token(t, *args, **kwargs):
-        get_logger().info('Updating token to file {}'.format(token_path))
+        get_logger().info('Updating token to file %s', token_path)
 
         with open(token_path, 'w') as f:
             json.dump(t, f)
@@ -34,7 +35,7 @@ def __update_token(token_path):
 
 def __token_loader(token_path):
     def load_token():
-        get_logger().info('Loading token from file {}'.format(token_path))
+        get_logger().info('Loading token from file %s', token_path)
 
         with open(token_path, 'rb') as f:
             token_data = f.read()
@@ -42,9 +43,8 @@ def __token_loader(token_path):
                 return json.loads(token_data.decode())
             except ValueError:
                 get_logger().warning(
-                    "Unable to load JSON token from file {}, falling back to pickle"
-                    .format(token_path)
-                )
+                    'Unable to load JSON token from file %s, ' +
+                    'falling back to pickle', token_path)
                 return pickle.loads(token_data)
     return load_token
 
@@ -56,11 +56,11 @@ def _normalize_api_key(api_key):
         key_split = api_key.split('@')
         if len(key_split) != 1:
             get_logger().warning(
-                    'API key ends in nonstandard suffix "{}". Ignoring'.format(
-                        '@'.join(key_split[1:])))
+                    'API key ends in nonstandard suffix "%s". Ignoring',
+                        LazyLog(lambda: '@'.join(key_split[1:])))
             api_key = key_split[0]
 
-        get_logger().info('Appending {} to API key'.format(api_key_suffix))
+        get_logger().info('Appending %s to API key', api_key_suffix)
         api_key = api_key + api_key_suffix
 
     return api_key
@@ -167,8 +167,8 @@ class TokenMetadata:
         logger = get_logger()
         if cls.is_metadata_aware_token(token):
             logger.info(
-                    'Loaded metadata aware token with creation timestamp {}'
-                    .format(token['creation_timestamp']))
+                    'Loaded metadata aware token with creation timestamp %s',
+                    token['creation_timestamp'])
             return TokenMetadata(
                 token['creation_timestamp'], unwrapped_token_write_func)
         elif cls.is_legacy_token(token):
@@ -220,12 +220,12 @@ class TokenMetadata:
 
         now = int(time.time())
 
-        logger.info((
+        logger.info(
             'Updating refresh token:\n'+
-            ' - Current timestamp is {}\n'+
-            ' - Token creation timestamp is {}\n'+
-            ' - Update interval is {} seconds').format(
-                now, self.creation_timestamp, update_interval_seconds))
+            ' - Current timestamp is %s\n'+
+            ' - Token creation timestamp is %s\n'+
+            ' - Update interval is %s seconds',
+                now, self.creation_timestamp, update_interval_seconds)
 
         if not (self.creation_timestamp is None
                 or now - self.creation_timestamp >
@@ -282,8 +282,8 @@ def client_from_login_flow(webdriver, api_key, redirect_url, token_path,
                        file already exists, it will be overwritten with a new
                        one. Updated tokens will be written to this path as well.
     '''
-    get_logger().info(('Creating new token with redirect URL \'{}\' ' +
-                       'and token path \'{}\'').format(redirect_url, token_path))
+    get_logger().info('Creating new token with redirect URL \'%s\' ' +
+                       'and token path \'%s\'', redirect_url, token_path)
 
     api_key = _normalize_api_key(api_key)
 
@@ -352,8 +352,8 @@ def client_from_manual_flow(api_key, redirect_url, token_path,
                        file already exists, it will be overwritten with a new
                        one. Updated tokens will be written to this path as well.
     '''
-    get_logger().info(('Creating new token with redirect URL \'{}\' ' +
-                       'and token path \'{}\'').format(redirect_url, token_path))
+    get_logger().info('Creating new token with redirect URL \'%s\' ' +
+                       'and token path \'%s\'', redirect_url, token_path)
 
     api_key = _normalize_api_key(api_key)
 
@@ -431,11 +431,11 @@ def easy_client(api_key, redirect_uri, token_path, webdriver_func=None,
 
     if os.path.isfile(token_path):
         c = client_from_token_file(token_path, api_key, asyncio=asyncio)
-        logger.info('Returning client loaded from token file \'{}\''.format(
-            token_path))
+        logger.info(
+                'Returning client loaded from token file \'%s\'', token_path)
         return c
     else:
-        logger.warning('Failed to find token file \'{}\''.format(token_path))
+        logger.warning('Failed to find token file \'%s\'', token_path)
 
         if webdriver_func is not None:
             with webdriver_func() as driver:
@@ -443,7 +443,7 @@ def easy_client(api_key, redirect_uri, token_path, webdriver_func=None,
                     driver, api_key, redirect_uri, token_path, asyncio=asyncio)
                 logger.info(
                     'Returning client fetched using webdriver, writing' +
-                    'token to \'{}\''.format(token_path))
+                    'token to \'%s\'', token_path)
                 return c
         else:
             logger.error('No webdriver_func set, cannot fetch token')
@@ -474,8 +474,6 @@ def client_from_access_functions(api_key, token_read_func,
                              called whenever the token is updated, such as when
                              it is refreshed.
     '''
-    logger = get_logger()
-
     token = token_read_func()
 
     # Extract metadata and unpack the token, if necessary

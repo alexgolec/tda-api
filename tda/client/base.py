@@ -56,8 +56,8 @@ class BaseClient(EnumEnforcer):
     _DATE = datetime.date
 
     def _log_response(self, resp, req_num):
-        self.logger.debug('Req {}: GET response: {}, content={}'.format(
-            req_num, resp.status_code, resp.text))
+        self.logger.debug('Req %s: GET response: %s, content=%s',
+            req_num, resp.status_code, resp.text)
 
     def _req_num(self):
         self.request_number += 1

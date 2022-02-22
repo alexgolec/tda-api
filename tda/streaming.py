@@ -15,7 +15,7 @@ import urllib.parse
 import websockets.legacy.client as ws_client
 from websockets.extensions.permessage_deflate import ClientPerMessageDeflateFactory
 
-from .utils import EnumEnforcer
+from .utils import EnumEnforcer, LazyLog
 
 
 class StreamJsonDecoder(ABC):
@@ -160,8 +160,8 @@ class StreamClient(EnumEnforcer):
             raise ValueError(
                 'Socket not open. Did you forget to call login()?')
 
-        self.logger.debug('Send {}: Sending {}'.format(
-            self.req_num(), json.dumps(obj, indent=4)))
+        self.logger.debug('Send %s: Sending %s',
+                self.req_num(), LazyLog(lambda: json.dumps(obj, indent=4)))
 
         await self._socket.send(json.dumps(obj))
 
@@ -174,8 +174,8 @@ class StreamClient(EnumEnforcer):
             ret = self._overflow_items.pop()
 
             self.logger.debug(
-                'Receive {}: Returning message from overflow: {}'.format(
-                    self.req_num(), json.dumps(ret, indent=4)))
+                'Receive %s: Returning message from overflow: %s',
+                self.req_num(), LazyLog(lambda: json.dumps(ret, indent=4)))
         else:
             raw = await self._socket.recv()
             try:
@@ -187,8 +187,8 @@ class StreamClient(EnumEnforcer):
                 raise UnparsableMessage(raw, e, msg)
 
             self.logger.debug(
-                'Receive {}: Returning message from stream: {}'.format(
-                    self.req_num(), json.dumps(ret, indent=4)))
+                'Receive %s: Returning message from stream: %s',
+                self.req_num(), LazyLog(lambda: json.dumps(ret, indent=4)))
 
         return ret
 
@@ -222,8 +222,8 @@ class StreamClient(EnumEnforcer):
         # Record streamer subscription keys
         stream_keys = principals['streamerSubscriptionKeys']['keys']
         if len(stream_keys) > 1:
-            self.logger.warn('Found {} stream keys, using the first one'.format(
-                len(stream_keys)))
+            self.logger.warn('Found %s stream keys, using the first one',
+                len(stream_keys))
         self._stream_key = stream_keys[0]['key']
 
         # Initialize socket
