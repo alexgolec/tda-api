@@ -87,6 +87,14 @@ class AccountIdMismatchException(ValueError):
     '''
 
 
+class LazyLog:
+    'Helper to defer evaluation of expensive variables in log messages'
+    def __init__(self, func):
+        self.func = func
+    def __str__(self):
+        return self.func()
+
+
 class Utils(EnumEnforcer):
     '''Helper for placing orders on equities. Provides easy-to-use
     implementations for common tasks such as market and limit orders.'''
