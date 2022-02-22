@@ -1,5 +1,6 @@
 import asyncio
 import datetime
+import logging
 import os
 import pytest
 import pytz
@@ -9,9 +10,7 @@ from unittest.mock import ANY, MagicMock, Mock, patch
 from tda.client import AsyncClient, Client
 from tda.orders.generic import OrderBuilder
 
-from .utils import no_duplicates
-
-from .utils import AsyncMagicMock, ResyncProxy
+from .utils import AsyncMagicMock, ResyncProxy, no_duplicates
 
 # Constants
 
@@ -59,6 +58,10 @@ class _TestClient:
     def setUp(self):
         self.mock_session = self.magicmock_class()
         self.client = self.client_class(API_KEY, self.mock_session)
+
+        # Set the logging level to DEBUG to force all lazily-evaluated messages
+        # to be evaluated
+        self.client.logger.setLevel('DEBUG')
 
     def make_url(self, path):
         path = path.format(
