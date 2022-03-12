@@ -11,6 +11,8 @@ import os
 import pickle
 import sys
 import time
+import urllib.parse as urlparse
+from urllib.parse import urlencode
 import warnings
 
 from tda.client import AsyncClient, Client
@@ -18,6 +20,7 @@ from tda.debug import register_redactions
 from tda.utils import LazyLog
 
 
+BASE_AUTHORIZATION_URL = 'https://auth.tdameritrade.com/auth'
 TOKEN_ENDPOINT = 'https://api.tdameritrade.com/v1/oauth2/token'
 
 
@@ -33,6 +36,18 @@ class AuthScope(enum.Enum):
             return TOKEN_ENDPOINT + '?scope=' + self.value
         else:
             return TOKEN_ENDPOINT
+
+    def _create_authorization_url(self, oauth):
+        url, state = oauth.create_authorization_url(BASE_AUTHORIZATION_URL)
+
+        if self.value:
+            parsed_url = list(urlparse.urlparse(url))
+            query = dict(urlparse.parse_qsl(parsed_url[4]))
+            query['scope'] = self.value
+            parsed_url[4] = urlencode(query)
+            url = urlparse.urlunparse(parsed_url)
+
+        return url, state
 
 
 def get_logger():
@@ -306,8 +321,11 @@ def client_from_login_flow(webdriver, api_key, redirect_url, token_path,
     api_key = _normalize_api_key(api_key)
 
     oauth = OAuth2Client(api_key, redirect_uri=redirect_url)
-    authorization_url, state = oauth.create_authorization_url(
-        'https://auth.tdameritrade.com/auth')
+    if auth_scope:
+        authorization_url, state = auth_scope._create_authorization_url(oauth)
+    else:
+        authorization_url, state = oauth.create_authorization_url(
+            'https://auth.tdameritrade.com/auth')
 
     # Open the login page and wait for the redirect
     print('\n**************************************************************\n')
@@ -377,8 +395,12 @@ def client_from_manual_flow(api_key, redirect_url, token_path,
     api_key = _normalize_api_key(api_key)
 
     oauth = OAuth2Client(api_key, redirect_uri=redirect_url)
-    authorization_url, state = oauth.create_authorization_url(
-        'https://auth.tdameritrade.com/auth')
+
+    if auth_scope:
+        authorization_url, state = auth_scope._create_authorization_url(oauth)
+    else:
+        authorization_url, state = oauth.create_authorization_url(
+            'https://auth.tdameritrade.com/auth')
 
     print('\n**************************************************************\n')
     print('This is the manual login and token creation flow for tda-api.')

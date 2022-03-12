@@ -8,6 +8,7 @@ from .utils import (
 from unittest.mock import patch, ANY, MagicMock
 from unittest.mock import ANY as _
 
+import io
 import json
 import os
 import pickle
@@ -17,6 +18,11 @@ import unittest
 
 API_KEY = 'APIKEY@AMER.OAUTHAP'
 MOCK_NOW = 1613745082
+
+
+class StringContains(str):
+    def __eq__(self, other):
+        return self in other
 
 
 class ClientFromTokenFileTest(unittest.TestCase):
@@ -464,6 +470,8 @@ class ClientFromLoginFlow(unittest.TestCase):
                              redirect_wait_time_seconds=0.0,
                              auth_scope=auth.AuthScope.ACCOUNT_ACCESS))
 
+        webdriver.get.assert_called_once_with(StringContains('?scope=AccountAccess'))
+
         sync_session.assert_called_with(
                 _, token=_, auto_refresh_url=auth.TOKEN_ENDPOINT,
                 auto_refresh_kwargs=_, update_token=_)
@@ -631,8 +639,9 @@ class ClientFromManualFlow(unittest.TestCase):
     @patch('tda.auth.AsyncOAuth2Client', new_callable=MockAsyncOAuthClient)
     @patch('tda.auth.prompt')
     @patch('time.time', unittest.mock.MagicMock(return_value=MOCK_NOW))
+    @unittest.mock.patch('sys.stdout', new_callable=io.StringIO)
     def test_restricted_auth_scope(
-            self, prompt_func, async_session, sync_session, client):
+            self, mock_stdout, prompt_func, async_session, sync_session, client):
         AUTH_URL = 'https://auth.url.com'
 
         sync_session.return_value = sync_session
@@ -646,6 +655,8 @@ class ClientFromManualFlow(unittest.TestCase):
                          auth.client_from_manual_flow(
                              API_KEY, REDIRECT_URL, self.json_path,
                              auth_scope=auth.AuthScope.ACCOUNT_ACCESS))
+
+        self.assertIn('?scope=AccountAccess', mock_stdout.getvalue())
 
         sync_session.fetch_token.assert_called_with(
                 auth.TOKEN_ENDPOINT + '?scope=AccountAccess',
