@@ -295,7 +295,7 @@ class TokenMetadata:
 def client_from_login_flow(webdriver, api_key, redirect_url, token_path,
                            redirect_wait_time_seconds=0.1, max_waits=3000,
                            asyncio=False, token_write_func=None,
-                           auth_scope=AuthScope.ALL):
+                           auth_scope=None):
     '''
     Uses the webdriver to perform an OAuth webapp login flow and creates a
     client wrapped around the resulting token. The client will be configured to
@@ -369,7 +369,7 @@ def client_from_login_flow(webdriver, api_key, redirect_url, token_path,
 
 def client_from_manual_flow(api_key, redirect_url, token_path,
                             asyncio=False, token_write_func=None, 
-                            auth_scope=AuthScope.ALL):
+                            auth_scope=None):
     '''
     Walks the user through performing an OAuth login flow by manually
     copy-pasting URLs, and returns a client wrapped around the resulting token.
@@ -442,7 +442,7 @@ def client_from_manual_flow(api_key, redirect_url, token_path,
 
 
 def easy_client(api_key, redirect_uri, token_path, webdriver_func=None,
-                asyncio=False, auth_scope=AuthScope.ALL):
+                asyncio=False, auth_scope=None):
     '''Convenient wrapper around :func:`client_from_login_flow` and
     :func:`client_from_token_file`. If ``token_path`` exists, loads the token
     from it. Otherwise open a login flow to fetch a new token. Returns a client
@@ -481,7 +481,8 @@ def easy_client(api_key, redirect_uri, token_path, webdriver_func=None,
         if webdriver_func is not None:
             with webdriver_func() as driver:
                 c = client_from_login_flow(
-                    driver, api_key, redirect_uri, token_path, asyncio=asyncio)
+                    driver, api_key, redirect_uri, token_path, asyncio=asyncio,
+                    auth_scope=auth_scope)
                 logger.info(
                     'Returning client fetched using webdriver, writing' +
                     'token to \'%s\'', token_path)

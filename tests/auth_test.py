@@ -802,6 +802,28 @@ class EasyClientTest(unittest.TestCase):
         webdriver_func.assert_called_once()
         client_from_login_flow.assert_called_once()
 
+    @no_duplicates
+    @patch('tda.auth.client_from_login_flow')
+    @patch('tda.auth.client_from_token_file')
+    def test_no_token_file_with_wd_func_restricted_auth_scope(
+            self,
+            client_from_token_file,
+            client_from_login_flow):
+        webdriver_func = MagicMock()
+        client_from_token_file.side_effect = SystemExit()
+        client_from_login_flow.return_value = 'returned client'
+        webdriver_func = MagicMock()
+
+        self.assertEquals('returned client',
+                          auth.easy_client(
+                              API_KEY, REDIRECT_URL, self.json_path,
+                              webdriver_func=webdriver_func,
+                              auth_scope=auth.AuthScope.ACCOUNT_ACCESS))
+
+        webdriver_func.assert_called_once()
+        client_from_login_flow.assert_called_once_with(
+                _, _, _, _, asyncio=_, auth_scope=auth.AuthScope.ACCOUNT_ACCESS)
+
 
 class TokenMetadataTest(unittest.TestCase):
 
