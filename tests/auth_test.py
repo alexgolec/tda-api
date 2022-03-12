@@ -1,6 +1,7 @@
 from tda import auth
 from .utils import (
         AnyStringWith,
+        AnyStringWithout,
         MockAsyncOAuthClient,
         MockOAuthClient,
         no_duplicates
@@ -18,11 +19,6 @@ import unittest
 
 API_KEY = 'APIKEY@AMER.OAUTHAP'
 MOCK_NOW = 1613745082
-
-
-class StringContains(str):
-    def __eq__(self, other):
-        return self in other
 
 
 class ClientFromTokenFileTest(unittest.TestCase):
@@ -470,7 +466,7 @@ class ClientFromLoginFlow(unittest.TestCase):
                              redirect_wait_time_seconds=0.0,
                              auth_scope=auth.AuthScope.ACCOUNT_ACCESS))
 
-        webdriver.get.assert_called_once_with(StringContains('?scope=AccountAccess'))
+        webdriver.get.assert_called_once_with(AnyStringWith('?scope=AccountAccess'))
 
         sync_session.assert_called_with(
                 _, token=_, auto_refresh_url=auth.TOKEN_ENDPOINT,
@@ -478,6 +474,50 @@ class ClientFromLoginFlow(unittest.TestCase):
 
         sync_session.fetch_token.assert_called_with(
                 auth.TOKEN_ENDPOINT + '?scope=AccountAccess',
+                authorization_response=_,
+                access_type=_,
+                client_id=_,
+                include_client_id=_)
+
+        with open(self.json_path, 'r') as f:
+            self.assertEqual({
+                'creation_timestamp': MOCK_NOW,
+                'token': self.token
+            }, json.load(f))
+
+
+    @no_duplicates
+    @patch('tda.auth.Client')
+    @patch('tda.auth.OAuth2Client', new_callable=MockOAuthClient)
+    @patch('tda.auth.AsyncOAuth2Client', new_callable=MockAsyncOAuthClient)
+    @patch('time.time', unittest.mock.MagicMock(return_value=MOCK_NOW))
+    def test_none_auth_scope(self, async_session, sync_session, client):
+        AUTH_URL = 'https://auth.url.com'
+
+        sync_session.return_value = sync_session
+        sync_session.create_authorization_url.return_value = AUTH_URL, None
+        sync_session.fetch_token.return_value = self.token
+
+        webdriver = MagicMock()
+        webdriver.current_url = REDIRECT_URL + '/token_params'
+
+        client.return_value = 'returned client'
+
+        self.assertEqual('returned client',
+                         auth.client_from_login_flow(
+                             webdriver, API_KEY, REDIRECT_URL,
+                             self.json_path,
+                             redirect_wait_time_seconds=0.0,
+                             auth_scope=None))
+
+        webdriver.get.assert_called_once_with(AnyStringWithout('?scope='))
+
+        sync_session.assert_called_with(
+                _, token=_, auto_refresh_url=auth.TOKEN_ENDPOINT,
+                auto_refresh_kwargs=_, update_token=_)
+
+        sync_session.fetch_token.assert_called_with(
+                auth.TOKEN_ENDPOINT,
                 authorization_response=_,
                 access_type=_,
                 client_id=_,
@@ -660,6 +700,45 @@ class ClientFromManualFlow(unittest.TestCase):
 
         sync_session.fetch_token.assert_called_with(
                 auth.TOKEN_ENDPOINT + '?scope=AccountAccess',
+                authorization_response=_,
+                access_type=_,
+                client_id=_,
+                include_client_id=_)
+
+        with open(self.json_path, 'r') as f:
+            self.assertEqual({
+                'creation_timestamp': MOCK_NOW,
+                'token': self.token,
+            }, json.load(f))
+
+
+    @no_duplicates
+    @patch('tda.auth.Client')
+    @patch('tda.auth.OAuth2Client', new_callable=MockOAuthClient)
+    @patch('tda.auth.AsyncOAuth2Client', new_callable=MockAsyncOAuthClient)
+    @patch('tda.auth.prompt')
+    @patch('time.time', unittest.mock.MagicMock(return_value=MOCK_NOW))
+    @unittest.mock.patch('sys.stdout', new_callable=io.StringIO)
+    def test_none_auth_scope(
+            self, mock_stdout, prompt_func, async_session, sync_session, client):
+        AUTH_URL = 'https://auth.url.com'
+
+        sync_session.return_value = sync_session
+        sync_session.create_authorization_url.return_value = AUTH_URL, None
+        sync_session.fetch_token.return_value = self.token
+
+        client.return_value = 'returned client'
+        prompt_func.return_value = 'http://redirect.url.com/?data'
+
+        self.assertEqual('returned client',
+                         auth.client_from_manual_flow(
+                             API_KEY, REDIRECT_URL, self.json_path,
+                             auth_scope=None))
+
+        self.assertNotIn('?scope=', mock_stdout.getvalue())
+
+        sync_session.fetch_token.assert_called_with(
+                auth.TOKEN_ENDPOINT,
                 authorization_response=_,
                 access_type=_,
                 client_id=_,

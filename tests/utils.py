@@ -16,6 +16,14 @@ class AnyStringWith(str):
     def __eq__(self, other):
         return self in other
 
+class AnyStringWithout(str):
+    '''
+    Utility for checking whether a function was called without the given string
+    as a substring.
+    '''
+    def __eq__(self, other):
+        return self not in other
+
 def account_principals():
     with open('tests/testdata/principals.json', 'r') as f:
         return json.load(f)

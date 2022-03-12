@@ -442,7 +442,7 @@ def client_from_manual_flow(api_key, redirect_url, token_path,
 
 
 def easy_client(api_key, redirect_uri, token_path, webdriver_func=None,
-                asyncio=False):
+                asyncio=False, auth_scope=AuthScope.ALL):
     '''Convenient wrapper around :func:`client_from_login_flow` and
     :func:`client_from_token_file`. If ``token_path`` exists, loads the token
     from it. Otherwise open a login flow to fetch a new token. Returns a client
