@@ -124,7 +124,7 @@ def __fetch_and_register_token_from_redirect(
         oauth, redirected_url, api_key, token_path, token_write_func, asyncio, 
         auth_scope):
     token = oauth.fetch_token(
-        auth_scope._token_endpoint() if auth_scope else TOKEN_ENDPOINT,
+        auth_scope._token_endpoint(),
         authorization_response=redirected_url,
         access_type='offline',
         client_id=api_key,
@@ -321,11 +321,10 @@ def client_from_login_flow(webdriver, api_key, redirect_url, token_path,
     api_key = _normalize_api_key(api_key)
 
     oauth = OAuth2Client(api_key, redirect_uri=redirect_url)
-    if auth_scope:
-        authorization_url, state = auth_scope._create_authorization_url(oauth)
-    else:
-        authorization_url, state = oauth.create_authorization_url(
-            'https://auth.tdameritrade.com/auth')
+    if not auth_scope:
+        auth_scope = AuthScope.ALL
+
+    authorization_url, state = auth_scope._create_authorization_url(oauth)
 
     # Open the login page and wait for the redirect
     print('\n**************************************************************\n')
@@ -396,11 +395,9 @@ def client_from_manual_flow(api_key, redirect_url, token_path,
 
     oauth = OAuth2Client(api_key, redirect_uri=redirect_url)
 
-    if auth_scope:
-        authorization_url, state = auth_scope._create_authorization_url(oauth)
-    else:
-        authorization_url, state = oauth.create_authorization_url(
-            'https://auth.tdameritrade.com/auth')
+    if not auth_scope:
+        auth_scope = AuthScope.ALL
+    authorization_url, state = auth_scope._create_authorization_url(oauth)
 
     print('\n**************************************************************\n')
     print('This is the manual login and token creation flow for tda-api.')
