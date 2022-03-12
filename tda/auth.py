@@ -4,6 +4,7 @@
 from authlib.integrations.httpx_client import AsyncOAuth2Client, OAuth2Client
 from prompt_toolkit import prompt
 
+import enum
 import json
 import logging
 import os
@@ -18,6 +19,20 @@ from tda.utils import LazyLog
 
 
 TOKEN_ENDPOINT = 'https://api.tdameritrade.com/v1/oauth2/token'
+
+
+class AuthScope(enum.Enum):
+    ALL = None
+    PLACE_TRADES = 'PlaceTrades'
+    ACCOUNT_ACCESS = 'AccountAccess'
+    MOVE_MONEY = 'MoveMoney'
+
+    def _token_endpoint(self):
+        # Note ALL is defined as None
+        if self.value:
+            return TOKEN_ENDPOINT + '?scope=' + self.value
+        else:
+            return TOKEN_ENDPOINT
 
 
 def get_logger():
@@ -91,9 +106,10 @@ def client_from_token_file(token_path, api_key, asyncio=False):
 
 
 def __fetch_and_register_token_from_redirect(
-        oauth, redirected_url, api_key, token_path, token_write_func, asyncio):
+        oauth, redirected_url, api_key, token_path, token_write_func, asyncio, 
+        auth_scope):
     token = oauth.fetch_token(
-        TOKEN_ENDPOINT,
+        auth_scope._token_endpoint() if auth_scope else TOKEN_ENDPOINT,
         authorization_response=redirected_url,
         access_type='offline',
         client_id=api_key,
@@ -263,7 +279,8 @@ class TokenMetadata:
 # TODO: Raise an exception when passing both token_path and token_write_func
 def client_from_login_flow(webdriver, api_key, redirect_url, token_path,
                            redirect_wait_time_seconds=0.1, max_waits=3000,
-                           asyncio=False, token_write_func=None):
+                           asyncio=False, token_write_func=None,
+                           auth_scope=AuthScope.ALL):
     '''
     Uses the webdriver to perform an OAuth webapp login flow and creates a
     client wrapped around the resulting token. The client will be configured to
@@ -281,6 +298,7 @@ def client_from_login_flow(webdriver, api_key, redirect_url, token_path,
     :param token_path: Path to which the new token will be written. If the token
                        file already exists, it will be overwritten with a new
                        one. Updated tokens will be written to this path as well.
+    :param auth_scope: See :ref:`limiting_scope_of_access`
     '''
     get_logger().info('Creating new token with redirect URL \'%s\' ' +
                        'and token path \'%s\'', redirect_url, token_path)
@@ -328,11 +346,12 @@ def client_from_login_flow(webdriver, api_key, redirect_url, token_path,
 
     return __fetch_and_register_token_from_redirect(
         oauth, current_url, api_key, token_path, token_write_func,
-        asyncio)
+        asyncio, auth_scope)
 
 
 def client_from_manual_flow(api_key, redirect_url, token_path,
-                            asyncio=False, token_write_func=None):
+                            asyncio=False, token_write_func=None, 
+                            auth_scope=AuthScope.ALL):
     '''
     Walks the user through performing an OAuth login flow by manually
     copy-pasting URLs, and returns a client wrapped around the resulting token.
@@ -397,7 +416,7 @@ def client_from_manual_flow(api_key, redirect_url, token_path,
 
     return __fetch_and_register_token_from_redirect(
         oauth, redirected_url, api_key, token_path, token_write_func,
-        asyncio)
+        asyncio, auth_scope)
 
 
 def easy_client(api_key, redirect_uri, token_path, webdriver_func=None,

@@ -161,6 +161,11 @@ free to ask for help on our `Discord server <https://discord.gg/BEr6y6Xqyv>`__.
 Advanced Functionality
 ----------------------
 
+
+++++++++++++++++++++++++++++++++++++++++++
+Fetching Tokens from Nonstandard Locations
+++++++++++++++++++++++++++++++++++++++++++
+
 The default token fetcher functions are designed for ease of use. They make some 
 common assumptions, most notably a writable filesystem, which are valid for 99% 
 of users. However, some very specialized users, for instance those hoping to 
@@ -174,6 +179,46 @@ been looking for," you don't need this function. Please use the other helpers
 instead.
 
 .. autofunction:: tda.auth.client_from_access_functions
+
+
+.. _limiting_scope_of_access:
+
+++++++++++++++++++++++++
+Limiting Scope of Access
+++++++++++++++++++++++++
+
+Some astute users might notice that the OAuth page on which they log in to 
+create a token lists requested permissions as ``Place trades``, ``Display your 
+balances, positions, and order status``, and, perhaps troublingly, ``Move 
+money``. That "Move money" one appears scary because it implies that granting 
+the access grants the application to move money, potentially out of the user's 
+TDAmeritrade account. 
+
+This permission is somewhat mysterious, as to our knowledge there is no 
+publicly-facing API which allows for moving money. Only the "Place traces" and 
+"Display your balances, positions, and order status" permissions appear to be 
+supported by the library. However, this does not rule out the possibility of 
+non-public and undocumented endpoints which enable this. After all, the 
+TDAmeritrade mobile app, which we believe is backed by this API, offers that 
+functionality. 
+
+Library users can limit the scope of access to exactly one of the three 
+permissions. This is accomplished by passing an appopriate value of the 
+following enum to the ``auth_scope`` parameter of the method used to create the 
+token. Annoyingly, there does not appear to be a way to enable "Place traces" 
+and "Display your balances, positions, and order status," but not "Move money:"
+
+.. autoclass:: tda.auth.AuthScope
+   :members:
+   :undoc-members:
+
+The library authors would like to take this opportunity to remind you that this 
+library is licensed under the terms of the MIT license, and so they are not 
+responsible for any consequences of use or misuse of this library, up to and 
+including the consequences of any theft or fraud resulting from undocumented API 
+calls which permit money to be moved without user permission. See our `license 
+<https://github.com/alexgolec/tda-api/blob/master/LICENSE>`__ for more details.
+
 
 ---------------
 Troubleshooting
