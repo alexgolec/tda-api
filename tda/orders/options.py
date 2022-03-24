@@ -412,7 +412,7 @@ def bull_put_vertical_close(
                 OptionInstruction.BUY_TO_CLOSE, short_put_symbol, quantity))
 
 
-# Bear Pull
+# Bear Put
 
 def bear_put_vertical_open(
         short_put_symbol, long_put_symbol, quantity, net_debit):
