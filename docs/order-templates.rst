@@ -156,7 +156,7 @@ Vertical Spreads
 ++++++++++++++++
 
 Vertical spreads are a complex option strategy that provides both limited upside
-and limited downside. They are constructed using by buying an option at one 
+and limited downside. They are constructed by buying an option at one 
 strike while simultaneously selling another option with the same underlying and 
 expiration date, except with a different strike, and they can be constructed 
 using either puts or call. You can find more information about this strategy on 
