@@ -227,13 +227,13 @@ What's happening here is both constituent orders are being executed, and then
 ``place_order`` will fail. Creating an ``OrderBuilder`` defers their execution, 
 subject to your composite order rules. 
 
-**Note:** It appears that using these methods requires disabling Advanced 
-Features on your account. It is not entirely clear why this is the case, but 
-we've seen numerous reports of issues with OCO and trigger orders being resolved 
-by this method. You can disable advanced features by calling TDAmeritrade 
-support and requesting that they be turned off. If you need more help, we 
-recommend `joining our discord <https://discord.gg/M3vjtHj>`__ to ask the 
-community for help. 
+**Note:** In the past, using these features required disabling Advanced Features
+on your account. Since then, it appears this requirement has been silently removed,
+and many users have reported being able to use composite orders without disabling
+these features. If you encounter issues with OCO or trigger orders, you may find
+it helpful to call TDAmeritrade support and request that Advanced Features be 
+turned off for your account. If you need more help, we recommend `joining our 
+discord <https://discord.gg/M3vjtHj>`__ to ask the community for help. 
 
 .. autofunction:: tda.orders.common.one_cancels_other
 .. autofunction:: tda.orders.common.first_triggers_second
