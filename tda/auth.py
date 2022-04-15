@@ -466,13 +466,18 @@ def client_from_access_functions(api_key, token_read_func,
     simply accept the token object and use ``pickle`` to serialize and
     deserialize it, without inspecting it in any way.
 
+    Note the read and write methods must take particular arguments. Please see 
+    `this example <https://github.com/alexgolec/tda-api/tree/master/examples/
+    client_from_access_functions.py>`__ for details.
+
     :param api_key: Your TD Ameritrade application's API key, also known as the
                     client ID.
     :param token_read_func: Function that takes no arguments and returns a token
                             object.
-    :param token_write_func: Function that a token object and writes it. Will be
+    :param token_write_func: Function that writes the token on update. Will be
                              called whenever the token is updated, such as when
-                             it is refreshed.
+                             it is refreshed. See the above-mentioned example 
+                             for what parameters this method takes.
     '''
     token = token_read_func()
 
