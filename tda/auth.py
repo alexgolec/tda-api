@@ -499,7 +499,6 @@ def client_from_access_functions(api_key, token_read_func,
                     environment. Defaults to ``False``
     :param enforce_enums: Set it to ``False`` to disable the enum checks on ALL the client methods. Only do it if you
                           know you really need it. For most users, it is advised to use enums to avoid errors.
-                            
     '''
     token = token_read_func()
 
