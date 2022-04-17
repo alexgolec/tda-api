@@ -82,20 +82,25 @@ def client_from_token_file(token_path, api_key, asyncio=False, enforce_enums=Tru
                        :func:`~tda.auth.easy_client` to create one.
     :param api_key: Your TD Ameritrade application's API key, also known as the
                     client ID.
-    :param asyncio: If set to ``True``, this will enable async support allowing the client to be used in an async
-                    environment. Defaults to ``False``
-    :param enforce_enums: Set it to ``False`` to disable the enum checks on ALL the client methods. Only do it if you
-                          know you really need it. For most users, it is advised to use enums to avoid errors.
+    :param asyncio: If set to ``True``, this will enable async support allowing
+                    the client to be used in an async environment. Defaults to
+                    ``False``
+    :param enforce_enums: Set it to ``False`` to disable the enum checks on ALL
+                          the client methods. Only do it if you know you really
+                          need it. For most users, it is advised to use enums
+                          to avoid errors.
     '''
 
     load = __token_loader(token_path)
 
     return client_from_access_functions(
-        api_key, load, __update_token(token_path), asyncio=asyncio, enforce_enums=enforce_enums)
+        api_key, load, __update_token(token_path), asyncio=asyncio,
+        enforce_enums=enforce_enums)
 
 
 def __fetch_and_register_token_from_redirect(
-        oauth, redirected_url, api_key, token_path, token_write_func, asyncio, enforce_enums=True):
+        oauth, redirected_url, api_key, token_path, token_write_func, asyncio,
+        enforce_enums=True):
     token = oauth.fetch_token(
         TOKEN_ENDPOINT,
         authorization_response=redirected_url,
@@ -267,7 +272,8 @@ class TokenMetadata:
 # TODO: Raise an exception when passing both token_path and token_write_func
 def client_from_login_flow(webdriver, api_key, redirect_url, token_path,
                            redirect_wait_time_seconds=0.1, max_waits=3000,
-                           asyncio=False, token_write_func=None, enforce_enums=True):
+                           asyncio=False, token_write_func=None,
+                           enforce_enums=True):
     '''
     Uses the webdriver to perform an OAuth webapp login flow and creates a
     client wrapped around the resulting token. The client will be configured to
@@ -286,10 +292,13 @@ def client_from_login_flow(webdriver, api_key, redirect_url, token_path,
                        file already exists, it will be overwritten with a new
                        one. Updated tokens will be written to this path as well.
 
-    :param asyncio: If set to ``True``, this will enable async support allowing the client to be used in an async
-                    environment. Defaults to ``False``
-    :param enforce_enums: Set it to ``False`` to disable the enum checks on ALL the client methods. Only do it if you
-                          know you really need it. For most users, it is advised to use enums to avoid errors.
+    :param asyncio: If set to ``True``, this will enable async support allowing
+                    the client to be used in an async environment. Defaults to
+                    ``False``
+    :param enforce_enums: Set it to ``False`` to disable the enum checks on ALL
+                          the client methods. Only do it if you know you really
+                          need it. For most users, it is advised to use enums
+                          to avoid errors.
     '''
     get_logger().info('Creating new token with redirect URL \'%s\' ' +
                        'and token path \'%s\'', redirect_url, token_path)
@@ -341,7 +350,8 @@ def client_from_login_flow(webdriver, api_key, redirect_url, token_path,
 
 
 def client_from_manual_flow(api_key, redirect_url, token_path,
-                            asyncio=False, token_write_func=None, enforce_enums=True):
+                            asyncio=False, token_write_func=None,
+                            enforce_enums=True):
     '''
     Walks the user through performing an OAuth login flow by manually
     copy-pasting URLs, and returns a client wrapped around the resulting token.
@@ -360,10 +370,13 @@ def client_from_manual_flow(api_key, redirect_url, token_path,
     :param token_path: Path to which the new token will be written. If the token
                        file already exists, it will be overwritten with a new
                        one. Updated tokens will be written to this path as well.
-    :param asyncio: If set to ``True``, this will enable async support allowing the client to be used in an async
-                    environment. Defaults to ``False``
-    :param enforce_enums: Set it to ``False`` to disable the enum checks on ALL the client methods. Only do it if you
-                          know you really need it. For most users, it is advised to use enums to avoid errors.
+    :param asyncio: If set to ``True``, this will enable async support allowing
+                    the client to be used in an async environment. Defaults to
+                    ``False``
+    :param enforce_enums: Set it to ``False`` to disable the enum checks on ALL
+                          the client methods. Only do it if you know you really
+                          need it. For most users, it is advised to use enums
+                          to avoid errors.
     '''
     get_logger().info('Creating new token with redirect URL \'%s\' ' +
                        'and token path \'%s\'', redirect_url, token_path)
@@ -439,15 +452,19 @@ def easy_client(api_key, redirect_uri, token_path, webdriver_func=None,
     :param webdriver_func: Function that returns a webdriver for use in fetching
                            a new token. Will only be called if the token file
                            cannot be found.
-    :param asyncio: If set to ``True``, this will enable async support allowing the client to be used in an async
-                    environment. Defaults to ``False``
-    :param enforce_enums: Set it to ``False`` to disable the enum checks on ALL the client methods. Only do it if you
-                          know you really need it. For most users, it is advised to use enums to avoid errors.
+    :param asyncio: If set to ``True``, this will enable async support allowing
+                    the client to be used in an async environment. Defaults to
+                    ``False``
+    :param enforce_enums: Set it to ``False`` to disable the enum checks on ALL
+                          the client methods. Only do it if you know you really
+                          need it. For most users, it is advised to use enums
+                          to avoid errors.
     '''
     logger = get_logger()
 
     if os.path.isfile(token_path):
-        c = client_from_token_file(token_path, api_key, asyncio=asyncio, enforce_enums=enforce_enums)
+        c = client_from_token_file(token_path, api_key, asyncio=asyncio,
+                                   enforce_enums=enforce_enums)
         logger.info(
                 'Returning client loaded from token file \'%s\'', token_path)
         return c
@@ -457,7 +474,8 @@ def easy_client(api_key, redirect_uri, token_path, webdriver_func=None,
         if webdriver_func is not None:
             with webdriver_func() as driver:
                 c = client_from_login_flow(
-                    driver, api_key, redirect_uri, token_path, asyncio=asyncio, enforce_enums=enforce_enums)
+                    driver, api_key, redirect_uri, token_path, asyncio=asyncio,
+                    enforce_enums=enforce_enums)
                 logger.info(
                     'Returning client fetched using webdriver, writing' +
                     'token to \'%s\'', token_path)
@@ -468,7 +486,8 @@ def easy_client(api_key, redirect_uri, token_path, webdriver_func=None,
 
 
 def client_from_access_functions(api_key, token_read_func,
-                                 token_write_func, asyncio=False, enforce_enums=True):
+                                 token_write_func, asyncio=False,
+                                 enforce_enums=True):
     '''
     Returns a session from an existing token file, using the accessor methods to
     read and write the token. This is an advanced method for users who do not
@@ -495,10 +514,13 @@ def client_from_access_functions(api_key, token_read_func,
                              called whenever the token is updated, such as when
                              it is refreshed. See the above-mentioned example 
                              for what parameters this method takes.
-    :param asyncio: If set to ``True``, this will enable async support allowing the client to be used in an async
-                    environment. Defaults to ``False``
-    :param enforce_enums: Set it to ``False`` to disable the enum checks on ALL the client methods. Only do it if you
-                          know you really need it. For most users, it is advised to use enums to avoid errors.
+    :param asyncio: If set to ``True``, this will enable async support allowing
+                    the client to be used in an async environment. Defaults to
+                    ``False``
+    :param enforce_enums: Set it to ``False`` to disable the enum checks on ALL
+                          the client methods. Only do it if you know you really
+                          need it. For most users, it is advised to use enums
+                          to avoid errors.
     '''
     token = token_read_func()
 
