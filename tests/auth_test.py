@@ -131,11 +131,6 @@ class ClientFromTokenFileTest(unittest.TestCase):
                                                      enforce_enums=False))
         client.assert_called_once_with(API_KEY, _, token_metadata=_,
                                        enforce_enums=False)
-        sync_session.assert_called_once_with(
-            API_KEY,
-            token=self.token,
-            token_endpoint=_,
-            update_token=_)
 
     @no_duplicates
     @patch('tda.auth.Client')
@@ -150,11 +145,6 @@ class ClientFromTokenFileTest(unittest.TestCase):
                          auth.client_from_token_file(self.json_path, API_KEY))
         client.assert_called_once_with(API_KEY, _, token_metadata=_,
                                        enforce_enums=True)
-        sync_session.assert_called_once_with(
-            API_KEY,
-            token=self.token,
-            token_endpoint=_,
-            update_token=_)
 
 
 class ClientFromAccessFunctionsTest(unittest.TestCase):
@@ -265,23 +255,6 @@ class ClientFromAccessFunctionsTest(unittest.TestCase):
         client.assert_called_once_with('API_KEY@AMER.OAUTHAP', _, token_metadata=_,
                                        enforce_enums=False)
 
-        sync_session.assert_called_once_with(
-            'API_KEY@AMER.OAUTHAP',
-            token=token,
-            token_endpoint=_,
-            update_token=_)
-        token_read_func.assert_called_once()
-
-        # Verify that the write function is called when the updater is called
-        session_call = sync_session.mock_calls[0]
-        update_token = session_call[2]['update_token']
-
-        update_token(token)
-        self.assertEqual([{
-            'creation_timestamp': None,
-            'token': token,
-        }], token_writes)
-
     @no_duplicates
     @patch('tda.auth.Client')
     @patch('tda.auth.OAuth2Client', new_callable=MockOAuthClient)
@@ -307,23 +280,6 @@ class ClientFromAccessFunctionsTest(unittest.TestCase):
 
         client.assert_called_once_with('API_KEY@AMER.OAUTHAP', _, token_metadata=_,
                                        enforce_enums=True)
-
-        sync_session.assert_called_once_with(
-            'API_KEY@AMER.OAUTHAP',
-            token=token,
-            token_endpoint=_,
-            update_token=_)
-        token_read_func.assert_called_once()
-
-        # Verify that the write function is called when the updater is called
-        session_call = sync_session.mock_calls[0]
-        update_token = session_call[2]['update_token']
-
-        update_token(token)
-        self.assertEqual([{
-            'creation_timestamp': None,
-            'token': token,
-        }], token_writes)
 
 
 REDIRECT_URL = 'https://redirect.url.com'
@@ -582,16 +538,6 @@ class ClientFromLoginFlow(unittest.TestCase):
         client.assert_called_once_with(API_KEY, _, token_metadata=_,
                                        enforce_enums=False)
 
-        sync_session.assert_called_with(
-            _, token=_, auto_refresh_url=_, auto_refresh_kwargs=_,
-            update_token=_)
-
-        with open(self.json_path, 'r') as f:
-            self.assertEqual({
-                'creation_timestamp': MOCK_NOW,
-                'token': self.token
-            }, json.load(f))
-
     @no_duplicates
     @patch('tda.auth.Client')
     @patch('tda.auth.OAuth2Client', new_callable=MockOAuthClient)
@@ -618,16 +564,6 @@ class ClientFromLoginFlow(unittest.TestCase):
 
         client.assert_called_once_with(API_KEY, _, token_metadata=_,
                                        enforce_enums=True)
-
-        sync_session.assert_called_with(
-            _, token=_, auto_refresh_url=_, auto_refresh_kwargs=_,
-            update_token=_)
-
-        with open(self.json_path, 'r') as f:
-            self.assertEqual({
-                'creation_timestamp': MOCK_NOW,
-                'token': self.token
-            }, json.load(f))
 
 
 class ClientFromManualFlow(unittest.TestCase):
@@ -788,12 +724,6 @@ class ClientFromManualFlow(unittest.TestCase):
         client.assert_called_once_with(API_KEY, _, token_metadata=_,
                                        enforce_enums=False)
 
-        with open(self.json_path, 'r') as f:
-            self.assertEqual({
-                'creation_timestamp': MOCK_NOW,
-                'token': self.token,
-            }, json.load(f))
-
     @no_duplicates
     @patch('tda.auth.Client')
     @patch('tda.auth.OAuth2Client', new_callable=MockOAuthClient)
@@ -817,12 +747,6 @@ class ClientFromManualFlow(unittest.TestCase):
 
         client.assert_called_once_with(API_KEY, _, token_metadata=_,
                                        enforce_enums=True)
-
-        with open(self.json_path, 'r') as f:
-            self.assertEqual({
-                'creation_timestamp': MOCK_NOW,
-                'token': self.token,
-            }, json.load(f))
 
 
 class EasyClientTest(unittest.TestCase):
