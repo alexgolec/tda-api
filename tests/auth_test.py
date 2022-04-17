@@ -49,7 +49,8 @@ class ClientFromTokenFileTest(unittest.TestCase):
 
         self.assertEqual('returned client',
                          auth.client_from_token_file(self.pickle_path, API_KEY))
-        client.assert_called_once_with(API_KEY, _, token_metadata=_)
+        client.assert_called_once_with(API_KEY, _, token_metadata=_,
+                                       enforce_enums=_)
         sync_session.assert_called_once_with(
             API_KEY,
             token=self.token,
@@ -67,7 +68,8 @@ class ClientFromTokenFileTest(unittest.TestCase):
 
         self.assertEqual('returned client',
                          auth.client_from_token_file(self.json_path, API_KEY))
-        client.assert_called_once_with(API_KEY, _, token_metadata=_)
+        client.assert_called_once_with(API_KEY, _, token_metadata=_,
+                                       enforce_enums=_)
         sync_session.assert_called_once_with(
             API_KEY,
             token=self.token,
@@ -96,7 +98,6 @@ class ClientFromTokenFileTest(unittest.TestCase):
                 'token': updated_token,
             })
 
-
     @no_duplicates
     @patch('tda.auth.Client')
     @patch('tda.auth.OAuth2Client', new_callable=MockOAuthClient)
@@ -109,16 +110,44 @@ class ClientFromTokenFileTest(unittest.TestCase):
         self.assertEqual('returned client',
                          auth.client_from_token_file(self.json_path, 'API_KEY'))
         client.assert_called_once_with(
-                'API_KEY@AMER.OAUTHAP', _, token_metadata=_)
+                'API_KEY@AMER.OAUTHAP', _, token_metadata=_, enforce_enums=_)
         sync_session.assert_called_once_with(
             'API_KEY@AMER.OAUTHAP',
             token=self.token,
             token_endpoint=_,
             update_token=_)
 
+    @no_duplicates
+    @patch('tda.auth.Client')
+    @patch('tda.auth.OAuth2Client', new_callable=MockOAuthClient)
+    @patch('tda.auth.AsyncOAuth2Client', new_callable=MockAsyncOAuthClient)
+    def test_enforce_enums_being_disabled(self, async_session, sync_session, client):
+        self.write_token()
+
+        client.return_value = 'returned client'
+
+        self.assertEqual('returned client',
+                         auth.client_from_token_file(self.json_path, API_KEY,
+                                                     enforce_enums=False))
+        client.assert_called_once_with(API_KEY, _, token_metadata=_,
+                                       enforce_enums=False)
+
+    @no_duplicates
+    @patch('tda.auth.Client')
+    @patch('tda.auth.OAuth2Client', new_callable=MockOAuthClient)
+    @patch('tda.auth.AsyncOAuth2Client', new_callable=MockAsyncOAuthClient)
+    def test_enforce_enums_being_enabled(self, async_session, sync_session, client):
+        self.write_token()
+
+        client.return_value = 'returned client'
+
+        self.assertEqual('returned client',
+                         auth.client_from_token_file(self.json_path, API_KEY))
+        client.assert_called_once_with(API_KEY, _, token_metadata=_,
+                                       enforce_enums=True)
+
 
 class ClientFromAccessFunctionsTest(unittest.TestCase):
-
 
     @no_duplicates
     @patch('tda.auth.Client')
@@ -132,6 +161,7 @@ class ClientFromAccessFunctionsTest(unittest.TestCase):
         token_read_func.return_value = token
 
         token_writes = []
+
         def token_write_func(token):
             token_writes.append(token)
 
@@ -159,7 +189,6 @@ class ClientFromAccessFunctionsTest(unittest.TestCase):
             'token': token,
         }], token_writes)
 
-
     @no_duplicates
     @patch('tda.auth.Client')
     @patch('tda.auth.OAuth2Client', new_callable=MockOAuthClient)
@@ -175,6 +204,7 @@ class ClientFromAccessFunctionsTest(unittest.TestCase):
         token_read_func.return_value = token
 
         token_writes = []
+
         def token_write_func(token):
             token_writes.append(token)
 
@@ -199,6 +229,57 @@ class ClientFromAccessFunctionsTest(unittest.TestCase):
         update_token(token['token'])
         self.assertEqual([token], token_writes)
 
+    @no_duplicates
+    @patch('tda.auth.Client')
+    @patch('tda.auth.OAuth2Client', new_callable=MockOAuthClient)
+    @patch('tda.auth.AsyncOAuth2Client', new_callable=MockAsyncOAuthClient)
+    def test_success_with_enforce_enums_disabled(
+            self, async_session, sync_session, client):
+        token = {'token': 'yes'}
+
+        token_read_func = MagicMock()
+        token_read_func.return_value = token
+
+        token_writes = []
+
+        def token_write_func(token):
+            token_writes.append(token)
+
+        client.return_value = 'returned client'
+        self.assertEqual('returned client',
+                         auth.client_from_access_functions(
+                             'API_KEY@AMER.OAUTHAP',
+                             token_read_func,
+                             token_write_func, enforce_enums=False))
+
+        client.assert_called_once_with('API_KEY@AMER.OAUTHAP', _, token_metadata=_,
+                                       enforce_enums=False)
+
+    @no_duplicates
+    @patch('tda.auth.Client')
+    @patch('tda.auth.OAuth2Client', new_callable=MockOAuthClient)
+    @patch('tda.auth.AsyncOAuth2Client', new_callable=MockAsyncOAuthClient)
+    def test_success_with_enforce_enums_enabled(
+            self, async_session, sync_session, client):
+        token = {'token': 'yes'}
+
+        token_read_func = MagicMock()
+        token_read_func.return_value = token
+
+        token_writes = []
+
+        def token_write_func(token):
+            token_writes.append(token)
+
+        client.return_value = 'returned client'
+        self.assertEqual('returned client',
+                         auth.client_from_access_functions(
+                             'API_KEY@AMER.OAUTHAP',
+                             token_read_func,
+                             token_write_func))
+
+        client.assert_called_once_with('API_KEY@AMER.OAUTHAP', _, token_metadata=_,
+                                       enforce_enums=True)
 
 
 REDIRECT_URL = 'https://redirect.url.com'
@@ -210,7 +291,6 @@ class ClientFromLoginFlow(unittest.TestCase):
         self.tmp_dir = tempfile.TemporaryDirectory()
         self.json_path = os.path.join(self.tmp_dir.name, 'token.json')
         self.token = {'token': 'yes'}
-
 
     @no_duplicates
     @patch('tda.auth.Client')
@@ -335,7 +415,6 @@ class ClientFromLoginFlow(unittest.TestCase):
                 'API_KEY@AMER.OAUTHAP',
                 sync_session.call_args[0][0])
 
-
     @no_duplicates
     @patch('tda.auth.Client')
     @patch('tda.auth.OAuth2Client', new_callable=MockOAuthClient)
@@ -358,7 +437,6 @@ class ClientFromLoginFlow(unittest.TestCase):
                     webdriver, API_KEY, redirect_url,
                     self.json_path,
                     redirect_wait_time_seconds=0.0)
-
 
     @no_duplicates
     @patch('tda.auth.Client')
@@ -394,7 +472,6 @@ class ClientFromLoginFlow(unittest.TestCase):
                 'token': self.token
             }, json.load(f))
 
-
     @no_duplicates
     @patch('tda.auth.Client')
     @patch('tda.auth.OAuth2Client', new_callable=MockOAuthClient)
@@ -413,6 +490,7 @@ class ClientFromLoginFlow(unittest.TestCase):
         client.return_value = 'returned client'
 
         token_writes = []
+
         def dummy_token_write_func(token):
             token_writes.append(token)
 
@@ -432,6 +510,61 @@ class ClientFromLoginFlow(unittest.TestCase):
             'token': self.token
         }], token_writes)
 
+    @no_duplicates
+    @patch('tda.auth.Client')
+    @patch('tda.auth.OAuth2Client', new_callable=MockOAuthClient)
+    @patch('tda.auth.AsyncOAuth2Client', new_callable=MockAsyncOAuthClient)
+    @patch('time.time', unittest.mock.MagicMock(return_value=MOCK_NOW))
+    def test_enforce_enums_disabled(
+            self, async_session, sync_session, client):
+        AUTH_URL = 'https://auth.url.com'
+
+        sync_session.return_value = sync_session
+        sync_session.create_authorization_url.return_value = AUTH_URL, None
+        sync_session.fetch_token.return_value = self.token
+
+        webdriver = MagicMock()
+        webdriver.current_url = REDIRECT_URL + '/token_params'
+
+        client.return_value = 'returned client'
+
+        self.assertEqual('returned client',
+                         auth.client_from_login_flow(
+                             webdriver, API_KEY, REDIRECT_URL,
+                             self.json_path,
+                             redirect_wait_time_seconds=0.0,
+                             enforce_enums=False))
+
+        client.assert_called_once_with(API_KEY, _, token_metadata=_,
+                                       enforce_enums=False)
+
+    @no_duplicates
+    @patch('tda.auth.Client')
+    @patch('tda.auth.OAuth2Client', new_callable=MockOAuthClient)
+    @patch('tda.auth.AsyncOAuth2Client', new_callable=MockAsyncOAuthClient)
+    @patch('time.time', unittest.mock.MagicMock(return_value=MOCK_NOW))
+    def test_enforce_enums_enabled(
+            self, async_session, sync_session, client):
+        AUTH_URL = 'https://auth.url.com'
+
+        sync_session.return_value = sync_session
+        sync_session.create_authorization_url.return_value = AUTH_URL, None
+        sync_session.fetch_token.return_value = self.token
+
+        webdriver = MagicMock()
+        webdriver.current_url = REDIRECT_URL + '/token_params'
+
+        client.return_value = 'returned client'
+
+        self.assertEqual('returned client',
+                         auth.client_from_login_flow(
+                             webdriver, API_KEY, REDIRECT_URL,
+                             self.json_path,
+                             redirect_wait_time_seconds=0.0))
+
+        client.assert_called_once_with(API_KEY, _, token_metadata=_,
+                                       enforce_enums=True)
+
 
 class ClientFromManualFlow(unittest.TestCase):
 
@@ -439,7 +572,6 @@ class ClientFromManualFlow(unittest.TestCase):
         self.tmp_dir = tempfile.TemporaryDirectory()
         self.json_path = os.path.join(self.tmp_dir.name, 'token.json')
         self.token = {'token': 'yes'}
-
 
     @no_duplicates
     @patch('tda.auth.Client')
@@ -495,7 +627,6 @@ class ClientFromManualFlow(unittest.TestCase):
                 'API_KEY@AMER.OAUTHAP',
                 sync_session.call_args[0][0])
 
-
     @no_duplicates
     @patch('tda.auth.Client')
     @patch('tda.auth.OAuth2Client', new_callable=MockOAuthClient)
@@ -517,6 +648,7 @@ class ClientFromManualFlow(unittest.TestCase):
         prompt_func.return_value = 'http://redirect.url.com/?data'
 
         token_writes = []
+
         def dummy_token_write_func(token):
             token_writes.append(token)
 
@@ -534,7 +666,6 @@ class ClientFromManualFlow(unittest.TestCase):
             'creation_timestamp': MOCK_NOW,
             'token': self.token
         }], token_writes)
-
 
     @no_duplicates
     @patch('tda.auth.Client')
@@ -567,6 +698,55 @@ class ClientFromManualFlow(unittest.TestCase):
             }, json.load(f))
 
         print_func.assert_any_call(AnyStringWith('will transmit data over HTTP'))
+
+    @no_duplicates
+    @patch('tda.auth.Client')
+    @patch('tda.auth.OAuth2Client', new_callable=MockOAuthClient)
+    @patch('tda.auth.AsyncOAuth2Client', new_callable=MockAsyncOAuthClient)
+    @patch('tda.auth.prompt')
+    @patch('time.time', unittest.mock.MagicMock(return_value=MOCK_NOW))
+    def test_enforce_enums_disabled(
+            self, prompt_func, async_session, sync_session, client):
+        AUTH_URL = 'https://auth.url.com'
+
+        sync_session.return_value = sync_session
+        sync_session.create_authorization_url.return_value = AUTH_URL, None
+        sync_session.fetch_token.return_value = self.token
+
+        client.return_value = 'returned client'
+        prompt_func.return_value = 'http://redirect.url.com/?data'
+
+        self.assertEqual('returned client',
+                         auth.client_from_manual_flow(
+                             API_KEY, REDIRECT_URL, self.json_path,
+                             enforce_enums=False))
+
+        client.assert_called_once_with(API_KEY, _, token_metadata=_,
+                                       enforce_enums=False)
+
+    @no_duplicates
+    @patch('tda.auth.Client')
+    @patch('tda.auth.OAuth2Client', new_callable=MockOAuthClient)
+    @patch('tda.auth.AsyncOAuth2Client', new_callable=MockAsyncOAuthClient)
+    @patch('tda.auth.prompt')
+    @patch('time.time', unittest.mock.MagicMock(return_value=MOCK_NOW))
+    def test_enforce_enums_enabled(
+            self, prompt_func, async_session, sync_session, client):
+        AUTH_URL = 'https://auth.url.com'
+
+        sync_session.return_value = sync_session
+        sync_session.create_authorization_url.return_value = AUTH_URL, None
+        sync_session.fetch_token.return_value = self.token
+
+        client.return_value = 'returned client'
+        prompt_func.return_value = 'http://redirect.url.com/?data'
+
+        self.assertEqual('returned client',
+                         auth.client_from_manual_flow(
+                             API_KEY, REDIRECT_URL, self.json_path))
+
+        client.assert_called_once_with(API_KEY, _, token_metadata=_,
+                                       enforce_enums=True)
 
 
 class EasyClientTest(unittest.TestCase):
@@ -620,6 +800,79 @@ class EasyClientTest(unittest.TestCase):
         webdriver_func.assert_called_once()
         client_from_login_flow.assert_called_once()
 
+    @no_duplicates
+    @patch('tda.auth.client_from_login_flow')
+    @patch('tda.auth.client_from_token_file')
+    def test_no_token_file_with_wd_func_with_enums_disabled(
+            self,
+            client_from_token_file,
+            client_from_login_flow):
+        client_from_token_file.side_effect = SystemExit()
+        client_from_login_flow.return_value = 'returned client'
+        webdriver_func = MagicMock()
+
+        self.assertEquals('returned client',
+                          auth.easy_client(
+                              API_KEY, REDIRECT_URL, self.json_path,
+                              webdriver_func=webdriver_func, enforce_enums=False))
+
+        webdriver_func.assert_called_once()
+        client_from_login_flow.assert_called_once_with(_, API_KEY, REDIRECT_URL,
+                                                       self.json_path,
+                                                       asyncio=False,
+                                                       enforce_enums=False)
+
+    @no_duplicates
+    @patch('tda.auth.client_from_login_flow')
+    @patch('tda.auth.client_from_token_file')
+    def test_no_token_file_with_wd_func_with_enums_enabled(
+            self,
+            client_from_token_file,
+            client_from_login_flow):
+        client_from_token_file.side_effect = SystemExit()
+        client_from_login_flow.return_value = 'returned client'
+        webdriver_func = MagicMock()
+
+        self.assertEquals('returned client',
+                          auth.easy_client(
+                              API_KEY, REDIRECT_URL, self.json_path,
+                              webdriver_func=webdriver_func))
+
+        webdriver_func.assert_called_once()
+        client_from_login_flow.assert_called_once_with(_, API_KEY, REDIRECT_URL,
+                                                       self.json_path,
+                                                       asyncio=False,
+                                                       enforce_enums=True)
+
+    @no_duplicates
+    @patch('tda.auth.client_from_token_file')
+    def test_token_file_with_enums_disabled(self, client_from_token_file):
+        self.write_token()
+
+        webdriver_func = MagicMock()
+        client_from_token_file.return_value = self.token
+
+        self.assertEquals(self.token,
+                          auth.easy_client(API_KEY, REDIRECT_URL, self.json_path,
+                                           enforce_enums=False))
+        client_from_token_file.assert_called_once_with(self.json_path, API_KEY,
+                                                       asyncio=False,
+                                                       enforce_enums=False)
+
+    @no_duplicates
+    @patch('tda.auth.client_from_token_file')
+    def test_token_file_with_enums_enabled(self, client_from_token_file):
+        self.write_token()
+
+        webdriver_func = MagicMock()
+        client_from_token_file.return_value = self.token
+
+        self.assertEquals(self.token,
+                          auth.easy_client(API_KEY, REDIRECT_URL, self.json_path))
+        client_from_token_file.assert_called_once_with(self.json_path, API_KEY,
+                                                       asyncio=False,
+                                                       enforce_enums=True)
+
 
 class TokenMetadataTest(unittest.TestCase):
 
@@ -666,27 +919,25 @@ class NormalizeAPIKeyTest(unittest.TestCase):
             import logging
             logging.getLogger('tda.auth').warning('dummy')
 
-            self.assertEqual('API_KEY@AMER.OAUTHAP', 
+            self.assertEqual('API_KEY@AMER.OAUTHAP',
                     auth._normalize_api_key('API_KEY@AMER.OAUTHAP'))
 
             self.assertEqual(['WARNING:tda.auth:dummy'], log.output)
 
-
     @no_duplicates
     def test_no_suffix(self):
         with self.assertLogs('tda.auth') as log:
-            self.assertEqual('API_KEY@AMER.OAUTHAP', 
+            self.assertEqual('API_KEY@AMER.OAUTHAP',
                     auth._normalize_api_key('API_KEY'))
 
             self.assertEqual([
                 'INFO:tda.auth:Appending @AMER.OAUTHAP to API key'
             ], log.output)
 
-
     @no_duplicates
     def test_invalid_suffix(self):
         with self.assertLogs('tda.auth') as log:
-            self.assertEqual('API_KEY@AMER.OAUTHAP', 
+            self.assertEqual('API_KEY@AMER.OAUTHAP',
                     auth._normalize_api_key('API_KEY@AMER'))
 
             self.assertEqual([

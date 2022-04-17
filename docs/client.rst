@@ -133,7 +133,14 @@ Creating a New Client
 +++++++++++++++++++++
 
 99.9% of users should not create their own clients, and should instead follow 
-the instructions outlined in :ref:`auth`. For those brave enough to build their
+the instructions outlined in :ref:`auth`.
+
+For users who want to disable the strict enum type checking on http client,
+just pass ``enforce_enums=False`` in any of the client creation functions
+described in :ref:`auth`. Just note that for most users, it is advised they
+stick with the default behavior.
+
+For those brave enough to build their
 own, the constructor looks like this:
 
 .. automethod:: tda.client.Client.__init__
