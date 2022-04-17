@@ -49,7 +49,8 @@ class ClientFromTokenFileTest(unittest.TestCase):
 
         self.assertEqual('returned client',
                          auth.client_from_token_file(self.pickle_path, API_KEY))
-        client.assert_called_once_with(API_KEY, _, token_metadata=_, enforce_enums=_)
+        client.assert_called_once_with(API_KEY, _, token_metadata=_,
+                                       enforce_enums=_)
         sync_session.assert_called_once_with(
             API_KEY,
             token=self.token,
@@ -67,7 +68,8 @@ class ClientFromTokenFileTest(unittest.TestCase):
 
         self.assertEqual('returned client',
                          auth.client_from_token_file(self.json_path, API_KEY))
-        client.assert_called_once_with(API_KEY, _, token_metadata=_, enforce_enums=_)
+        client.assert_called_once_with(API_KEY, _, token_metadata=_,
+                                       enforce_enums=_)
         sync_session.assert_called_once_with(
             API_KEY,
             token=self.token,
@@ -125,8 +127,10 @@ class ClientFromTokenFileTest(unittest.TestCase):
         client.return_value = 'returned client'
 
         self.assertEqual('returned client',
-                         auth.client_from_token_file(self.json_path, API_KEY, enforce_enums=False))
-        client.assert_called_once_with(API_KEY, _, token_metadata=_, enforce_enums=False)
+                         auth.client_from_token_file(self.json_path, API_KEY,
+                                                     enforce_enums=False))
+        client.assert_called_once_with(API_KEY, _, token_metadata=_,
+                                       enforce_enums=False)
         sync_session.assert_called_once_with(
             API_KEY,
             token=self.token,
@@ -144,7 +148,8 @@ class ClientFromTokenFileTest(unittest.TestCase):
 
         self.assertEqual('returned client',
                          auth.client_from_token_file(self.json_path, API_KEY))
-        client.assert_called_once_with(API_KEY, _, token_metadata=_, enforce_enums=True)
+        client.assert_called_once_with(API_KEY, _, token_metadata=_,
+                                       enforce_enums=True)
         sync_session.assert_called_once_with(
             API_KEY,
             token=self.token,
@@ -257,7 +262,8 @@ class ClientFromAccessFunctionsTest(unittest.TestCase):
                              token_read_func,
                              token_write_func, enforce_enums=False))
 
-        client.assert_called_once_with('API_KEY@AMER.OAUTHAP', _, token_metadata=_, enforce_enums=False)
+        client.assert_called_once_with('API_KEY@AMER.OAUTHAP', _, token_metadata=_,
+                                       enforce_enums=False)
 
         sync_session.assert_called_once_with(
             'API_KEY@AMER.OAUTHAP',
@@ -299,7 +305,8 @@ class ClientFromAccessFunctionsTest(unittest.TestCase):
                              token_read_func,
                              token_write_func))
 
-        client.assert_called_once_with('API_KEY@AMER.OAUTHAP', _, token_metadata=_, enforce_enums=True)
+        client.assert_called_once_with('API_KEY@AMER.OAUTHAP', _, token_metadata=_,
+                                       enforce_enums=True)
 
         sync_session.assert_called_once_with(
             'API_KEY@AMER.OAUTHAP',
@@ -569,9 +576,11 @@ class ClientFromLoginFlow(unittest.TestCase):
                          auth.client_from_login_flow(
                              webdriver, API_KEY, REDIRECT_URL,
                              self.json_path,
-                             redirect_wait_time_seconds=0.0, enforce_enums=False))
+                             redirect_wait_time_seconds=0.0,
+                             enforce_enums=False))
 
-        client.assert_called_once_with(API_KEY, _, token_metadata=_, enforce_enums=False)
+        client.assert_called_once_with(API_KEY, _, token_metadata=_,
+                                       enforce_enums=False)
 
         sync_session.assert_called_with(
             _, token=_, auto_refresh_url=_, auto_refresh_kwargs=_,
@@ -607,7 +616,8 @@ class ClientFromLoginFlow(unittest.TestCase):
                              self.json_path,
                              redirect_wait_time_seconds=0.0))
 
-        client.assert_called_once_with(API_KEY, _, token_metadata=_, enforce_enums=True)
+        client.assert_called_once_with(API_KEY, _, token_metadata=_,
+                                       enforce_enums=True)
 
         sync_session.assert_called_with(
             _, token=_, auto_refresh_url=_, auto_refresh_kwargs=_,
@@ -772,9 +782,11 @@ class ClientFromManualFlow(unittest.TestCase):
 
         self.assertEqual('returned client',
                          auth.client_from_manual_flow(
-                             API_KEY, REDIRECT_URL, self.json_path, enforce_enums=False))
+                             API_KEY, REDIRECT_URL, self.json_path,
+                             enforce_enums=False))
 
-        client.assert_called_once_with(API_KEY, _, token_metadata=_, enforce_enums=False)
+        client.assert_called_once_with(API_KEY, _, token_metadata=_,
+                                       enforce_enums=False)
 
         with open(self.json_path, 'r') as f:
             self.assertEqual({
@@ -803,7 +815,8 @@ class ClientFromManualFlow(unittest.TestCase):
                          auth.client_from_manual_flow(
                              API_KEY, REDIRECT_URL, self.json_path))
 
-        client.assert_called_once_with(API_KEY, _, token_metadata=_, enforce_enums=True)
+        client.assert_called_once_with(API_KEY, _, token_metadata=_,
+                                       enforce_enums=True)
 
         with open(self.json_path, 'r') as f:
             self.assertEqual({
@@ -880,8 +893,10 @@ class EasyClientTest(unittest.TestCase):
                               webdriver_func=webdriver_func, enforce_enums=False))
 
         webdriver_func.assert_called_once()
-        client_from_login_flow.assert_called_once_with(_, API_KEY, REDIRECT_URL, self.json_path,
-                                                       asyncio=False, enforce_enums=False)
+        client_from_login_flow.assert_called_once_with(_, API_KEY, REDIRECT_URL,
+                                                       self.json_path,
+                                                       asyncio=False,
+                                                       enforce_enums=False)
 
     @no_duplicates
     @patch('tda.auth.client_from_login_flow')
@@ -900,8 +915,10 @@ class EasyClientTest(unittest.TestCase):
                               webdriver_func=webdriver_func))
 
         webdriver_func.assert_called_once()
-        client_from_login_flow.assert_called_once_with(_, API_KEY, REDIRECT_URL, self.json_path,
-                                                       asyncio=False, enforce_enums=True)
+        client_from_login_flow.assert_called_once_with(_, API_KEY, REDIRECT_URL,
+                                                       self.json_path,
+                                                       asyncio=False,
+                                                       enforce_enums=True)
 
     @no_duplicates
     @patch('tda.auth.client_from_token_file')
@@ -912,8 +929,11 @@ class EasyClientTest(unittest.TestCase):
         client_from_token_file.return_value = self.token
 
         self.assertEquals(self.token,
-                          auth.easy_client(API_KEY, REDIRECT_URL, self.json_path, enforce_enums=False))
-        client_from_token_file.assert_called_once_with(self.json_path, API_KEY, asyncio=False, enforce_enums=False)
+                          auth.easy_client(API_KEY, REDIRECT_URL, self.json_path,
+                                           enforce_enums=False))
+        client_from_token_file.assert_called_once_with(self.json_path, API_KEY,
+                                                       asyncio=False,
+                                                       enforce_enums=False)
 
     @no_duplicates
     @patch('tda.auth.client_from_token_file')
@@ -925,7 +945,9 @@ class EasyClientTest(unittest.TestCase):
 
         self.assertEquals(self.token,
                           auth.easy_client(API_KEY, REDIRECT_URL, self.json_path))
-        client_from_token_file.assert_called_once_with(self.json_path, API_KEY, asyncio=False, enforce_enums=True)
+        client_from_token_file.assert_called_once_with(self.json_path, API_KEY,
+                                                       asyncio=False,
+                                                       enforce_enums=True)
 
 
 class TokenMetadataTest(unittest.TestCase):
