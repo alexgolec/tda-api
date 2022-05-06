@@ -203,7 +203,7 @@ process looks like this:
 
   # Notice we don't prefix this with "python" because this is a script that was 
   # installed by pip when you installed tda-api
-  tda-orders-codegen.py --token_file <your token file path> --api_key <your API key>
+  tda-order-codegen.py --token_file <your token file path> --api_key <your API key>
 
 3. Copy-paste the resulting code and adapt it to your needs.
 
