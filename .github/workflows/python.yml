@@ -12,14 +12,16 @@ jobs:
       matrix:
         platform: [ubuntu-latest, macos-latest, windows-latest]
         python:
-        - version: 3.6
+        - version: "3.6"
           toxenv: py36
-        - version: 3.7
+        - version: "3.7"
           toxenv: py37
-        - version: 3.8
+        - version: "3.8"
           toxenv: py38
-        - version: 3.9
+        - version: "3.9"
           toxenv: py39
+        - version: "3.10"
+          toxenv: py310
     runs-on: ${{ matrix.platform }}
 
     steps:
@@ -33,7 +35,7 @@ jobs:
       run: |
         python -m pip install --upgrade pip
         pip install tox
-        pip install -r requirements.txt
+        pip install ".[dev]"
 
     - name: Test with tox ${{ matrix.python.toxenv }}
       env:
@@ -66,7 +68,7 @@ jobs:
     - name: Install dependencies
       run: |
         python -m pip install --upgrade pip
-        pip install -r requirements.txt
+        pip install ".[dev]"
     - name: Build Docs
       run: |
         make -f Makefile.sphinx html

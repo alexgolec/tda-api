@@ -15,7 +15,14 @@ def make_webdriver():
     # Import selenium here because it's slow to import
     from selenium import webdriver
 
-    driver = webdriver.Chrome()
+    # Choose your browser of choice by uncommenting the appropriate line. For
+    # help, see https://selenium-python.readthedocs.io/installation.html#drivers
+
+    #driver = webdriver.Chrome()
+    #driver = webdriver.Firefox()
+    #driver = webdriver.Safari()
+    #driver = webdriver.Edge()
+
     atexit.register(lambda: driver.quit())
     return driver
 
@@ -31,6 +38,11 @@ client = tda.auth.easy_client(
 async def main():
     r = await client.get_quote("AAPL")
     print(r.json())
+
+    # It is highly recommended to close your asynchronous client when you are
+    # done with it. This step isn't strictly necessary, however not doing so
+    # will result in warnings from the async HTTP library.
+    await client.close_async_session()
 
 if __name__ == '__main__':
     import asyncio

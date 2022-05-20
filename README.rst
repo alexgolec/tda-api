@@ -2,13 +2,13 @@
 ========================================
 
 .. image:: https://img.shields.io/discord/720378361880248621.svg?label=&logo=discord&logoColor=ffffff&color=7389D8&labelColor=6A7EC2
-  :target: https://discord.gg/nfrd9gh
+  :target: https://discord.gg/BEr6y6Xqyv
 
 .. image:: https://img.shields.io/endpoint.svg?url=https%3A%2F%2Fshieldsio-patreon.vercel.app%2Fapi%3Fusername%3Dalexgolec%26type%3Dpatrons&style=flat
   :target: https://patreon.com/alexgolec
 
-.. image:: https://readthedocs.org/projects/tda-api/badge/?version=stable
-  :target: https://tda-api.readthedocs.io/en/stable/?badge=stable
+.. image:: https://readthedocs.org/projects/tda-api/badge/?version=latest
+  :target: https://tda-api.readthedocs.io/en/latest/?badge=latest
 
 .. image:: https://github.com/alexgolec/tda-api/workflows/tests/badge.svg
   :target: https://github.com/alexgolec/tda-api/actions?query=workflow%3Atests
@@ -38,7 +38,7 @@ How do I use ``tda-api``?
 -------------------------
 
 For a full description of ``tda-api``'s functionality, check out the 
-`documentation <https://tda-api.readthedocs.io/en/stable/>`__. Meawhile, here's 
+`documentation <https://tda-api.readthedocs.io/en/latest/>`__. Meawhile, here's 
 a quick getting started guide:
 
 Before you do anything, create an account and an application on the
@@ -61,7 +61,7 @@ daily historical price data for the past twenty years:
   from tda import auth, client
   import json
 
-  token_path = '/path/to/token.pickle'
+  token_path = '/path/to/token.json'
   api_key = 'YOUR_API_KEY@AMER.OAUTHAP'
   redirect_uri = 'https://your.redirecturi.com'
   try:
@@ -99,16 +99,25 @@ Why should I use ``tda-api``?
 Why should I *not* use ``tda-api``?
 -----------------------------------
 
-Unfortunately, the TD Ameritrade API does not seem to expose any endpoints 
-around the `papermoney <https://tickertape.tdameritrade.com/tools/papermoney
--stock-market-simulator-16834>`__ simulated trading product. ``tda-api`` can 
-only be used to perform real trades using a TD Ameritrade account.
+As excellent as TD Ameritrade's API is, there are a few popular features it does 
+not offer: 
+
+ * Unfortunately, the TD Ameritrade API does not seem to expose any endpoints 
+   around the `papermoney <https://tickertape.tdameritrade.com/tools/papermoney
+   -stock-market-simulator-16834>`__ simulated trading product. ``tda-api`` can 
+   only be used to perform real trades using a TD Ameritrade account. Note: 
+   trades made through the API appear in thinkorswim and vice versa. 
+ * The API only supports trading in equities, mutual funds, ETFs, and options 
+   (both simple contracts and complex composite positions). Futures and futures 
+   options trading is not supported. Some data is provided for futures, but not
+   for futures options.
+ * Historical options pricing data is not available. 
 
 What else?
 ----------
 
-We have a `Discord server <https://discord.gg/nfrd9gh>`__! You can join to get 
-help using ``tda-api`` or just to chat with interesting people.
+We have a `Discord server <https://discord.gg/BEr6y6Xqyv>`__! You can join to 
+get help using ``tda-api`` or just to chat with interesting people.
 
 Bug reports, suggestions, and patches are always welcome! Submit issues
 `here <https://github.com/alexgolec/tda-api/issues>`__ and pull requests

@@ -1,4 +1,5 @@
 from colorama import Fore, Back, Style, init
+from unittest.mock import MagicMock
 
 import asyncio
 import asynctest
@@ -6,6 +7,14 @@ import difflib
 import inspect
 import httpx
 import json
+
+class AnyStringWith(str):
+    '''
+    Utility for checking whether a function was called with the given string as 
+    a substring.
+    '''
+    def __eq__(self, other):
+        return self in other
 
 def account_principals():
     with open('tests/testdata/principals.json', 'r') as f:
@@ -198,3 +207,16 @@ def no_duplicates(f):
     __NO_DUPLICATES_DEFINED_NAMES.add(name)
     return f
 
+
+class MockOAuthClient(MagicMock):
+    def __call__(self, *args, **kwargs):
+        if 'update_token' in kwargs:
+            assert not inspect.iscoroutinefunction(kwargs['update_token'])
+        return MagicMock.__call__(self, *args, **kwargs)
+
+
+class MockAsyncOAuthClient(MagicMock):
+    def __call__(self, *args, **kwargs):
+        if 'update_token' in kwargs:
+            assert inspect.iscoroutinefunction(kwargs['update_token'])
+        return MagicMock.__call__(self, *args, **kwargs)

@@ -31,11 +31,25 @@ setuptools.setup(
     python_requires='>=3.6',
     install_requires=[
         'authlib',
+        'autopep8',
         'httpx',
         'prompt_toolkit',
         'python-dateutil',
         'selenium', 
-        'websockets'],
+        'websockets>=9.0.0'],
+    extras_require={
+        'dev': [
+            'asynctest',
+            'colorama',
+            'coverage',
+            'tox',
+            'nose',
+            'pytest',
+            'pytz',
+            'sphinx_rtd_theme',
+            'twine',
+        ]
+    },
     keywords='finance trading equities bonds options research',
     project_urls={
         'Documentation': 'https://tda-api.readthedocs.io/en/latest/',
@@ -43,5 +57,9 @@ setuptools.setup(
         'Tracker': 'https://github.com/alexgolec/tda-api/issues',
     },
     license='MIT',
+    scripts=[
+        'bin/tda-generate-token.py',
+        'bin/tda-order-codegen.py',
+    ],
 )
 

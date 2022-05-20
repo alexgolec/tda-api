@@ -1,10 +1,14 @@
 from .base import BaseClient
 from ..debug import register_redactions_from_response
+from ..utils import LazyLog
 
 import json
 
 
 class AsyncClient(BaseClient):
+
+    async def close_async_session(self):
+        await self.session.aclose()
 
     async def _get_request(self, path, params):
         self.ensure_updated_refresh_token()
@@ -12,8 +16,8 @@ class AsyncClient(BaseClient):
         dest = 'https://api.tdameritrade.com' + path
 
         req_num = self._req_num()
-        self.logger.debug('Req {}: GET to {}, params={}'.format(
-            req_num, dest, json.dumps(params, indent=4)))
+        self.logger.debug('Req %s: GET to %s, params=%s',
+                req_num, dest, LazyLog(lambda: json.dumps(params, indent=4)))
 
         resp = await self.session.get(dest, params=params)
         self._log_response(resp, req_num)
@@ -26,8 +30,8 @@ class AsyncClient(BaseClient):
         dest = 'https://api.tdameritrade.com' + path
 
         req_num = self._req_num()
-        self.logger.debug('Req {}: POST to {}, json={}'.format(
-            req_num, dest, json.dumps(data, indent=4)))
+        self.logger.debug('Req %s: POST to %s, json=%s',
+                req_num, dest, LazyLog(lambda: json.dumps(data, indent=4)))
 
         resp = await self.session.post(dest, json=data)
         self._log_response(resp, req_num)
@@ -40,8 +44,8 @@ class AsyncClient(BaseClient):
         dest = 'https://api.tdameritrade.com' + path
 
         req_num = self._req_num()
-        self.logger.debug('Req {}: PUT to {}, json={}'.format(
-            req_num, dest, json.dumps(data, indent=4)))
+        self.logger.debug('Req %s: PUT to %s, json=%s',
+                req_num, dest, LazyLog(lambda: json.dumps(data, indent=4)))
 
         resp = await self.session.put(dest, json=data)
         self._log_response(resp, req_num)
@@ -54,8 +58,8 @@ class AsyncClient(BaseClient):
         dest = 'https://api.tdameritrade.com' + path
 
         req_num = self._req_num()
-        self.logger.debug('Req {}: PATCH to {}, json={}'.format(
-            req_num, dest, json.dumps(data, indent=4)))
+        self.logger.debug('Req %s: PATCH to %s, json=%s',
+                req_num, dest, LazyLog(lambda: json.dumps(data, indent=4)))
 
         resp = await self.session.patch(dest, json=data)
         self._log_response(resp, req_num)
@@ -68,7 +72,7 @@ class AsyncClient(BaseClient):
         dest = 'https://api.tdameritrade.com' + path
 
         req_num = self._req_num()
-        self.logger.debug('Req {}: DELETE to {}'.format(req_num, dest))
+        self.logger.debug('Req %s: DELETE to %s', req_num, dest)
 
         resp = await self.session.delete(dest)
         self._log_response(resp, req_num)

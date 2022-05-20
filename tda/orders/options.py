@@ -43,7 +43,7 @@ class OptionSymbol:
                             ``datetime.datetime``, or strings with the
                             format ``[Two digit month][Two digit day][Two
                             digit year]``.
-    :param contract_type: ``P`` for put or ``C`` for call.
+    :param contract_type: ``P` or `PUT`` for put and ``C` or `CALL`` for call.
     :param strike_price_as_string: Strike price, represented by a string as
                                    you would see at the end of a real option
                                    symbol.
@@ -53,9 +53,13 @@ class OptionSymbol:
                  strike_price_as_string):
         self.underlying_symbol = underlying_symbol
 
-        if contract_type not in ('C', 'P'):
-            raise ValueError('Contract type must be one of \'C\' or \'P\'')
-        self.contract_type = contract_type
+        if contract_type in ('C', 'CALL'):
+            self.contract_type = 'C'
+        elif contract_type in ('P', 'PUT'):
+            self.contract_type = 'P'
+        else:
+            raise ValueError(
+                'Contract type must be one of \'C\', \'CALL\', \'P\' or \'PUT\'')
 
         if isinstance(expiration_date, str):
             self.expiration_date = _parse_expiration_date(expiration_date)
@@ -412,7 +416,7 @@ def bull_put_vertical_close(
                 OptionInstruction.BUY_TO_CLOSE, short_put_symbol, quantity))
 
 
-# Bear Pull
+# Bear Put
 
 def bear_put_vertical_open(
         short_put_symbol, long_put_symbol, quantity, net_debit):

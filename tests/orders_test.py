@@ -4,6 +4,44 @@ from tda.orders.common import *
 from tda.orders.equities import *
 from .utils import has_diff, no_duplicates
 
+import imp
+from unittest.mock import patch
+
+
+class EquityOrderBuilderLegacy(unittest.TestCase):
+
+    def test_import_EquityOrderBuilder(self):
+        import sys
+        assert sys.version_info[0] == 3
+
+        if sys.version_info[1] >= 7:
+            with self.assertRaisesRegex(
+                    ImportError, 'EquityOrderBuilder has been deleted'):
+                from tda.orders import EquityOrderBuilder
+
+    def test_import_EquityOrderBuilder_pre_3_7(self):
+        import sys
+        assert sys.version_info[0] == 3
+
+        if sys.version_info[1] < 7:
+            from tda import orders
+            imp.reload(orders)
+
+            from tda.orders import EquityOrderBuilder
+
+            with self.assertRaisesRegex(NotImplementedError,
+                    'EquityOrderBuilder has been deleted'):
+                EquityOrderBuilder('args')
+
+    def test_other_import(self):
+        with self.assertRaisesRegex(ImportError, 'bogus'):
+            from tda.orders import bogus
+
+    def test_attribute_access(self):
+        with self.assertRaisesRegex(AttributeError, 'bogus'):
+            import tda
+            print(tda.orders.bogus)
+
 
 class BuilderTemplates(unittest.TestCase):
 

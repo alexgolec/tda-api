@@ -24,7 +24,7 @@ this will likely cause issues with the underlying OAuth2 session management**
   c = easy_client(
           api_key='APIKEY',
           redirect_uri='https://localhost',
-          token_path='/tmp/token.pickle')
+          token_path='/tmp/token.json')
 
   resp = c.get_price_history('AAPL',
           period_type=Client.PriceHistory.PeriodType.YEAR,
@@ -54,7 +54,7 @@ of slightly increased application complexity.
       c = easy_client(
               api_key='APIKEY',
               redirect_uri='https://localhost',
-              token_path='/tmp/token.pickle',
+              token_path='/tmp/token.json',
               asyncio=True)
 
       resp = await c.get_price_history('AAPL',
@@ -133,7 +133,14 @@ Creating a New Client
 +++++++++++++++++++++
 
 99.9% of users should not create their own clients, and should instead follow 
-the instructions outlined in :ref:`auth`. For those brave enough to build their
+the instructions outlined in :ref:`auth`.
+
+For users who want to disable the strict enum type checking on http client,
+just pass ``enforce_enums=False`` in any of the client creation functions
+described in :ref:`auth`. Just note that for most users, it is advised they
+stick with the default behavior.
+
+For those brave enough to build their
 own, the constructor looks like this:
 
 .. automethod:: tda.client.Client.__init__
@@ -248,11 +255,30 @@ please follow the instructions in :ref:`contributing` to send in a patch.
 Price History
 +++++++++++++
 
-Fetching price history is somewhat complicated due to the fact that only certain 
-combinations of parameters are valid. To avoid accidentally making it impossible
-to send valid requests, this method performs no validation on its parameters. If
-you are receiving empty requests or other weird return values, see the official
-documentation for more details.
+TDA provides price history for equities and ETFs. It does not provide price 
+history for options, futures, or any other instruments. 
+
+In the raw API, fetching price history is somewhat complicated: the API offers a 
+single endpoint :meth:`Client.get_price_history` that accepts a complex variety 
+of inputs, but fails to document them in any meaningful way.
+
+Thankfully, we've reverse engineered this endpoint and built some helpful 
+utilities for fetching prices by minute, day, week, etc. Each method can be 
+called with or without date bounds. When called without date bounds, it returns 
+all data available. Each method offers a different lookback period, so make sure 
+to read the documentation below to learn how much data is available. 
+
+
+.. automethod:: tda.client.Client.get_price_history_every_minute
+.. automethod:: tda.client.Client.get_price_history_every_five_minutes
+.. automethod:: tda.client.Client.get_price_history_every_ten_minutes
+.. automethod:: tda.client.Client.get_price_history_every_fifteen_minutes
+.. automethod:: tda.client.Client.get_price_history_every_thirty_minutes
+.. automethod:: tda.client.Client.get_price_history_every_day
+.. automethod:: tda.client.Client.get_price_history_every_week
+
+For the sake of completeness, here is the documentation for the raw price 
+history endpoint, in all its complexity.
 
 .. automethod:: tda.client.Client.get_price_history
 .. autoclass:: tda.client.Client.PriceHistory
@@ -327,6 +353,9 @@ User Info and Preferences
 ----------
 Watchlists
 ----------
+
+**Note**: These methods only support static watchlists, i.e. they cannot access 
+dynamic watchlists.
 
 .. automethod:: tda.client.Client.create_watchlist
 .. automethod:: tda.client.Client.delete_watchlist

@@ -124,7 +124,7 @@ and does not validate whether the symbol actually represents a traded option:
 
 .. code-block:: python
 
-  from tda.order.options import OptionSymbol
+  from tda.orders.options import OptionSymbol
 
   symbol = OptionSymbol(
       'TSLA', datetime.date(year=2020, month=11, day=20), 'P', '1360').build()
@@ -156,7 +156,7 @@ Vertical Spreads
 ++++++++++++++++
 
 Vertical spreads are a complex option strategy that provides both limited upside
-and limited downside. They are constructed using by buying an option at one 
+and limited downside. They are constructed by buying an option at one 
 strike while simultaneously selling another option with the same underlying and 
 expiration date, except with a different strike, and they can be constructed 
 using either puts or call. You can find more information about this strategy on 
@@ -227,13 +227,13 @@ What's happening here is both constituent orders are being executed, and then
 ``place_order`` will fail. Creating an ``OrderBuilder`` defers their execution, 
 subject to your composite order rules. 
 
-**Note:** It appears that using these methods requires disabling Advanced 
-Features on your account. It is not entirely clear why this is the case, but 
-we've seen numerous reports of issues with OCO and trigger orders being resolved 
-by this method. You can disable advanced features by calling TDAmeritrade 
-support and requesting that they be turned off. If you need more help, we 
-recommend `joining our discord <https://discord.gg/M3vjtHj>`__ to ask the 
-community for help. 
+**Note:** In the past, using these features required disabling Advanced Features
+on your account. Since then, it appears this requirement has been silently removed,
+and many users have reported being able to use composite orders without disabling
+these features. If you encounter issues with OCO or trigger orders, you may find
+it helpful to call TDAmeritrade support and request that Advanced Features be 
+turned off for your account. If you need more help, we recommend `joining our 
+discord <https://discord.gg/M3vjtHj>`__ to ask the community for help. 
 
 .. autofunction:: tda.orders.common.one_cancels_other
 .. autofunction:: tda.orders.common.first_triggers_second
@@ -243,15 +243,8 @@ community for help.
 What happened to ``EquityOrderBuilder``?
 ----------------------------------------
 
-Long-time users may notice that this documentation no longer mentions the 
-``EquityOrderBuilder`` class. This class used to be used to create equities 
-orders, and offered a subset of the functionality offered by the 
-:ref:`OrderBuilder <order_builder>`. This class has been deprecated in favor of 
-the order builder and the above templates, and will be removed from a future 
-release. 
-
-In the meantime, you can continue using this order builder, although you really 
-should migrate to the new one soon. You can find documentation for this class in 
-the `older versions 
-<https://tda-api.readthedocs.io/en/v0.3.2/orders.html>`__ of ``tda-api``'s 
-documentation. 
+Long-time users and new users following outdated tutorials may notice that
+this documentation no longer mentions the ``EquityOrderBuilder`` class. This
+class used to be used to create equities orders, and offered a subset of the
+functionality offered by the :ref:`OrderBuilder <order_builder>`. This class
+has been removed in favor of the order builder and the above templates. 

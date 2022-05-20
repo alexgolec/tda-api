@@ -160,6 +160,6 @@ def _enable_bug_report_logging(output=sys.stderr, loggers=None):
             print(msg, file=output)
     atexit.register(write_logs)
 
-    get_logger().debug('tda-api version {}'.format(tda.__version__))
+    get_logger().debug('tda-api version %s', tda.__version__)
 
     return write_logs

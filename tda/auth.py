@@ -14,6 +14,7 @@ import warnings
 
 from tda.client import AsyncClient, Client
 from tda.debug import register_redactions
+from tda.utils import LazyLog
 
 
 TOKEN_ENDPOINT = 'https://api.tdameritrade.com/v1/oauth2/token'
@@ -25,7 +26,7 @@ def get_logger():
 
 def __update_token(token_path):
     def update_token(t, *args, **kwargs):
-        get_logger().info('Updating token to file {}'.format(token_path))
+        get_logger().info('Updating token to file %s', token_path)
 
         with open(token_path, 'w') as f:
             json.dump(t, f)
@@ -34,7 +35,7 @@ def __update_token(token_path):
 
 def __token_loader(token_path):
     def load_token():
-        get_logger().info('Loading token from file {}'.format(token_path))
+        get_logger().info('Loading token from file %s', token_path)
 
         with open(token_path, 'rb') as f:
             token_data = f.read()
@@ -42,19 +43,26 @@ def __token_loader(token_path):
                 return json.loads(token_data.decode())
             except ValueError:
                 get_logger().warning(
-                    "Unable to load JSON token from file {}, falling back to pickle"
-                    .format(token_path)
-                )
+                    'Unable to load JSON token from file %s, ' +
+                    'falling back to pickle', token_path)
                 return pickle.loads(token_data)
     return load_token
 
 
-def __normalize_api_key(api_key):
+def _normalize_api_key(api_key):
     api_key_suffix = '@AMER.OAUTHAP'
 
     if not api_key.endswith(api_key_suffix):
-        get_logger().info('Appending {} to API key'.format(api_key_suffix))
+        key_split = api_key.split('@')
+        if len(key_split) != 1:
+            get_logger().warning(
+                    'API key ends in nonstandard suffix "%s". Ignoring',
+                        LazyLog(lambda: '@'.join(key_split[1:])))
+            api_key = key_split[0]
+
+        get_logger().info('Appending %s to API key', api_key_suffix)
         api_key = api_key + api_key_suffix
+
     return api_key
 
 
@@ -62,7 +70,7 @@ def _register_token_redactions(token):
     register_redactions(token)
 
 
-def client_from_token_file(token_path, api_key, asyncio=False):
+def client_from_token_file(token_path, api_key, asyncio=False, enforce_enums=True):
     '''
     Returns a session from an existing token file. The session will perform
     an auth refresh as needed. It will also update the token on disk whenever
@@ -74,16 +82,25 @@ def client_from_token_file(token_path, api_key, asyncio=False):
                        :func:`~tda.auth.easy_client` to create one.
     :param api_key: Your TD Ameritrade application's API key, also known as the
                     client ID.
+    :param asyncio: If set to ``True``, this will enable async support allowing
+                    the client to be used in an async environment. Defaults to
+                    ``False``
+    :param enforce_enums: Set it to ``False`` to disable the enum checks on ALL
+                          the client methods. Only do it if you know you really
+                          need it. For most users, it is advised to use enums
+                          to avoid errors.
     '''
 
     load = __token_loader(token_path)
 
     return client_from_access_functions(
-        api_key, load, __update_token(token_path), asyncio=asyncio)
+        api_key, load, __update_token(token_path), asyncio=asyncio,
+        enforce_enums=enforce_enums)
 
 
 def __fetch_and_register_token_from_redirect(
-        oauth, redirected_url, api_key, token_path, token_write_func, asyncio):
+        oauth, redirected_url, api_key, token_path, token_write_func, asyncio,
+        enforce_enums=True):
     token = oauth.fetch_token(
         TOKEN_ENDPOINT,
         authorization_response=redirected_url,
@@ -102,10 +119,18 @@ def __fetch_and_register_token_from_redirect(
     update_token = metadata_manager.wrapped_token_write_func()
     update_token(token)
 
+    # The synchronous and asynchronous versions of the OAuth2Client are similar
+    # enough that can mostly be used interchangeably. The one currently known
+    # exception is the token update function: the synchronous version expects a
+    # synchronous one, the asynchronous requires an async one. The
+    # oauth_client_update_token variable will contain the appropriate one.
     if asyncio:
+        async def oauth_client_update_token(t, *args, **kwargs):
+            update_token(t, *args, **kwargs)  # pragma: no cover
         session_class = AsyncOAuth2Client
         client_class = AsyncClient
     else:
+        oauth_client_update_token = update_token
         session_class = OAuth2Client
         client_class = Client
 
@@ -115,8 +140,8 @@ def __fetch_and_register_token_from_redirect(
         session_class(api_key, token=token,
                       auto_refresh_url=TOKEN_ENDPOINT,
                       auto_refresh_kwargs={'client_id': api_key},
-                      update_token=update_token),
-        token_metadata=metadata_manager)
+                      update_token=oauth_client_update_token),
+        token_metadata=metadata_manager, enforce_enums=enforce_enums)
 
 
 class RedirectTimeoutError(Exception):
@@ -151,8 +176,8 @@ class TokenMetadata:
         logger = get_logger()
         if cls.is_metadata_aware_token(token):
             logger.info(
-                    'Loaded metadata aware token with creation timestamp {}'
-                    .format(token['creation_timestamp']))
+                    'Loaded metadata aware token with creation timestamp %s',
+                    token['creation_timestamp'])
             return TokenMetadata(
                 token['creation_timestamp'], unwrapped_token_write_func)
         elif cls.is_legacy_token(token):
@@ -204,12 +229,12 @@ class TokenMetadata:
 
         now = int(time.time())
 
-        logger.info((
+        logger.info(
             'Updating refresh token:\n'+
-            ' - Current timestamp is {}\n'+
-            ' - Token creation timestamp is {}\n'+
-            ' - Update interval is {} seconds').format(
-                now, self.creation_timestamp, update_interval_seconds))
+            ' - Current timestamp is %s\n'+
+            ' - Token creation timestamp is %s\n'+
+            ' - Update interval is %s seconds',
+                now, self.creation_timestamp, update_interval_seconds)
 
         if not (self.creation_timestamp is None
                 or now - self.creation_timestamp >
@@ -247,7 +272,8 @@ class TokenMetadata:
 # TODO: Raise an exception when passing both token_path and token_write_func
 def client_from_login_flow(webdriver, api_key, redirect_url, token_path,
                            redirect_wait_time_seconds=0.1, max_waits=3000,
-                           asyncio=False, token_write_func=None):
+                           asyncio=False, token_write_func=None,
+                           enforce_enums=True):
     '''
     Uses the webdriver to perform an OAuth webapp login flow and creates a
     client wrapped around the resulting token. The client will be configured to
@@ -265,11 +291,19 @@ def client_from_login_flow(webdriver, api_key, redirect_url, token_path,
     :param token_path: Path to which the new token will be written. If the token
                        file already exists, it will be overwritten with a new
                        one. Updated tokens will be written to this path as well.
-    '''
-    get_logger().info(('Creating new token with redirect URL \'{}\' ' +
-                       'and token path \'{}\'').format(redirect_url, token_path))
 
-    api_key = __normalize_api_key(api_key)
+    :param asyncio: If set to ``True``, this will enable async support allowing
+                    the client to be used in an async environment. Defaults to
+                    ``False``
+    :param enforce_enums: Set it to ``False`` to disable the enum checks on ALL
+                          the client methods. Only do it if you know you really
+                          need it. For most users, it is advised to use enums
+                          to avoid errors.
+    '''
+    get_logger().info('Creating new token with redirect URL \'%s\' ' +
+                       'and token path \'%s\'', redirect_url, token_path)
+
+    api_key = _normalize_api_key(api_key)
 
     oauth = OAuth2Client(api_key, redirect_uri=redirect_url)
     authorization_url, state = oauth.create_authorization_url(
@@ -312,11 +346,12 @@ def client_from_login_flow(webdriver, api_key, redirect_url, token_path,
 
     return __fetch_and_register_token_from_redirect(
         oauth, current_url, api_key, token_path, token_write_func,
-        asyncio)
+        asyncio, enforce_enums=enforce_enums)
 
 
 def client_from_manual_flow(api_key, redirect_url, token_path,
-                            asyncio=False, token_write_func=None):
+                            asyncio=False, token_write_func=None,
+                            enforce_enums=True):
     '''
     Walks the user through performing an OAuth login flow by manually
     copy-pasting URLs, and returns a client wrapped around the resulting token.
@@ -335,11 +370,18 @@ def client_from_manual_flow(api_key, redirect_url, token_path,
     :param token_path: Path to which the new token will be written. If the token
                        file already exists, it will be overwritten with a new
                        one. Updated tokens will be written to this path as well.
+    :param asyncio: If set to ``True``, this will enable async support allowing
+                    the client to be used in an async environment. Defaults to
+                    ``False``
+    :param enforce_enums: Set it to ``False`` to disable the enum checks on ALL
+                          the client methods. Only do it if you know you really
+                          need it. For most users, it is advised to use enums
+                          to avoid errors.
     '''
-    get_logger().info(('Creating new token with redirect URL \'{}\' ' +
-                       'and token path \'{}\'').format(redirect_url, token_path))
+    get_logger().info('Creating new token with redirect URL \'%s\' ' +
+                       'and token path \'%s\'', redirect_url, token_path)
 
-    api_key = __normalize_api_key(api_key)
+    api_key = _normalize_api_key(api_key)
 
     oauth = OAuth2Client(api_key, redirect_uri=redirect_url)
     authorization_url, state = oauth.create_authorization_url(
@@ -381,11 +423,11 @@ def client_from_manual_flow(api_key, redirect_url, token_path,
 
     return __fetch_and_register_token_from_redirect(
         oauth, redirected_url, api_key, token_path, token_write_func,
-        asyncio)
+        asyncio, enforce_enums=enforce_enums)
 
 
 def easy_client(api_key, redirect_uri, token_path, webdriver_func=None,
-                asyncio=False):
+                asyncio=False, enforce_enums=True):
     '''Convenient wrapper around :func:`client_from_login_flow` and
     :func:`client_from_token_file`. If ``token_path`` exists, loads the token
     from it. Otherwise open a login flow to fetch a new token. Returns a client
@@ -410,24 +452,33 @@ def easy_client(api_key, redirect_uri, token_path, webdriver_func=None,
     :param webdriver_func: Function that returns a webdriver for use in fetching
                            a new token. Will only be called if the token file
                            cannot be found.
+    :param asyncio: If set to ``True``, this will enable async support allowing
+                    the client to be used in an async environment. Defaults to
+                    ``False``
+    :param enforce_enums: Set it to ``False`` to disable the enum checks on ALL
+                          the client methods. Only do it if you know you really
+                          need it. For most users, it is advised to use enums
+                          to avoid errors.
     '''
     logger = get_logger()
 
     if os.path.isfile(token_path):
-        c = client_from_token_file(token_path, api_key, asyncio=asyncio)
-        logger.info('Returning client loaded from token file \'{}\''.format(
-            token_path))
+        c = client_from_token_file(token_path, api_key, asyncio=asyncio,
+                                   enforce_enums=enforce_enums)
+        logger.info(
+                'Returning client loaded from token file \'%s\'', token_path)
         return c
     else:
-        logger.warning('Failed to find token file \'{}\''.format(token_path))
+        logger.warning('Failed to find token file \'%s\'', token_path)
 
         if webdriver_func is not None:
             with webdriver_func() as driver:
                 c = client_from_login_flow(
-                    driver, api_key, redirect_uri, token_path, asyncio=asyncio)
+                    driver, api_key, redirect_uri, token_path, asyncio=asyncio,
+                    enforce_enums=enforce_enums)
                 logger.info(
                     'Returning client fetched using webdriver, writing' +
-                    'token to \'{}\''.format(token_path))
+                    'token to \'%s\'', token_path)
                 return c
         else:
             logger.error('No webdriver_func set, cannot fetch token')
@@ -435,7 +486,8 @@ def easy_client(api_key, redirect_uri, token_path, webdriver_func=None,
 
 
 def client_from_access_functions(api_key, token_read_func,
-                                 token_write_func=None, asyncio=False):
+                                 token_write_func, asyncio=False,
+                                 enforce_enums=True):
     '''
     Returns a session from an existing token file, using the accessor methods to
     read and write the token. This is an advanced method for users who do not
@@ -450,19 +502,26 @@ def client_from_access_functions(api_key, token_read_func,
     simply accept the token object and use ``pickle`` to serialize and
     deserialize it, without inspecting it in any way.
 
+    Note the read and write methods must take particular arguments. Please see 
+    `this example <https://github.com/alexgolec/tda-api/tree/master/examples/
+    client_from_access_functions.py>`__ for details.
+
     :param api_key: Your TD Ameritrade application's API key, also known as the
                     client ID.
     :param token_read_func: Function that takes no arguments and returns a token
                             object.
-    :param token_write_func: Function that a token object and writes it. Will be
+    :param token_write_func: Function that writes the token on update. Will be
                              called whenever the token is updated, such as when
-                             it is refreshed. Optional, but *highly*
-                             recommended. Note old tokens become unusable on
-                             refresh, so not setting this parameter risks
-                             permanently losing refreshed tokens.
+                             it is refreshed. See the above-mentioned example 
+                             for what parameters this method takes.
+    :param asyncio: If set to ``True``, this will enable async support allowing
+                    the client to be used in an async environment. Defaults to
+                    ``False``
+    :param enforce_enums: Set it to ``False`` to disable the enum checks on ALL
+                          the client methods. Only do it if you know you really
+                          need it. For most users, it is advised to use enums
+                          to avoid errors.
     '''
-    logger = get_logger()
-
     token = token_read_func()
 
     # Extract metadata and unpack the token, if necessary
@@ -474,25 +533,24 @@ def client_from_access_functions(api_key, token_read_func,
     _register_token_redactions(token)
 
     # Return a new session configured to refresh credentials
-    api_key = __normalize_api_key(api_key)
+    api_key = _normalize_api_key(api_key)
 
-    session_kwargs = {
-        'token': token,
-        'token_endpoint': TOKEN_ENDPOINT,
-    }
-
-    if token_write_func is not None:
-        wrapped_token_write_func = metadata.wrapped_token_write_func()
-        session_kwargs['update_token'] = wrapped_token_write_func
+    wrapped_token_write_func = metadata.wrapped_token_write_func()
 
     if asyncio:
+        async def oauth_client_update_token(t, *args, **kwargs):
+            wrapped_token_write_func(t, *args, **kwargs)  # pragma: no cover
         session_class = AsyncOAuth2Client
         client_class = AsyncClient
     else:
+        oauth_client_update_token = wrapped_token_write_func
         session_class = OAuth2Client
         client_class = Client
 
     return client_class(
         api_key,
-        session_class(api_key, **session_kwargs),
-        token_metadata=metadata)
+        session_class(api_key,
+            token=token,
+            token_endpoint=TOKEN_ENDPOINT,
+            update_token=oauth_client_update_token),
+        token_metadata=metadata, enforce_enums=enforce_enums)

@@ -5,7 +5,7 @@ import httpx
 import sys
 import tda
 
-API_KEY = 'XXXXXX@AMER.OAUTHAP'
+API_KEY = 'XXXXXX'
 REDIRECT_URI = 'https://localhost:8080/'
 TOKEN_PATH = 'ameritrade-credentials.json'
 YOUR_BIRTHDAY = datetime.datetime(year=1969, month=4, day=20)

@@ -24,7 +24,7 @@ OAuth Refresher
 *This section is purely for the curious. If you already understand OAuth (wow,
 congrats) or if you don't care and just want to use this package as fast as
 possible, feel free to skip this section. If you encounter any weird behavior, 
-this section may help you understand that's going on.*
+this section may help you understand what's going on.*
 
 Webapp authentication is a complex beast. The OAuth protocol was created to 
 allow applications to access one anothers' APIs securely and with the minimum 
@@ -102,7 +102,7 @@ to send API calls. It also handles token refreshing, and writes updated tokens
 to the token file.
 
 These functions are webdriver-agnostic, meaning you can use whatever 
-webdriver-supported browser you can available on your system. You can find 
+webdriver-supported browser you have available on your system. You can find 
 information about available webdriver on the `Selenium documentation
 <https://www.selenium.dev/documentation/en/getting_started_with_webdriver/
 browsers/>`__.
@@ -126,6 +126,35 @@ The following is a convenient wrapper around these two methods, calling each
 when appropriate: 
 
 .. autofunction:: tda.auth.easy_client
+
+If you don't want to create a client and just want to fetch a token, you can use
+the ``tda-generate-token.py`` script that's installed with the library. This 
+method is particularly useful if you want to create your token on one machine 
+and use it on another. The script will attempt to open a web browser and perform 
+the login flow. If it fails, it will fall back to the manual login flow: 
+
+.. code-block:: bash
+
+  # Notice we don't prefix this with "python" because this is a script that was 
+  # installed by pip when you installed tda-api
+  > tda-generate-token.py --help
+  usage: tda-generate-token.py [-h] --token_file TOKEN_FILE --api_key API_KEY --redirect_uri REDIRECT_URI
+
+  Fetch a new token and write it to a file
+
+  optional arguments:
+    -h, --help            show this help message and exit
+
+  required arguments:
+    --token_file TOKEN_FILE
+                        Path to token file. Any existing file will be overwritten
+    --api_key API_KEY
+    --redirect_uri REDIRECT_URI
+
+
+This script is installed by ``pip``, and will only be accessible if you've added
+pip's executable locations to your ``$PATH``. If you're having a hard time, feel
+free to ask for help on our `Discord server <https://discord.gg/BEr6y6Xqyv>`__.
 
 
 ----------------------
@@ -184,7 +213,7 @@ incorrectly. Go back to your `application list
 <https://developer.tdameritrade.com/user/me/apps>`__ and copy-paste the 
 information again. Don't manually type it out, don't visually spot-check it. 
 Copy-paste it. Make sure to include details like trailing slashes, ``https`` 
-protol specifications, and port numbers. 
+protocol specifications, and port numbers. 
 
 Note ``tda-api`` *does not* require you to suffix your client ID with 
 ``@AMER.OAUTHAP``. It will accept it if you do so, but if you make even the 
@@ -219,6 +248,53 @@ If this is happening to you, consider changing your callback URI to use
 ``https`` instead of ``http``. Not only will it make your life easier here, but 
 it is *extremely* bad practice to send credentials like this over an unencrypted 
 channel like that provided by ``http``.
+
+
+.. _missing_chromedriver:
+
+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+``WebDriverException: Message: 'chromedriver' executable needs to be in PATH``
+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
+When creating a ``tda-api`` token using a webrowser-based method like 
+:func:`~tda.auth.client_from_login_flow` or :func:`~tda.auth.easy_client`, the 
+library must control the browser using `selenium 
+<https://selenium-python.readthedocs.io/>`__. This is a Python library that 
+sends commands to the browser to perform operations like load pages, inject 
+synthetic clicks, enter text, and so on. The component which is used to send 
+these commands is called a *driver*. 
+
+Drivers are generally not part of the standard web browser installation, meaning 
+you must install them manually. If you're seeing this or a similar message, you 
+probably haven't installed the appropriate webdriver. Drivers are 
+available for most of the common web browsers, including `Chrome 
+<https://chromedriver.chromium.org/getting-started/>`__, `Firefox 
+<https://github.com/mozilla/geckodriver/releases>`__, and `Safari 
+<https://developer.apple.com/documentation/webkit/testing_with_webdriver_in_safari>`__.  
+Make sure you've installed the driver *before* attempting to create a token 
+using ``tda-api``.
+
+
+.. _invalid_grant:
+
+++++++++++++++++++++++++++++++++++++++++++++
+``OAuthError: invalid_grant: invalid_grant``
+++++++++++++++++++++++++++++++++++++++++++++
+
+``tda-api`` automatically refreshes your tokens: first, a new access token is 
+generated every 30 minutes as part of the regular OAuth authentication process.  
+Second, the refresh token (used to generate new access tokens) is itself 
+refreshed prior to expiring after 90 days. In particular, when the refresh token 
+is more than 85 days old, the library will interrupt any API call to perform the 
+refresh. This happens part of the regular operation of the library, and no 
+special action is needed to trigger it. 
+
+This usually works great, and most users don't need to worry about refreshing 
+tokens or logging in. However, note that the 85 day refresh token refresh is 
+only triggered *on API calls*. If your application is not running or does not 
+attempt to perform any API calls during this time, the refresh token will expire 
+and you will see this error. Once the token expires, you cannot revive it, and 
+you'll need to delete it and create a new one.
 
 
 ++++++++++++++++++++++
@@ -269,3 +345,4 @@ browser, you can easily copy that token file to another machine, such as your
 application in the cloud. However, make sure you don't use the same token on 
 two machines. It is recommended to delete the token created on the 
 browser-capable machine as soon as it is copied to its destination. 
+
