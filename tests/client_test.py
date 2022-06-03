@@ -844,7 +844,7 @@ class _TestClient:
             self.make_url('/v1/marketdata/chains'), params={
                 'apikey': API_KEY,
                 'symbol': 'AAPL',
-                'range': 'IN_THE_MONEY'})
+                'range': 'ITM'})
 
     
     def test_get_option_chain_strike_range_unchecked(self):
