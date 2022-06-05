@@ -145,6 +145,19 @@ own, the constructor looks like this:
 
 .. automethod:: tda.client.Client.__init__
 
+
+++++++++++++++++++
+Timeout Management
+++++++++++++++++++
+
+Timeouts for HTTP calls are managed under the hood by the ``httpx`` library.  
+``tda-api`` defaults to 30 seconds, which experience has shown should be more 
+than enough to allow even the slowest API calls to complete. A different timeout 
+specification can be set using this method:
+
+.. automethod:: tda.client.Client.set_timeout
+
+
 .. _orders-section:
 
 ++++++

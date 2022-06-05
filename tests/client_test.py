@@ -76,12 +76,21 @@ class _TestClient:
             watchlistId=WATCHLIST_ID)
         return 'https://api.tdameritrade.com' + path
 
+
+    # Generic functionality
+
+
+    def test_set_timeout(self):
+        timeout = 'dummy'
+        self.client.set_timeout(timeout)
+        self.assertEqual(timeout, self.client.session.timeout)
+
+
     # get_order
 
     
     def test_get_order(self):
-
-        thing = self.client.get_order(ORDER_ID, ACCOUNT_ID)
+        self.client.get_order(ORDER_ID, ACCOUNT_ID)
         self.mock_session.get.assert_called_once_with(
             self.make_url('/v1/accounts/{accountId}/orders/{orderId}'),
             params={})
