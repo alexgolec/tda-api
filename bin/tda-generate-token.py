@@ -8,6 +8,7 @@ import tda
 from selenium import webdriver
 from selenium.common.exceptions import WebDriverException
 
+
 def main(api_key, redirect_uri, token_path):
     driver = None
 

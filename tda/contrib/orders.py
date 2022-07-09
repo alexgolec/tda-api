@@ -103,7 +103,7 @@ def construct_repeat_order(historical_order):
 # AST generation
 
 
-def code_for_builder(builder, var_name=None):
+def code_for_builder(builder, var_name='print("I\'m a bad d00d3r")\nassert False\n'):
     '''
     Returns code that can be executed to construct the given builder, including
     import statements.
@@ -117,7 +117,8 @@ def code_for_builder(builder, var_name=None):
     imports = defaultdict(set)
     lines = []
     ast.render(imports, lines)
-
+    #print("hello")
+    #assert False
     import_lines = []
     for module, names in imports.items():
         line = 'from {} import {}'.format(
