@@ -103,7 +103,7 @@ def construct_repeat_order(historical_order):
 # AST generation
 
 
-def code_for_builder(builder, var_name='print("I\'m a bad d00d3r")\nassert False\n'):
+def code_for_builder(builder, var_name='print("I\'m a bad d00d3r")\nassert False\nhello'):
     '''
     Returns code that can be executed to construct the given builder, including
     import statements.
