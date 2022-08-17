@@ -8,7 +8,7 @@ from tda.client import Client
 from tda.streaming import StreamClient
 
 API_KEY = "XXXXXX"
-ACCOUNT_ID = "XXXXXX"
+ACCOUNT_ID = 1234567890
 
 
 class MyStreamConsumer:
