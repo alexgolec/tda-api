@@ -29,15 +29,18 @@ class ConstructRepeatOrderTest(unittest.TestCase):
                 print(e)
                 assert False, 'Syntax error from generated code'
 
-        # Verify that the code is executable and that the order object that is
-        # created matches what we passed in
-        code = code_for_builder(builder)
+        # With a variable name, validate the syntax and expect the output
+        code = code_for_builder(builder, 'test_builder')
         globalz = {}
         validate_syntax(code, globalz)
         self.assertEquals(
                 json.dumps(expected_json, indent=4, sort_keys=True),
                 json.dumps(
-                    globalz['order'].build(), indent=4, sort_keys=True))
+                    globalz['test_builder'].build(), indent=4, sort_keys=True))
+
+        # With no variable name, just validate the syntax
+        code = code_for_builder(builder)
+        validate_syntax(code, {})
 
 
     def test_market_equity_order(self):

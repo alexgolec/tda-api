@@ -103,7 +103,7 @@ def construct_repeat_order(historical_order):
 # AST generation
 
 
-def code_for_builder(builder):
+def code_for_builder(builder, var_name=None):
     '''
     Returns code that can be executed to construct the given builder, including
     import statements.
@@ -127,10 +127,15 @@ def code_for_builder(builder):
                     module, ',\n'.join(names))
         import_lines.append(line)
 
+    if var_name:
+        var_prefix = f'{var_name} = '
+    else:
+        var_prefix = ''
+
     return autopep8.fix_code(
             '\n'.join(import_lines) + 
             '\n\n' +
-            'order = ' +
+            var_prefix +
             '\n'.join(lines))
 
 
