@@ -7,9 +7,27 @@ Getting Started
 Welcome to ``tda-api``! Read this page to learn how to install and configure 
 your first TD Ameritrade Python application.
 
+
++++++++++++++++++++++++++++++++++++++++++++++++++
+Important New About the Charles Schwab Transition
++++++++++++++++++++++++++++++++++++++++++++++++++
+
+Following its 2020 acquisition of TDAmeritrade, Charles Schwab has begun its 
+transition to TDAmeritrade. Notably for most readers of this page, this means 
+that API keys are no longer being registered. If you do not already have an API 
+key, *you cannot use ``tda-api``*. Our apologies. 
+
+You can find more information on our :ref:`Charles Schwab transition page 
+<schwab>`.
+
+
 ++++++++++++++++++++++++
 TD Ameritrade API Access
 ++++++++++++++++++++++++
+
+**Note:** *Now that TDAmeritrade has closed registrations, this section is now 
+likely impossible to follow. We've left it up just in case we're wrong about 
+that.*
 
 All API calls to the TD Ameritrade API require an API key. Before we do 
 anything with ``tda-api``, you'll need to create a developer account with TD 
