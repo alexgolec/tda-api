@@ -17,6 +17,7 @@
   :maxdepth: 2
   :caption: Contents:
 
+  schwab
   getting-started
   auth
   client
