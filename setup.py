@@ -28,7 +28,7 @@ setuptools.setup(
         'Operating System :: OS Independent',
         'Topic :: Office/Business :: Financial :: Investment',
     ],
-    python_requires='>=3.6',
+    python_requires='>=3.7',
     install_requires=[
         'authlib',
         'autopep8',
