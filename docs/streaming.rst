@@ -484,7 +484,7 @@ Options Order Book
 
 This stream provides the order book for options. It's not entirely clear what 
 exchange it aggregates from, but it's been tested to work and deliver data. The 
-leading hypothesis is that it is bethe order book for the 
+leading hypothesis is that it is the order book for the 
 `Chicago Board of Exchange <https://www.cboe.com/us/options>`__ options 
 exchanges, although this is an admittedly an uneducated guess.
 
@@ -546,32 +546,9 @@ We currently believe this is an issue on TDA's side.
 News Headlines
 ++++++++++++++
 
-TD Ameritrade supposedly supports streaming news headlines. However, we have 
-yet to receive any reports of successful access to this stream. Attempts to read 
-this stream result in messages like the following, followed by TDA-initiated 
-stream closure:
-
-.. code-block:: JSON
-
-  {
-      "notify": [
-          {
-              "service": "NEWS_HEADLINE",
-              "timestamp": 1591500923797,
-              "content": {
-                  "code": 17,
-                  "msg": "Not authorized for all quotes."
-              }
-          }
-      ]
-  }
-
-The current hypothesis is that this stream requires some permissions or paid 
-access that so far no one has had.If you manage to get this stream working, or
-even if you manage to get it to fail with a different message than the one 
-above, please `report it <https://github.com/alexgolec/tda-api/issues>`__. In
-the meantime, ``tda-api`` provides the following methods for attempting to
-access this stream.
+This stream returns news headlines for a set of symbols. If you encounter issues
+activating this stream or receive an error response from TDA, please reach out to
+our `Discord server <https://discord.gg/BEr6y6Xqyv>`__ for help.
 
 .. automethod:: tda.streaming::StreamClient.news_headline_subs
 .. automethod:: tda.streaming::StreamClient.news_headline_unsubs
