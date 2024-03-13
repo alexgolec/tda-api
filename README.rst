@@ -5,7 +5,7 @@
   :target: https://discord.gg/BEr6y6Xqyv
 
 .. image:: https://img.shields.io/endpoint.svg?url=https%3A%2F%2Fshieldsio-patreon.vercel.app%2Fapi%3Fusername%3Dalexgolec%26type%3Dpatrons&style=flat
-  :target: https://patreon.com/alexgolec
+  :target: https://patreon.com/TDAAPI
 
 .. image:: https://readthedocs.org/projects/tda-api/badge/?version=latest
   :target: https://tda-api.readthedocs.io/en/latest/?badge=latest

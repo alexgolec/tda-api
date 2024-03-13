@@ -7,7 +7,7 @@
 
 .. image:: _static/patreon.png
    :width: 110
-   :target: https://www.patreon.com/alexgolec
+   :target: https://www.patreon.com/TDAAPI
 
 .. image:: _static/discord-logo.png
    :width: 50
