@@ -28,7 +28,8 @@ def main(api_key, redirect_uri, token_path):
     if driver is None:
         try:
             driver = webdriver.Safari()
-        except WebDriverException as e:
+        except Exception as e:
+            # Currently raises a generic Exception
             print('Failed to open Safari, continuing:', e)
 
     # Edge
@@ -52,7 +53,6 @@ def main(api_key, redirect_uri, token_path):
     if driver is None:
         print('Failed to open any webdriver. See here for help: ' +
               'https://tda-api.readthedocs.io/en/latest/help.html')
-        return -1
 
     try:
         with driver:
