@@ -751,6 +751,7 @@ class BaseClient(EnumEnforcer):
             EVERY_TEN_MINUTES = 10
             EVERY_FIFTEEN_MINUTES = 15
             EVERY_THIRTY_MINUTES = 30
+            EVERY_SIXTY_MINUTES = 60
 
             # Other frequencies
             DAILY = 1
