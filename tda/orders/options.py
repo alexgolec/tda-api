@@ -90,13 +90,20 @@ class OptionSymbol:
                 'float')
 
         # Remove extraneous zeroes at the end
-        strike_copy = strike_price_as_string
-        while strike_copy[-1] == '0':
-            strike_copy = strike_copy[:-1]
-        if strike_copy[-1] == '.':
-            strike_price_as_string = strike_copy[:-1]
+        cleaned_strike_price = None
+        try:
+            _ = strike_price_as_string.index('.') # check if strike price contains decimal
+            strike_copy = strike_price_as_string
+            while strike_copy[-1] == '0':
+                strike_copy = strike_copy[:-1]
+            if strike_copy[-1] == '.': # if strike price was of the form x.00 then remove the decimal point
+                strike_copy = strike_copy[:-1]
+            cleaned_strike_price = strike_copy
+        except ValueError:
+            cleaned_strike_price = strike_price_as_string
+        
 
-        self.strike_price = strike_price_as_string
+        self.strike_price = cleaned_strike_price
 
     @classmethod
     def parse_symbol(cls, symbol):

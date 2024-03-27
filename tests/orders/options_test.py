@@ -153,6 +153,18 @@ class OptionSymbolTest(unittest.TestCase):
         self.assertEqual(op.strike_price, '2200.25')
 
         self.assertEqual('GOOG_121520P2200.25', op.build())
+    
+    @no_duplicates
+    def test_init_success_decimal_in_strike_with_trailing_zero(self):
+        op = OptionSymbol('GOOG', '121520', 'P', '2200.10')
+        self.assertEqual(op.underlying_symbol, 'GOOG')
+        self.assertEqual(
+                op.expiration_date, datetime.date(
+                    year=2020, month=12, day=15))
+        self.assertEqual(op.contract_type, 'P')
+        self.assertEqual(op.strike_price, '2200.1')
+
+        self.assertEqual('GOOG_121520P2200.1', op.build())
 
     @no_duplicates
     def test_init_success_point_zero_in_strike(self):
