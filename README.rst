@@ -19,8 +19,8 @@
 .. image:: http://codecov.io/github/alexgolec/tda-api/coverage.svg?branch=master
   :target: http://codecov.io/github/alexgolec/tda-api?branch=master
 
-``schwab-py`` and ``tda-api``'s Future Following the `TD-Ameritrade to Charles Schwab Transition <https://welcome.schwab.com/?cmp=ilc-WKV>`__
----------------------------------------------------------------------------------------------------------------------------------------------
+``schwab-py`` and ``tda-api``'s Future Following the `Schwab Transition <https://welcome.schwab.com/?cmp=ilc-WKV>`__
+--------------------------------------------------------------------------------------------------------------------
 
 With the upcoming transition to Charles Schwab, we have been developing
 a new ``schwab-py`` API `(linked here) <https://github.com/alexgolec/schwab-py>`__
