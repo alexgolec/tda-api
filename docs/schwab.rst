@@ -41,7 +41,7 @@ As far as we understand it, the implications of this transition for existing
 
 * All accounts will be transitioned to Schwab over the course of 2023.
 * Once an account is transitioned to Schwab, it will lose access to the TDAmeritrade REST API. This means all API wrappers will stop working on that account, including ``tda-api``.
-* Schwab has announced their intention to provide an API for retail traders, but no such API has materialized yet. They have also `stated that this API will be largely similar to the existing TDAmeritrade API <https://developer.tdameritrade.com/content/trader-api-schwab-integration-guide>`__, with some modifications. Again, details are forthcoming. 
+* Schwab has announced their intention to provide an API for retail traders, but no such API has materialized yet. They have also `stated that this API will be largely similar to the existing TDAmeritrade API <https://developer.tdameritrade.com/content/trader-api-schwab-integration-guide-june-2023-update>`__, with some modifications. Again, details are forthcoming. 
 
 
 +++++++++++++++++++++++++++++++++++++
@@ -80,6 +80,13 @@ What happens to the ``tda-api`` app after I transition?
 It stops working. You will need to migrate your app to the upcoming Schwab API, 
 once it becomes available.
 
+We have begun developing a new ``schwab-py`` API `(linked here) <https://github.com/alexgolec/schwab-py>`__
+which implements much of the functionality of ``tda-api``, but is adapted
+for `Charles Schwab's API <https://developer.schwab.com/>`__.  This new API
+will be maintained and supported going forward, and replaces ``tda-api``.
+``schwab-py`` is still under development with more features rolling out
+quickly, and already implements much of the functionality of the original
+``tda-api``.
 
 +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 What if I transition before the new Schwab API becomes available?
@@ -95,7 +102,7 @@ know, the Schwab API will be made available before your account is transitioned,
 and your access to a retail trading API will not be interrupted. However, this 
 scenario has not been ruled out, either. TDAmeritrade's/Schwab's `integration 
 guide
-<https://developer.tdameritrade.com/content/trader-api-schwab-integration-guide>`__ 
+<https://developer.tdameritrade.com/content/trader-api-schwab-integration-guide-june-2023-update>`__ 
 says *"It is possible that a TDA brokerage account may not be migrated to Schwab 
 brokerage before Schwab endpoints are live,"* although we're frankly at a loss 
 for how to interpret that statement.
@@ -117,7 +124,7 @@ this is based on preliminary information and subject to change at any time:
 * TDAmeritrade/Schwab has also confirmed that you will need to register a new 
   application, i.e. receive a new API key. Schwab has announced this will happen 
   in `"early 2023." 
-  <https://developer.tdameritrade.com/content/trader-api-schwab-integration-guide>`__
+  <https://developer.tdameritrade.com/content/trader-api-schwab-integration-guide-june-2023-update>`__
 
 
 ---------------------
@@ -166,4 +173,4 @@ the following links:
 
 * `TDAmeritrade Transition Overview <https://welcome.schwab.com/?aff=WKV>`__ at Charles Schwab
 * `TDAmeritrade & Charles Schwab: What to Know <https://www.tdameritrade.com/why-td-ameritrade/td-ameritrade-charles-schwab.html>`__ at TDAmeritrade
-* `Trader API Schwab Integration Guide <https://developer.tdameritrade.com/content/trader-api-schwab-integration-guide>`__ at TDAmeritrade's developer portal
+* `Trader API Schwab Integration Guide <https://developer.tdameritrade.com/content/trader-api-schwab-integration-guide-june-2023-update>`__ at TDAmeritrade's developer portal
