@@ -33,7 +33,7 @@ TD Ameritrade's API endpoints will no longer work after Friday, May
 10th, 2024.  All TD Ameritrade clients will have moved to Charles Schwab,
 and TD Ameritrade will have turned off the TD Ameritrade API endpoints.
 
-.. |schwab-py| replace:: ``schwab-py`` `API
+.. |schwab-py| replace:: ``schwab-py``
 .. _schwab-py: https://github.com/alexgolec/schwab-py
 
 
