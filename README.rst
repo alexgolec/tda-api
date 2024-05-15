@@ -12,8 +12,8 @@ guides<https://schwab-py.readthedocs.io/en/latest/>`__. If you have any
 questions, please ask them on our `Discord 
 server<https://discord.gg/BEr6y6Xqyv>`__
 
-This project is now defunct, and this repo is provided for archival purposes 
-only.
+The old ``tda-api`` project is now defunct, and this repo is provided for 
+archival purposes only.
 
 
 ``tda-api``: A TD Ameritrade API Wrapper
