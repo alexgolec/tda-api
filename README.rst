@@ -1,3 +1,8 @@
+TDAmeritrade is now defunct, please switch to ``schwab-py``
+===========================================================
+
+
+
 ``tda-api``: A TD Ameritrade API Wrapper
 ========================================
 
