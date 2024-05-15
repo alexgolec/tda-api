@@ -17,7 +17,7 @@ only.
 
 
 ``tda-api``: A TD Ameritrade API Wrapper
-========================================
+----------------------------------------
 
 .. image:: https://img.shields.io/discord/720378361880248621.svg?label=&logo=discord&logoColor=ffffff&color=7389D8&labelColor=6A7EC2
   :target: https://discord.gg/BEr6y6Xqyv
