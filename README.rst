@@ -1,5 +1,23 @@
+TDAmeritrade is now defunct
+===========================
+
+On May 10th, 2024, Charles Schwab officially turned down the TDAmeritrade 
+service and migrated its last batch of customers to Charles Schwab. With this 
+change, ``tda-api`` and the API that backed it stopped working.
+
+Fortunately, a new API is available, and it's quite similar to ``tda-api``.  
+We've been hard at work on ``schwab-py``, a replacement for ``tda-api``. Here is 
+the `documentation, complete with getting started and migration 
+guides<https://schwab-py.readthedocs.io/en/latest/>`__. If you have any 
+questions, please ask them on our `Discord 
+server<https://discord.gg/BEr6y6Xqyv>`__
+
+The old ``tda-api`` project is now defunct, and this repo is provided for 
+archival purposes only.
+
+
 ``tda-api``: A TD Ameritrade API Wrapper
-========================================
+----------------------------------------
 
 .. image:: https://img.shields.io/discord/720378361880248621.svg?label=&logo=discord&logoColor=ffffff&color=7389D8&labelColor=6A7EC2
   :target: https://discord.gg/BEr6y6Xqyv
