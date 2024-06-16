@@ -8,9 +8,9 @@ change, ``tda-api`` and the API that backed it stopped working.
 Fortunately, a new API is available, and it's quite similar to ``tda-api``.  
 We've been hard at work on ``schwab-py``, a replacement for ``tda-api``. Here is 
 the `documentation, complete with getting started and migration 
-guides<https://schwab-py.readthedocs.io/en/latest/>`__. If you have any 
+guides <https://schwab-py.readthedocs.io/en/latest/>`__. If you have any 
 questions, please ask them on our `Discord 
-server<https://discord.gg/BEr6y6Xqyv>`__
+server <https://discord.gg/BEr6y6Xqyv>`__
 
 The old ``tda-api`` project is now defunct, and this repo is provided for 
 archival purposes only.
