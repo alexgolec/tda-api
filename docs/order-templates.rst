@@ -74,6 +74,10 @@ Sell orders
 
 .. autofunction:: tda.orders.equities.equity_sell_market
 .. autofunction:: tda.orders.equities.equity_sell_limit
+.. autofunction:: tda.orders.equities.equity_sell_stop
+.. autofunction:: tda.orders.equities.equity_sell_stop_limit
+.. autofunction:: tda.orders.equities.equity_sell_trailing_stop
+.. autofunction:: tda.orders.equities.equity_sell_trailing_stop_limit
 
 +++++++++++++++++
 Sell short orders
