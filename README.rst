@@ -37,6 +37,25 @@ archival purposes only.
 .. image:: http://codecov.io/github/alexgolec/tda-api/coverage.svg?branch=master
   :target: http://codecov.io/github/alexgolec/tda-api?branch=master
 
+``schwab-py`` and ``tda-api``'s Future Following the `Schwab Transition <https://welcome.schwab.com/?cmp=ilc-WKV>`__
+--------------------------------------------------------------------------------------------------------------------
+
+With the upcoming transition to Charles Schwab, we have been developing
+a new ``schwab-py`` API `(linked here) <https://github.com/alexgolec/schwab-py>`__
+which implements much of the functionality of ``tda-api``, but is adapted
+for `Charles Schwab's API <https://developer.schwab.com/>`__.
+The new ``schwab-py`` API replaces ``tda-api``, and ``tda-api`` will no
+longer be actively maintained.  All new users should refer to ``schwab-py``
+for the latest and most up-to-date features.
+
+TD Ameritrade's API endpoints will no longer work after Friday, May
+10th, 2024.  All TD Ameritrade clients will have moved to Charles Schwab,
+and TD Ameritrade will have turned off the TD Ameritrade API endpoints.
+
+For more details on the future of the `tda-api` and the Schwab Transition,
+`read here <https://tda-api.readthedocs.io/en/latest/schwab.html>`__.
+
+
 What is ``tda-api``?
 --------------------
 
