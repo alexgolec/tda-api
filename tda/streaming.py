@@ -1929,3 +1929,126 @@ class StreamClient(EnumEnforcer):
         '''
         self._handlers['NEWS_HEADLINE'].append(
             self._BookHandler(handler, self.NewsHeadlineFields))
+
+    ##########################################################################
+    # ACTIVES
+
+    class ActivesFields(_BaseFieldEnum):
+        '''
+        `Official documentation <https://developer.tdameritrade.com/content/
+        streaming-data#_Toc504640583>`__
+        '''
+        SYMBOL = 0    
+        ACTIVES_DATA = 1
+           
+    async def actives_options_subs(self, keys):
+        '''
+        `Official documentation <https://developer.tdameritrade.com/content/
+        streaming-data#_Toc504640583>`__
+
+        Subscribe to the day's top traded option symbols.
+        '''
+        await self._service_op(keys, 'ACTIVES_OPTIONS', 'SUBS',
+                               self.ActivesFields,
+                               fields=self.ActivesFields.all_fields()) 
+
+    async def actives_options_unsubs(self, keys):
+        '''
+        `Official documentation <https://developer.tdameritrade.com/content/
+        streaming-data#_Toc504640583>`__
+
+        Un-Subscribe from active option symbols.
+        '''
+        await self._service_op(keys, 'ACTIVES_OPTIONS', 'UNSUBS')
+
+    def add_actives_options_handler(self, handler):
+        '''
+        Register a function to handle active options as they are provided. See
+        :ref:`registering_handlers` for details.
+        '''
+        self._handlers['ACTIVES_OPTIONS'].append(_Handler(handler,
+                                                          self.ActivesFields))
+
+    async def actives_otcbb_subs(self, keys):
+        '''
+        `Official documentation <https://developer.tdameritrade.com/content/
+        streaming-data#_Toc504640583>`__
+
+        Subscribe to the most active OTCBB symbols.
+        '''
+        await self._service_op(keys, 'ACTIVES_OTCBB', 'SUBS',
+                               self.ActivesFields,
+                               fields=self.ActivesFields.all_fields()) 
+
+    async def actives_otcbb_unsubs(self, keys):
+        '''
+        `Official documentation <https://developer.tdameritrade.com/content/
+        streaming-data#_Toc504640583>`__
+
+        Un-Subscribe from the most active OTCBB symbols.
+        '''
+        await self._service_op(keys, 'ACTIVES_OTCBB', 'UNSUBS')
+
+    def add_actives_otcbb_handler(self, handler):
+        '''
+        Register a function to handle actives as they are provided. See
+        :ref:`registering_handlers` for details.
+        '''
+        self._handlers['ACTIVES_OTCBB'].append(_Handler(handler,
+                                                        self.ActivesFields))
+    
+    async def actives_nyse_subs(self, keys):
+        '''
+        `Official documentation <https://developer.tdameritrade.com/content/
+        streaming-data#_Toc504640583>`__
+
+        Subscribe to the NYSE's most active symbols.
+        '''
+        await self._service_op(keys, 'ACTIVES_NYSE', 'SUBS',
+                               self.ActivesFields,
+                               fields=self.ActivesFields.all_fields()) 
+
+    async def actives_nyse_unsubs(self, keys):
+        '''
+        `Official documentation <https://developer.tdameritrade.com/content/
+        streaming-data#_Toc504640583>`__
+
+        Un-Subscribe from NYSE actives.
+        '''
+        await self._service_op(keys, 'ACTIVES_NYSE', 'UNSUBS')
+
+    def add_actives_nyse_handler(self, handler):
+        '''
+        Register a function to handle actives as they are provided. See
+        :ref:`registering_handlers` for details.
+        '''
+        self._handlers['ACTIVES_NYSE'].append(_Handler(handler,
+                                                       self.ActivesFields))
+    
+    async def actives_nasdaq_subs(self, keys):
+        '''
+        `Official documentation <https://developer.tdameritrade.com/content/
+        streaming-data#_Toc504640583>`__
+
+        Subscribe to the NASDAQ's most active symbols.
+        '''
+        await self._service_op(keys, 'ACTIVES_NASDAQ', 'SUBS',
+                               self.ActivesFields,
+                               fields=self.ActivesFields.all_fields()) 
+
+    async def actives_nasdaq_unsubs(self, keys):
+        '''
+        `Official documentation <https://developer.tdameritrade.com/content/
+        streaming-data#_Toc504640583>`__
+
+        Un-Subscribe from NASDAQ actives.
+        '''
+        await self._service_op(keys, 'ACTIVES_NASDAQ', 'UNSUBS')
+
+    def add_actives_nasdaq_handler(self, handler):
+        '''
+        Register a function to handle actives as they are provided. See
+        :ref:`registering_handlers` for details.
+        '''
+        self._handlers['ACTIVES_NASDAQ'].append(_Handler(handler,
+                                                         self.ActivesFields))
